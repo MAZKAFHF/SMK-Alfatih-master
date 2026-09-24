@@ -8,8 +8,8 @@
                 <x-ui.input label="Slug" name="slug" value="{{ old('slug') }}" placeholder="Otomatis" />
             </div>
             <x-ui.rich-text-editor label="Konten" name="content" :value="old('content')" help="Konten halaman akan ditampilkan di halaman publik dengan format yang sama." required />
+            <x-ui.image-preview label="Gambar Header" name="image" help="Gambar header halaman, tampil di halaman publik." maxSize="Max 4MB, JPG/PNG/WEBP" />
             <div class="grid gap-5 sm:grid-cols-2">
-                <x-ui.input label="Gambar Header" name="image" type="file" accept="image/*" />
                 <x-ui.select label="Status" name="status" :value="old('status','published')" :options="['published'=>'Published','draft'=>'Draft','archived'=>'Archived']" required />
                 <x-ui.input label="Urutan (navbar)" name="order" type="number" value="{{ old('order',0) }}" />
                 <x-ui.input label="Meta Title" name="meta_title" value="{{ old('meta_title') }}" />

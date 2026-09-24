@@ -26,10 +26,13 @@ class GallerySeeder extends Seeder
 
         $order = 1;
         foreach ($galleries as $gallery) {
-            Gallery::updateOrCreate(
-                ['title' => $gallery['title']],
-                array_merge($gallery, ['status' => 'published', 'order' => $order++, 'image' => null])
-            );
+            $existing = Gallery::where('title', $gallery['title'])->first();
+            if ($existing) {
+                // Jangan timpa gambar yang sudah diupload admin — hanya pastikan status/order
+                $existing->update(array_merge($gallery, ['status' => 'published', 'order' => $order++]));
+            } else {
+                Gallery::create(array_merge($gallery, ['status' => 'published', 'order' => $order++, 'image' => null]));
+            }
         }
     }
 }

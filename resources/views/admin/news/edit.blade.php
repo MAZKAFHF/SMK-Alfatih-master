@@ -9,11 +9,10 @@
                 <x-ui.input label="Slug" name="slug" value="{{ old('slug',$news->slug) }}" required />
             </div>
             <x-ui.rich-text-editor label="Konten" name="content" :value="old('content', $news->content)" required />
+            <div class="sm:col-span-2">
+                <x-ui.image-preview label="Thumbnail" name="thumbnail" :value="$news->thumbnail" help="Biarkan kosong untuk memakai thumbnail saat ini." maxSize="Max 4MB, JPG/PNG/WEBP" />
+            </div>
             <div class="grid gap-5 sm:grid-cols-2">
-                @if($news->thumbnail)
-                    <div class="sm:col-span-2"><p class="text-xs text-slate-500 mb-2">Thumbnail saat ini:</p><img src="{{ $news->thumbnail }}" class="h-32 rounded border object-cover" loading="lazy" alt="" /></div>
-                @endif
-                <x-ui.input label="Ganti Thumbnail" name="thumbnail" type="file" accept="image/*" />
                 <x-ui.select label="Status" name="status" :value="old('status',$news->status->value)" :options="['draft'=>'Draft','published'=>'Published','archived'=>'Archived']" required />
                 <x-ui.input label="Jadwal Publikasi" name="published_at" type="datetime-local" value="{{ old('published_at', $news->published_at?->timezone('Asia/Jakarta')->format('Y-m-d\TH:i')) }}" />
             </div>

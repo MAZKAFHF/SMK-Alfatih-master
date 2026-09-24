@@ -105,10 +105,7 @@
                                         <x-ui.input label="Slug" name="slug" value="{{ old('slug', $page->slug) }}" required help="Huruf kecil, tanpa spasi. Ubah akan mengubah URL." />
                                     </div>
                                     <x-ui.rich-text-editor label="Konten" name="content" :value="old('content', $page->content)" required />
-                                    @if($page->image)
-                                        <div><p class="mb-2 text-xs font-medium text-slate-500">Gambar saat ini:</p><img src="{{ $page->image }}" alt="{{ $page->title }}" class="h-32 w-auto rounded-lg border object-cover" loading="lazy" /></div>
-                                    @endif
-                                    <x-ui.input label="Ganti Gambar" name="image" type="file" accept="image/*" help="JPG/PNG/WEBP max 4MB" />
+                                    <x-ui.image-preview label="Gambar" name="image" :value="$page->image" help="Biarkan kosong untuk memakai gambar saat ini." maxSize="Max 4MB, JPG/PNG/WEBP" />
                                     <div class="grid gap-5 sm:grid-cols-2">
                                         <x-ui.input label="Meta Title" name="meta_title" value="{{ old('meta_title', $page->meta_title) }}" placeholder="Kosongkan = pakai judul" />
                                         <x-ui.input label="Urutan Navbar" name="order" type="number" value="{{ old('order', $page->order) }}" />

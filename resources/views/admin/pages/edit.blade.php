@@ -1,7 +1,6 @@
 <x-admin.layouts.app :title="'Edit Halaman'">
     <div class="mb-5"><a href="{{ route('admin.pages.index') }}" class="text-sm text-slate-500">&larr; Kembali</a><h1 class="mt-2 text-xl font-extrabold">Edit: {{ $page->title }}</h1></div>
     <x-ui.card class="p-6">
-        @if($page->image)<img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($page->getRawOriginal('image')) }}" class="mb-4 h-40 rounded-lg border object-cover" alt="" />@endif
         <form method="POST" action="{{ route('admin.pages.update',$page) }}" enctype="multipart/form-data" class="space-y-5">
             @csrf @method('PUT')
             <div class="grid gap-5 sm:grid-cols-2">
@@ -9,8 +8,8 @@
                 <x-ui.input label="Slug" name="slug" value="{{ old('slug',$page->slug) }}" required />
             </div>
             <x-ui.rich-text-editor label="Konten" name="content" :value="old('content', $page->content)" required />
+            <x-ui.image-preview label="Gambar" name="image" :value="$page->image" help="Biarkan kosong untuk memakai gambar saat ini." maxSize="Max 4MB, JPG/PNG/WEBP" />
             <div class="grid gap-5 sm:grid-cols-2">
-                <x-ui.input label="Ganti Gambar" name="image" type="file" accept="image/*" />
                 <x-ui.select label="Status" name="status" :value="old('status',$page->status->value)" :options="['published'=>'Published','draft'=>'Draft','archived'=>'Archived']" required />
                 <x-ui.input label="Urutan" name="order" type="number" value="{{ old('order',$page->order) }}" />
                 <x-ui.input label="Meta Title" name="meta_title" value="{{ old('meta_title',$page->meta_title) }}" />

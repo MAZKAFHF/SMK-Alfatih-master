@@ -18,9 +18,9 @@ class SettingController extends Controller
         $ppdb = PpdbSetting::current();
 
         $coreSlugs = ['profil','sejarah','visi-misi','sambutan-kepala-sekolah','fasilitas'];
-        $pages = \App\Models\Page::whereIn('slug', $coreSlugs)
-            ->orderByRaw("FIELD(slug, '".implode("','", $coreSlugs)."')")
-            ->get()->keyBy('slug');
+        $pages = \App\Models\Page::whereIn('slug', $coreSlugs)->get()->keyBy('slug');
+        // Sort in defined order (SQLite compatible, no FIELD)
+        $pages = collect($coreSlugs)->mapWithKeys(fn($slug) => [$slug => $pages[$slug] ?? null])->filter();
         // Ensure missing core pages are created as draft placeholders (in case seeder not run)
         foreach ($coreSlugs as $slug) {
             if (! isset($pages[$slug])) {

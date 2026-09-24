@@ -11,8 +11,8 @@
             </div>
             <x-ui.input label="Deskripsi Singkat" name="short_description" value="{{ old('short_description') }}" placeholder="Untuk card homepage" required />
             <x-ui.rich-text-editor label="Deskripsi Lengkap" name="description" :value="old('description')" help="Deskripsi akan ditampilkan di halaman detail program dengan format." required />
+            <x-ui.image-preview label="Gambar" name="image" help="Gambar utama program, tampil di halaman publik." maxSize="Max 4MB, JPG/PNG/WEBP" />
             <div class="grid gap-5 sm:grid-cols-2">
-                <x-ui.input label="Gambar" name="image" type="file" accept="image/*" />
                 <x-ui.select label="Status" name="status" :value="old('status','active')" :options="['active'=>'Aktif','inactive'=>'Nonaktif']" required />
                 <x-ui.input label="Urutan" name="order" type="number" value="{{ old('order',0) }}" />
             </div>

@@ -12,12 +12,8 @@
             <x-ui.input label="Deskripsi Singkat" name="short_description" value="{{ old('short_description',$program->short_description) }}" required />
             <x-ui.rich-text-editor label="Deskripsi Lengkap" name="description" :value="old('description', $program->description)" required />
             <div>
-                @if($program->image)
-                    <p class="mb-2 text-xs font-medium text-slate-500">Gambar saat ini:</p>
-                    <img src="{{ $program->image }}" alt="{{ $program->name }}" class="h-32 w-auto rounded-lg border object-cover" loading="lazy" />
-                @endif
+                <x-ui.image-preview label="Gambar" name="image" :value="$program->image" help="Biarkan kosong untuk memakai gambar saat ini." maxSize="Max 4MB, JPG/PNG/WEBP" />
                 <div class="mt-4 grid gap-5 sm:grid-cols-2">
-                    <x-ui.input label="Ganti Gambar" name="image" type="file" accept="image/*" />
                     <x-ui.select label="Status" name="status" :value="old('status',$program->status->value)" :options="['active'=>'Aktif','inactive'=>'Nonaktif']" required />
                     <x-ui.input label="Urutan" name="order" type="number" value="{{ old('order',$program->order) }}" />
                 </div>
