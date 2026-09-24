@@ -78,6 +78,83 @@
             </x-ui.card>
         </div>
 
+        <div id="tab-pages" data-tab-panel class="hidden">
+            <p class="mb-4 text-sm text-slate-500 dark:text-slate-400">Edit konten halaman statis yang tampil di website. Perubahan akan langsung aktif di website setelah disimpan.</p>
+
+            <div data-tabs class="mb-6">
+                <div class="flex gap-1.5 overflow-x-auto border-b border-slate-200 dark:border-slate-700 pb-2">
+                    @foreach($pageLabels as $slug => $label)
+                        <button type="button" data-tab-trigger data-target="#page-{{ $slug }}" data-active="{{ $loop->first ? 'true' : 'false' }}" class="whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-semibold border data-[active=true]:bg-primary-600 data-[active=true]:text-white data-[active=true]:border-primary-600 data-[active=false]:bg-white data-[active=false]:text-slate-600 data-[active=false]:border-slate-200 dark:data-[active=false]:bg-slate-800 dark:data-[active=false]:text-slate-300">
+                            {{ $label }}
+                        </button>
+                    @endforeach
+                    <button type="button" data-tab-trigger data-target="#page-custom" data-active="false" class="whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-semibold border data-[active=true]:bg-slate-800 data-[active=true]:text-white data-[active=false]:bg-white data-[active=false]:text-slate-600 data-[active=false]:border-slate-200">Lainnya</button>
+                </div>
+
+                @foreach($pageLabels as $slug => $label)
+                    @php $page = $pages[$slug] ?? null; @endphp
+                    <div id="page-{{ $slug }}" data-tab-panel @if(!$loop->first) class="hidden" @endif>
+                        @if($page)
+                            <x-ui.card class="p-6">
+                                <h3 class="text-sm font-bold text-slate-900 dark:text-white">Edit: {{ $label }}</h3>
+                                <p class="mt-1 text-xs text-slate-500">URL: <a href="{{ route('pages.show', $page->slug) }}" target="_blank" class="text-primary-600 hover:underline">/{{ $page->slug }}</a> • Status: {{ $page->status->label() }}</p>
+                                <form method="POST" action="{{ route('admin.pages.update', $page) }}" enctype="multipart/form-data" class="mt-4 space-y-5">
+                                    @csrf @method('PUT')
+                                    <div class="grid gap-5 sm:grid-cols-2">
+                                        <x-ui.input label="Judul" name="title" value="{{ old('title', $page->title) }}" required />
+                                        <x-ui.input label="Slug" name="slug" value="{{ old('slug', $page->slug) }}" required help="Huruf kecil, tanpa spasi. Ubah akan mengubah URL." />
+                                    </div>
+                                    <x-ui.rich-text-editor label="Konten" name="content" :value="old('content', $page->content)" required />
+                                    @if($page->image)
+                                        <div><p class="mb-2 text-xs font-medium text-slate-500">Gambar saat ini:</p><img src="{{ $page->image }}" alt="{{ $page->title }}" class="h-32 w-auto rounded-lg border object-cover" loading="lazy" /></div>
+                                    @endif
+                                    <x-ui.input label="Ganti Gambar" name="image" type="file" accept="image/*" help="JPG/PNG/WEBP max 4MB" />
+                                    <div class="grid gap-5 sm:grid-cols-2">
+                                        <x-ui.input label="Meta Title" name="meta_title" value="{{ old('meta_title', $page->meta_title) }}" placeholder="Kosongkan = pakai judul" />
+                                        <x-ui.input label="Urutan Navbar" name="order" type="number" value="{{ old('order', $page->order) }}" />
+                                    </div>
+                                    <x-ui.textarea label="Meta Description" name="meta_description" rows="2" placeholder="Deskripsi SEO (max 500)">{{ old('meta_description', $page->meta_description) }}</x-ui.textarea>
+                                    <x-ui.select label="Status" name="status" :value="old('status', $page->status->value)" :options="['published'=>'Published','draft'=>'Draft','archived'=>'Archived']" required help="Draft tidak tampil di website" />
+                                    <div class="flex justify-end gap-3 pt-2">
+                                        <a href="{{ route('pages.show', $page->slug) }}" target="_blank" class="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:underline">Lihat Halaman</a>
+                                        <x-ui.button type="submit">Simpan {{ $label }}</x-ui.button>
+                                    </div>
+                                </form>
+                            </x-ui.card>
+                        @else
+                            <x-ui.card class="p-6"><p class="text-sm text-slate-500">Halaman {{ $label }} belum ada. <a href="{{ route('admin.pages.create') }}" class="text-primary-600 hover:underline">Buat baru</a></p></x-ui.card>
+                        @endif
+                    </div>
+                @endforeach
+
+                <div id="page-custom" data-tab-panel class="hidden">
+                    <x-ui.card class="p-6">
+                        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Halaman Lainnya</h3>
+                        <p class="mt-1 text-xs text-slate-500">Halaman custom di luar 5 utama. Kelola di <a href="{{ route('admin.pages.index') }}" class="text-primary-600 hover:underline">Admin &gt; Halaman</a>.</p>
+                        @if($customPages->isEmpty())
+                            <p class="mt-4 text-sm text-slate-400">Belum ada halaman custom.</p>
+                        @else
+                            <div class="mt-4 divide-y divide-slate-100 dark:divide-slate-700/50">
+                                @foreach($customPages as $cp)
+                                    <div class="flex items-center justify-between gap-3 py-3">
+                                        <div class="min-w-0">
+                                            <p class="truncate text-sm font-semibold text-slate-900 dark:text-white">{{ $cp->title }}</p>
+                                            <p class="truncate text-xs text-slate-500">/{{ $cp->slug }} • {{ $cp->status->label() }}</p>
+                                        </div>
+                                        <div class="flex shrink-0 gap-1.5">
+                                            <x-ui.button size="xs" variant="ghost" href="{{ route('pages.show', $cp->slug) }}" target="_blank">Lihat</x-ui.button>
+                                            <x-ui.button size="xs" variant="outline" href="{{ route('admin.pages.edit', $cp) }}">Edit</x-ui.button>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                        <div class="mt-4"><x-ui.button size="sm" href="{{ route('admin.pages.create') }}">+ Tambah Halaman Baru</x-ui.button></div>
+                    </x-ui.card>
+                </div>
+            </div>
+        </div>
+
         <div id="tab-ppdb" data-tab-panel class="hidden">
             <x-ui.card class="p-6">
                 <form method="POST" action="{{ route('admin.settings.ppdb') }}" class="space-y-5">
