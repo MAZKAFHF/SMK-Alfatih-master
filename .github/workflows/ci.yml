@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, production-readiness ]
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo, pdo_sqlite, fileinfo, gd
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Copy env
+        run: cp .env.example .env && php artisan key:generate
+      - name: Install PHP deps
+        run: composer install --no-interaction --prefer-dist
+      - name: Migrate
+        run: php artisan migrate --force
+      - name: Build assets
+        run: npm ci && npm run build
+      - name: Pint check (optional, not failing)
+        run: ./vendor/bin/pint --test || true
+      - name: PHP tests
+        run: php artisan test
+      - name: Config cache check
+        run: php artisan config:cache && php artisan route:cache && php artisan view:cache
