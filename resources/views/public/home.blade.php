@@ -1,11 +1,13 @@
 <x-layouts.app>
-    {{-- Hero --}}
-    <section class="relative overflow-hidden bg-gradient-to-b from-primary-50 via-white to-white dark:from-primary-950/50 dark:via-slate-950 dark:to-slate-950">
-        <div class="pointer-events-none absolute -right-24 -top-24 size-96 rounded-full bg-primary-100 blur-3xl dark:bg-primary-900/50" aria-hidden="true"></div>
-        <div class="pointer-events-none absolute -left-24 bottom-0 size-80 rounded-full bg-accent-100 blur-3xl dark:bg-accent-900/50" aria-hidden="true"></div>
+    {{-- HERO — Living Campus --}}
+    <section class="relative overflow-hidden bg-gradient-to-b from-primary-50 via-white to-white dark:from-night-900 dark:via-slate-950 dark:to-slate-950">
+        <div class="tech-grid-light pointer-events-none absolute inset-0 dark:hidden" aria-hidden="true"></div>
+        <div class="tech-grid pointer-events-none absolute inset-0 hidden dark:block" aria-hidden="true"></div>
+        <x-motif-geometric class="absolute -left-10 top-16 size-44 text-primary-600/10 dark:text-tech-500/10" />
+        <x-motif-geometric class="absolute -right-12 bottom-10 size-56 text-gold-500/15" />
 
-        <div class="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
-            <div class="mx-auto max-w-3xl text-center">
+        <div class="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:gap-8 lg:px-8 lg:py-24">
+            <div class="reveal">
                 <div class="inline-flex items-center gap-2 rounded-full bg-primary-100 px-4 py-1.5 text-xs font-semibold text-primary-800 ring-1 ring-inset ring-primary-200 dark:bg-primary-900 dark:text-primary-300 dark:ring-primary-700">
                     <span class="relative flex size-2">
                         <span class="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
@@ -14,16 +16,20 @@
                     PPDB 2026/2027 Telah Dibuka
                 </div>
 
-                <h1 class="mt-6 text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-5xl lg:text-6xl">
-                    SMK Tahfizh <span class="text-primary-600 dark:text-primary-400">Al-Fatih</span>
+                <p class="mt-6 text-xs font-bold uppercase tracking-[0.25em] text-energy-600 dark:text-energy-500">SMK Tahfizh Al-Fatih</p>
+                <h1 class="mt-3 font-display text-4xl font-extrabold leading-[1.05] tracking-tight text-slate-900 dark:text-white sm:text-5xl lg:text-6xl">
+                    Membangun Generasi
+                    <br />
+                    <span class="text-primary-600 dark:text-tech-400">Teknologi.</span>
+                    <span class="word-swap text-gold-600 dark:text-gold-400" data-word-swap data-words='["Karakter.", "Kreativitas.", "Masa Depan."]'><span>Karakter.</span></span>
                 </h1>
 
-                <p class="mt-5 text-lg leading-relaxed text-slate-600 dark:text-slate-400">
+                <p class="mt-5 max-w-xl text-lg leading-relaxed text-slate-600 dark:text-slate-400">
                     Sekolah menengah kejuruan berbasis tahfizh Al-Qur'an. Mencetak generasi unggul, berakhlak mulia, dan siap bersaing di dunia kerja.
                 </p>
 
-                <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                    <x-ui.button size="lg" href="{{ route('ppdb.index') }}">
+                <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+                    <x-ui.button size="lg" href="{{ route('ppdb.index') }}" class="clip-corner-sm">
                         <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
@@ -32,71 +38,44 @@
                     <x-ui.button size="lg" variant="outline" href="{{ route('pages.show', 'profil') }}">Lihat Profil Sekolah</x-ui.button>
                 </div>
 
-                <div class="mt-12 flex flex-wrap items-center justify-center gap-6 text-sm text-slate-500 dark:text-slate-400">
-                    <div class="flex items-center gap-2">
-                        <svg class="size-5 text-primary-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 00-.491 6.347A48.62 48.62 0 0112 20.904a48.62 48.62 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.636 50.636 0 00-2.658-.813A59.906 59.906 0 0112 3.493a59.903 59.903 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
+                <x-digital-pulse :steps="['Learn', 'Build', 'Impact']" class="mt-10 max-w-md text-primary-700 dark:text-tech-400" />
+            </div>
+
+            <div class="reveal relative" style="--reveal-delay: 120ms">
+                <x-rpl-panel />
+                <div class="absolute -bottom-5 -left-3 flex items-center gap-3 rounded-xl border border-slate-200 bg-white/95 px-4 py-3 shadow-soft backdrop-blur dark:border-slate-700 dark:bg-slate-900/95 sm:-left-6">
+                    <span class="flex size-10 items-center justify-center rounded-lg bg-gold-500/15 text-gold-600 dark:text-gold-400" aria-hidden="true">
+                        <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span>850+ Siswa</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <svg class="size-5 text-primary-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
-                        </svg>
-                        <span>4 Program Keahlian</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <svg class="size-5 text-primary-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
-                        </svg>
-                        <span>Berbasis Tahfizh</span>
-                    </div>
+                    </span>
+                    <span class="leading-tight">
+                        <span class="block text-sm font-extrabold text-slate-900 dark:text-white">Tahfizh Terstruktur</span>
+                        <span class="block text-xs text-slate-500 dark:text-slate-400">Bimbingan guru bersanad</span>
+                    </span>
                 </div>
             </div>
         </div>
-    </section>
 
-    {{-- CTA PPDB --}}
-    <section class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="overflow-hidden rounded-2xl bg-gradient-to-r from-primary-700 to-primary-900 px-6 py-8 shadow-soft sm:px-10 lg:py-10">
-            <div class="flex flex-col items-center justify-between gap-6 lg:flex-row">
-                <div class="text-center lg:text-left">
-                    <h2 class="text-2xl font-extrabold text-white sm:text-3xl">Bergabunglah Bersama Kami</h2>
-                    <p class="mt-2 max-w-xl text-sm leading-relaxed text-primary-100 sm:text-base">
-                        Pendaftaran Peserta Didik Baru tahun ajaran 2026/2027 telah dibuka. Kuota terbatas!
-                    </p>
-                </div>
-                <div class="flex flex-col gap-3 sm:flex-row">
-                    <x-ui.button variant="accent" size="lg" href="{{ route('ppdb.index') }}">Daftar Sekarang</x-ui.button>
-                    <x-ui.button variant="outline" size="lg" href="{{ route('ppdb.status') }}" class="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:border-white/40 focus-visible:outline-white">Cek Status</x-ui.button>
-                </div>
-            </div>
+        <div class="relative border-t border-slate-200/70 bg-white/70 py-3 backdrop-blur dark:border-slate-800/70 dark:bg-slate-950/70">
+            <x-marquee-strip :items="['Rekayasa Perangkat Lunak', 'Project-Based Learning', 'Tahfizh & Karakter', 'Future Skills']" class="text-slate-600 dark:text-slate-300" />
         </div>
     </section>
 
-    {{-- Statistik — configurable via SiteSetting --}}
-    <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <dl class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            @foreach ([
-                ['label' => 'Program Keahlian', 'value' => $stats['programs'] ?? '4'],
-                ['label' => 'Tahun Berdiri', 'value' => $stats['founded'] ?? '2016'],
-                ['label' => 'Siswa Aktif', 'value' => $stats['students'] ?? '850+'],
-                ['label' => 'Alumni Tersebar', 'value' => $stats['alumni'] ?? '1200+'],
-            ] as $stat)
-                @if(!blank($stat['value']))
-                    <div class="rounded-xl border border-slate-200 bg-white p-6 text-center shadow-card dark:border-slate-800 dark:bg-slate-900">
-                        <dd class="text-3xl font-extrabold text-primary-600 dark:text-primary-400">{{ $stat['value'] }}</dd>
-                        <dt class="mt-1 text-sm font-medium text-slate-500 dark:text-slate-400">{{ $stat['label'] }}</dt>
-                    </div>
-                @endif
-            @endforeach
-        </dl>
+    {{-- Statistik --}}
+    <section class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-16">
+        <x-stat-ribbon :stats="[
+            ['label' => 'Program Keahlian', 'value' => $stats['programs'] ?? '4'],
+            ['label' => 'Tahun Berdiri', 'value' => $stats['founded'] ?? '2016'],
+            ['label' => 'Siswa Aktif', 'value' => $stats['students'] ?? '850+'],
+            ['label' => 'Alumni Tersebar', 'value' => $stats['alumni'] ?? '1200+'],
+        ]" />
     </section>
 
     {{-- Tentang --}}
     <section class="bg-white py-16 dark:bg-slate-950 lg:py-20">
         <div class="mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">
-            <div>
+            <div class="reveal">
                 <x-section-heading align="left" subtitle="Tentang Kami" title="Sekolah Vokasi Berbasis Tahfizh Al-Qur'an">
                     SMK Tahfizh Al-Fatih memadukan pendidikan kejuruan modern dengan pembinaan hafalan Al-Qur'an. Kami percaya lulusan terbaik adalah mereka yang tidak hanya unggul dalam kompetensi, tetapi juga kokoh dalam iman dan akhlak.
                 </x-section-heading>
@@ -126,7 +105,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="reveal grid grid-cols-2 gap-4" style="--reveal-delay: 100ms">
                 <x-thumb ratio="aspect-[3/4]" class="rounded-xl" alt="Kegiatan sekolah" icon="camera" />
                 <x-thumb ratio="aspect-[3/4]" class="mt-8 rounded-xl" alt="Fasilitas sekolah" icon="camera" />
                 <x-thumb ratio="aspect-[3/4]" class="-mt-8 rounded-xl" alt="Prestasi siswa" icon="camera" />
@@ -136,29 +115,20 @@
     </section>
 
     {{-- Program Keahlian --}}
-    <section class="py-16 lg:py-20">
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <x-section-heading subtitle="Program Keahlian" title="Pilih Kompetensi Sesuai Bakatmu">
-                Empat program keahlian yang membekali siswa dengan keterampilan siap kerja di era digital.
-            </x-section-heading>
+    <section class="relative py-16 lg:py-20">
+        <x-motif-geometric class="absolute right-0 top-10 size-40 text-primary-600/10 dark:text-tech-500/10" />
+        <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="reveal">
+                <x-section-heading subtitle="Program Keahlian" title="Pilih Kompetensi Sesuai Bakatmu">
+                    Empat program keahlian yang membekali siswa dengan keterampilan siap kerja di era digital.
+                </x-section-heading>
+            </div>
 
             <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 @forelse ($programs as $program)
-                    <a href="{{ route('programs.show', $program) }}" class="group">
-                        <x-ui.card padding="false" hover="true" class="h-full overflow-hidden">
-                            <x-thumb :src="$program->image" ratio="aspect-[4/3]" alt="{{ $program->name }}" />
-                            <div class="p-5">
-                                <h3 class="text-lg font-bold text-slate-900 transition-colors group-hover:text-primary-700 dark:text-white dark:group-hover:text-primary-400">{{ $program->name }}</h3>
-                                <p class="mt-2 line-clamp-3 text-sm leading-relaxed text-slate-500 dark:text-slate-400">{{ $program->short_description }}</p>
-                                <span class="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary-600">
-                                    Selengkapnya
-                                    <svg class="size-4 transition-transform group-hover:translate-x-0.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                        <path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clip-rule="evenodd" />
-                                    </svg>
-                                </span>
-                            </div>
-                        </x-ui.card>
-                    </a>
+                    <div class="reveal" style="--reveal-delay: {{ $loop->index * 80 }}ms">
+                        <x-program-card :program="$program" :tone="['emerald', 'orange', 'gold', 'navy'][$loop->index % 4]" />
+                    </div>
                 @empty
                     <div class="sm:col-span-2 lg:col-span-4">
                         <x-ui.empty-state title="Belum ada program keahlian" />
@@ -171,17 +141,19 @@
     {{-- Berita Terbaru --}}
     <section class="bg-white py-16 dark:bg-slate-950 lg:py-20">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <x-section-heading subtitle="Kabar Sekolah" title="Berita Terbaru">
-                Ikuti perkembangan dan aktivitas terbaru di SMK Tahfizh Al-Fatih.
-            </x-section-heading>
+            <div class="reveal">
+                <x-section-heading subtitle="Kabar Sekolah" title="Berita Terbaru">
+                    Ikuti perkembangan dan aktivitas terbaru di SMK Tahfizh Al-Fatih.
+                </x-section-heading>
+            </div>
 
             <div class="mt-12 grid gap-6 md:grid-cols-3">
                 @forelse ($news as $item)
-                    <a href="{{ route('news.show', $item) }}" class="group">
-                        <x-ui.card padding="false" hover="true" class="h-full overflow-hidden">
+                    <a href="{{ route('news.show', $item) }}" class="group reveal" style="--reveal-delay: {{ $loop->index * 80 }}ms">
+                        <x-ui.card padding="false" hover="true" class="lift h-full overflow-hidden">
                             <x-thumb :src="$item->thumbnail" ratio="aspect-video" alt="{{ $item->title }}" />
                             <div class="p-5">
-                                <p class="text-xs font-medium text-slate-400 dark:text-slate-500">{{ $item->published_at?->format('d M Y') }}</p>
+                                <p class="text-xs font-medium uppercase tracking-wider text-gold-600 dark:text-gold-400">{{ $item->published_at?->format('d M Y') }}</p>
                                 <h3 class="mt-2 line-clamp-2 font-bold text-slate-900 transition-colors group-hover:text-primary-700 dark:text-white dark:group-hover:text-primary-400">{{ $item->title }}</h3>
                                 <p class="mt-2 line-clamp-3 text-sm leading-relaxed text-slate-500 dark:text-slate-400">{{ $item->excerpt }}</p>
                             </div>
@@ -205,13 +177,15 @@
     {{-- Pengumuman --}}
     <section class="py-16 lg:py-20">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <x-section-heading subtitle="Info Resmi" title="Pengumuman">
-                Informasi resmi seputar kegiatan dan agenda sekolah.
-            </x-section-heading>
+            <div class="reveal">
+                <x-section-heading subtitle="Info Resmi" title="Pengumuman">
+                    Informasi resmi seputar kegiatan dan agenda sekolah.
+                </x-section-heading>
+            </div>
 
             <div class="mx-auto mt-12 max-w-3xl space-y-4">
                 @forelse ($announcements as $announcement)
-                    <div class="flex items-start gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-card dark:border-slate-800 dark:bg-slate-900">
+                    <div class="reveal flex items-start gap-4 rounded-xl border border-slate-200 border-l-4 border-l-gold-500 bg-white p-5 shadow-card dark:border-slate-800 dark:border-l-gold-500 dark:bg-slate-900">
                         <span class="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full bg-accent-50 text-accent-600 dark:bg-accent-950 dark:text-accent-400" aria-hidden="true">
                             <svg class="size-5" viewBox="0 0 24 24" fill="currentColor">
                                 <path fill-rule="evenodd" d="M5.25 4.5a2.25 2.25 0 012.25-2.25h9a2.25 2.25 0 012.25 2.25v13.5a.75.75 0 01-.75.75H6a.75.75 0 01-.75-.75V4.5zM6 18.75h12v2.25a.75.75 0 01-.75.75h-9a.75.75 0 01-.75-.75v-2.25z" clip-rule="evenodd" />
@@ -220,7 +194,7 @@
                         <div class="min-w-0">
                             <h3 class="font-semibold text-slate-900 dark:text-white">{{ $announcement->title }}</h3>
                             <div class="prose-content mt-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">{!! $announcement->content !!}</div>
-                            <p class="mt-2 text-xs font-medium text-primary-600 dark:text-primary-400">{{ $announcement->published_at?->format('d M Y') }}</p>
+                            <p class="mt-2 text-xs font-medium uppercase tracking-wider text-gold-600 dark:text-gold-400">{{ $announcement->published_at?->format('d M Y') }}</p>
                         </div>
                     </div>
                 @empty
@@ -233,18 +207,14 @@
     {{-- Galeri --}}
     <section class="bg-white py-16 dark:bg-slate-950 lg:py-20">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <x-section-heading subtitle="Dokumentasi" title="Galeri Sekolah">
-                Momen dan kegiatan terbaik dari lingkungan SMK Tahfizh Al-Fatih.
-            </x-section-heading>
+            <div class="reveal">
+                <x-section-heading subtitle="Dokumentasi" title="Galeri Sekolah">
+                    Momen dan kegiatan terbaik dari lingkungan SMK Tahfizh Al-Fatih.
+                </x-section-heading>
+            </div>
 
-            <div class="mt-12 grid grid-cols-2 gap-4 md:grid-cols-3">
-                @forelse ($galleries as $gallery)
-                    <x-thumb :src="$gallery->image" ratio="aspect-[4/3]" class="rounded-xl" alt="{{ $gallery->title }}" icon="camera" />
-                @empty
-                    <div class="col-span-full">
-                        <x-ui.empty-state title="Belum ada foto" />
-                    </div>
-                @endforelse
+            <div class="reveal mt-12">
+                <x-mosaic-gallery :galleries="$galleries" />
             </div>
 
             @if ($galleries->isNotEmpty())
@@ -257,19 +227,22 @@
 
     {{-- CTA Pendaftaran --}}
     <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary-700 to-primary-900 px-6 py-8 shadow-soft sm:px-10 lg:py-10">
-            <div class="pointer-events-none absolute -left-16 -top-16 size-48 rounded-full bg-primary-500/30 blur-3xl" aria-hidden="true"></div>
-            <div class="pointer-events-none absolute -bottom-16 -right-16 size-48 rounded-full bg-accent-500/20 blur-3xl" aria-hidden="true"></div>
+        <div class="reveal relative overflow-hidden rounded-2xl bg-navy-900 px-6 py-8 shadow-soft sm:px-10 lg:py-10">
+            <div class="tech-grid pointer-events-none absolute inset-0" aria-hidden="true"></div>
+            <div class="pointer-events-none absolute -right-16 -top-16 size-48 rounded-full bg-energy-500/25 blur-3xl" aria-hidden="true"></div>
+            <div class="pointer-events-none absolute -bottom-16 -left-16 size-48 rounded-full bg-gold-500/20 blur-3xl" aria-hidden="true"></div>
 
             <div class="relative flex flex-col items-center justify-between gap-6 lg:flex-row">
                 <div class="text-center lg:text-left">
-                    <h2 class="text-2xl font-extrabold text-white sm:text-3xl">Bergabunglah Bersama Kami</h2>
-                    <p class="mt-2 max-w-xl text-sm leading-relaxed text-primary-100 sm:text-base">
-                        Pendaftaran Peserta Didik Baru tahun ajaran 2026/2027 telah dibuka. Kuota terbatas!
+                    <p class="text-xs font-bold uppercase tracking-[0.25em] text-gold-400">PPDB 2026/2027</p>
+                    <h2 class="mt-2 font-display text-2xl font-extrabold text-white sm:text-3xl">Your Next Chapter Starts Here.</h2>
+                    <p class="mt-2 max-w-xl text-sm leading-relaxed text-slate-300 sm:text-base">
+                        Pendaftaran Peserta Didik Baru telah dibuka. Kuota terbatas!
                     </p>
+                    <x-digital-pulse :steps="['Daftar', 'Verifikasi', 'Diterima']" class="mx-auto mt-5 max-w-md text-tech-400 lg:mx-0" />
                 </div>
-                <div class="flex flex-col gap-3 sm:flex-row">
-                    <x-ui.button variant="accent" size="lg" href="{{ route('ppdb.index') }}">Daftar Sekarang</x-ui.button>
+                <div class="flex shrink-0 flex-col gap-3 sm:flex-row">
+                    <x-ui.button variant="accent" size="lg" href="{{ route('ppdb.index') }}" class="clip-corner-sm">Daftar Sekarang</x-ui.button>
                     <x-ui.button variant="outline" size="lg" href="{{ route('ppdb.status') }}" class="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:border-white/40 focus-visible:outline-white">Cek Status</x-ui.button>
                 </div>
             </div>

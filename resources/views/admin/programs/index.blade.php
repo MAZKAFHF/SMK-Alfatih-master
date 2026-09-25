@@ -1,16 +1,10 @@
 <x-admin.layouts.app :title="'Program Keahlian'">
-    <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <h1 class="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">Program Keahlian</h1>
-            <p class="mt-0.5 text-sm text-slate-500 dark:text-slate-400">Kelola 4 program (PPLG, Multimedia, DKV, TJKT) &amp; tampilkan di halaman publik.</p>
-        </div>
-        <div class="flex gap-2">
-            @if($trashedCount>0)
-                <x-ui.button variant="ghost" size="sm" href="{{ route('admin.programs.trash') }}">Trash ({{ $trashedCount }})</x-ui.button>
-            @endif
-            <x-ui.button href="{{ route('admin.programs.create') }}">+ Tambah Program</x-ui.button>
-        </div>
-    </div>
+    <x-admin.page-head title="Program Keahlian" context="Kelola 4 program (PPLG, Multimedia, DKV, TJKT) & tampilkan di halaman publik.">
+        @if($trashedCount>0)
+            <x-ui.button variant="ghost" size="sm" href="{{ route('admin.programs.trash') }}">Trash ({{ $trashedCount }})</x-ui.button>
+        @endif
+        <x-ui.button href="{{ route('admin.programs.create') }}">+ Tambah Program</x-ui.button>
+    </x-admin.page-head>
 
     <x-ui.card class="mb-6 p-4">
         <form method="GET" action="{{ route('admin.programs.index') }}" class="flex flex-col gap-3 sm:flex-row">

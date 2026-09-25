@@ -21,6 +21,10 @@
         initLightbox();
         initDoubleSubmitGuard();
         initFormValidationFeedback();
+        initReveal();
+        initCounters();
+        initWordSwap();
+        initNavbarScroll();
     });
 
     /* ---------------- Theme toggle ---------------- */
@@ -495,5 +499,93 @@
                 el.classList.add('border-red-300');
             });
         });
+    }
+
+    /* ---------------- ALFATIH//FUTURE: scroll reveal ---------------- */
+    function initReveal() {
+        const els = document.querySelectorAll('.reveal:not(.revealed)');
+        if (!els.length) return;
+        if (!('IntersectionObserver' in window)) {
+            els.forEach((el) => el.classList.add('revealed'));
+            return;
+        }
+        const io = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('revealed');
+                    io.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+        els.forEach((el) => io.observe(el));
+    }
+
+    /* ---------------- ALFATIH//FUTURE: animated counters ---------------- */
+    function initCounters() {
+        const els = document.querySelectorAll('[data-counter]');
+        if (!els.length) return;
+        const animate = (el) => {
+            const target = parseInt(el.dataset.target || '0', 10);
+            const suffix = el.dataset.suffix || '';
+            if (!target) {
+                el.textContent = '0' + suffix;
+                return;
+            }
+            const dur = 1200;
+            const start = performance.now();
+            const tick = (now) => {
+                const p = Math.min((now - start) / dur, 1);
+                const eased = 1 - Math.pow(1 - p, 3);
+                el.textContent = Math.round(target * eased) + suffix;
+                if (p < 1) requestAnimationFrame(tick);
+            };
+            requestAnimationFrame(tick);
+        };
+        if (!('IntersectionObserver' in window)) {
+            els.forEach(animate);
+            return;
+        }
+        const io = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    animate(entry.target);
+                    io.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.4 });
+        els.forEach((el) => io.observe(el));
+    }
+
+    /* ---------------- ALFATIH//FUTURE: hero word swap ---------------- */
+    function initWordSwap() {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        document.querySelectorAll('[data-word-swap]').forEach((el) => {
+            let words = [];
+            try {
+                words = JSON.parse(el.dataset.words || '[]');
+            } catch (e) {
+                return;
+            }
+            if (!Array.isArray(words) || words.length < 2) return;
+            let i = 0;
+            const inner = el.querySelector('span') || el;
+            setInterval(() => {
+                i = (i + 1) % words.length;
+                const next = document.createElement('span');
+                next.textContent = words[i];
+                inner.replaceWith(next);
+            }, 3000);
+        });
+    }
+
+    /* ---------------- ALFATIH//FUTURE: navbar solid on scroll ---------------- */
+    function initNavbarScroll() {
+        const header = document.querySelector('[data-navbar]');
+        if (!header) return;
+        const onScroll = () => {
+            header.classList.toggle('navbar-solid', window.scrollY > 24);
+        };
+        onScroll();
+        document.addEventListener('scroll', onScroll, { passive: true });
     }
 })();

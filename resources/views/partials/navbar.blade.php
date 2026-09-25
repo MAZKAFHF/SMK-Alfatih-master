@@ -17,13 +17,14 @@
     $activeSlug = request()->segments()[0] ?? '';
 @endphp
 
-<header class="sticky top-0 z-40 border-b border-slate-200/70 bg-white/90 backdrop-blur-md dark:border-slate-800/70 dark:bg-slate-950/90">
+<header id="site-header" data-navbar class="sticky top-0 z-40 bg-transparent">
     <nav class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8" aria-label="Navigasi utama">
         <a href="{{ route('home') }}" class="flex items-center gap-2.5">
             <img src="{{ asset('img/logo.png') }}" alt="Logo SMK Tahfizh Al-Fatih" width="40" height="40" class="size-10 rounded-xl object-contain shadow-sm" />
             <span class="leading-tight">
-                <span class="block text-sm font-extrabold tracking-tight text-slate-900 dark:text-white">SMK TAHFIZH</span>
+                <span class="block font-display text-sm font-extrabold tracking-tight text-slate-900 dark:text-white">SMK TAHFIZH</span>
                 <span class="block text-[11px] font-semibold uppercase tracking-widest text-primary-700 dark:text-primary-400">Al-Fatih</span>
+                <span class="mt-0.5 block h-0.5 w-16 rounded-full bg-gradient-to-r from-gold-500 to-energy-500" aria-hidden="true"></span>
             </span>
         </a>
 
@@ -61,7 +62,7 @@
 
         <div class="flex items-center gap-2">
             <x-ui.theme-toggle />
-            <a href="{{ route('ppdb.index') }}" class="hidden items-center justify-center gap-1.5 rounded-lg bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors duration-150 select-none whitespace-nowrap hover:bg-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 sm:inline-flex">
+            <a href="{{ route('ppdb.index') }}" class="clip-corner-sm hidden items-center justify-center gap-1.5 bg-gradient-to-r from-energy-500 to-energy-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition duration-150 select-none whitespace-nowrap hover:from-energy-600 hover:to-energy-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-energy-500 sm:inline-flex">
                 Pendaftaran
             </a>
 

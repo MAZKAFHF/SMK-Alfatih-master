@@ -60,7 +60,16 @@
                     <div class="mt-6"><x-ui.alert variant="warning" title="Verifikasi diperlukan" >Untuk privasi, masukkan <strong>tanggal lahir</strong> sesuai data pendaftaran untuk melihat status lengkap.</x-ui.alert></div>
                 @endif
                 @if ($registration)
-                    <x-ui.card class="mt-6 p-6">
+                    @php
+                        $statusBar = [
+                            'pending' => 'bg-gold-500',
+                            'accepted' => 'bg-emerald-500',
+                            'rejected' => 'bg-red-500',
+                            'cancelled' => 'bg-slate-400',
+                        ][$registration->status->value] ?? 'bg-primary-500';
+                    @endphp
+                    <x-ui.card class="reveal mt-6 overflow-hidden p-6 pt-5">
+                        <span class="mb-4 block h-1 w-full rounded-full {{ $statusBar }}" aria-hidden="true"></span>
                         <div class="flex flex-col gap-3 border-b border-slate-100 pb-5 dark:border-slate-700/50 sm:flex-row sm:items-start sm:justify-between">
                             <div>
                                 <p class="text-xs font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Nomor Pendaftaran</p>

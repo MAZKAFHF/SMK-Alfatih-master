@@ -16,15 +16,15 @@
 
             <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 @foreach ($news as $item)
-                    <a href="{{ route('news.show', $item) }}" class="group">
-                        <x-ui.card padding="false" hover="true" class="flex h-full flex-col overflow-hidden">
+                    <a href="{{ route('news.show', $item) }}" class="group reveal" style="--reveal-delay: {{ ($loop->index % 3) * 80 }}ms">
+                        <x-ui.card padding="false" hover="true" class="lift flex h-full flex-col overflow-hidden">
                             <x-thumb :src="$item->thumbnail" ratio="aspect-video" :alt="$item->title" />
                             <div class="flex flex-1 flex-col p-5">
-                                <div class="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
+                                <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-gold-600 dark:text-gold-400">
                                     <time datetime="{{ $item->published_at?->toIso8601String() }}">{{ $item->published_at?->format('d M Y') }}</time>
                                     @if ($item->author)
                                         <span aria-hidden="true">·</span>
-                                        <span>{{ $item->author->name }}</span>
+                                        <span class="text-slate-400 dark:text-slate-500">{{ $item->author->name }}</span>
                                     @endif
                                 </div>
                                 <h2 class="mt-2 line-clamp-2 font-bold text-slate-900 transition-colors group-hover:text-primary-700 dark:text-white dark:group-hover:text-primary-400">{{ $item->title }}</h2>

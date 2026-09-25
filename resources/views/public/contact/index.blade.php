@@ -9,7 +9,7 @@
     />
 
     <section class="py-12 lg:py-16">
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="reveal mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="grid gap-10 lg:grid-cols-5">
                 {{-- Info --}}
                 <div class="space-y-4 lg:col-span-2">

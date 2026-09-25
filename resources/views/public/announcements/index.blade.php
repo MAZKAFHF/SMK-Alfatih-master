@@ -16,7 +16,7 @@
 
             <div class="space-y-4">
                 @foreach ($announcements as $announcement)
-                    <article class="rounded-xl border border-slate-200 bg-white p-6 shadow-card dark:border-slate-800 dark:bg-slate-900">
+                    <article class="reveal rounded-xl border border-slate-200 border-l-4 border-l-gold-500 bg-white p-6 shadow-card dark:border-slate-800 dark:border-l-gold-500 dark:bg-slate-900">
                         <div class="flex items-start gap-4">
                             <span class="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full bg-accent-50 text-accent-600 dark:bg-accent-950 dark:text-accent-400" aria-hidden="true">
                                 <svg class="size-5" viewBox="0 0 24 24" fill="currentColor">

@@ -14,6 +14,8 @@
         'blue' => 'bg-sky-50 text-sky-700 ring-sky-200 dark:bg-sky-950 dark:text-sky-400 dark:ring-sky-800',
         'amber' => 'bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-950 dark:text-amber-400 dark:ring-amber-800',
         'purple' => 'bg-purple-50 text-purple-700 ring-purple-200 dark:bg-purple-950 dark:text-purple-400 dark:ring-purple-800',
+        'gold' => 'bg-gold-500/10 text-gold-600 ring-gold-500/30 dark:text-gold-400',
+        'navy' => 'bg-navy-900 text-white ring-navy-800 dark:bg-navy-800 dark:ring-navy-700',
     ];
 
     $sizes = [

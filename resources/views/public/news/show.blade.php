@@ -9,7 +9,7 @@
     />
 
     <section class="py-12 lg:py-16">
-        <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+        <div class="reveal mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
             <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-500 dark:text-slate-400">
                 <time datetime="{{ $news->published_at?->toIso8601String() }}" class="inline-flex items-center gap-1.5">
                     <svg class="size-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -47,11 +47,12 @@
     @if ($related->isNotEmpty())
         <section class="bg-white py-12 dark:bg-slate-950 lg:py-16">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <h2 class="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Berita Lainnya</h2>
+                <h2 class="font-display text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Berita Lainnya</h2>
+                <span class="mt-3 block h-1 w-12 rounded-full bg-gold-500" aria-hidden="true"></span>
                 <div class="mt-8 grid gap-6 md:grid-cols-3">
                     @foreach ($related as $item)
-                        <a href="{{ route('news.show', $item) }}" class="group">
-                            <x-ui.card padding="false" hover="true" class="h-full overflow-hidden">
+                        <a href="{{ route('news.show', $item) }}" class="group reveal" style="--reveal-delay: {{ $loop->index * 80 }}ms">
+                            <x-ui.card padding="false" hover="true" class="lift h-full overflow-hidden">
                                 <x-thumb :src="$item->thumbnail" ratio="aspect-video" :alt="$item->title" />
                                 <div class="p-5">
                                     <p class="text-xs text-slate-400 dark:text-slate-500">{{ $item->published_at?->format('d M Y') }}</p>

@@ -16,7 +16,7 @@ test.describe('Admin', () => {
     if (await demo.isVisible()) {
       await demo.click();
       await expect(page).toHaveURL(/\/admin/);
-      await expect(page.locator('text=Selamat datang').first()).toBeVisible();
+      await expect(page.locator('text=menunggu verifikasi').first()).toBeVisible();
     } else {
       test.skip();
     }
@@ -53,12 +53,19 @@ test.describe('Admin', () => {
     if (await demo.isVisible()) {
       await demo.click();
       await page.goto('/admin');
-      await page.locator('button[aria-label="Keluar"]').first().click();
+      const drawerToggle = page.locator('[data-admin-drawer-toggle]');
+      if (await drawerToggle.isVisible()) {
+        // Mobile: sidebar tertutup, pakai tombol Keluar di header mobile
+        await page.locator('header.lg\\:hidden button[type="submit"]').click();
+      } else {
+        await page.locator('button[aria-label="Keluar"]').first().click();
+      }
       await expect(page).toHaveURL(/\/admin\/login/);
     }
   });
 
   test('create published announcement and verify public', async ({ page }) => {
+    test.slow();
     const title = `E2E-ANN-${Date.now()}`;
     await page.goto('/admin/login');
     const demo = page.locator('text=Masuk Sekali Klik');
@@ -97,10 +104,12 @@ test.describe('Admin', () => {
       // cleanup: delete
       await page.goto('/admin/announcements');
       const row2 = page.locator('tr', { hasText: title });
-      if (await row2.isVisible()) {
+      if ((await row2.count()) > 0) {
         await row2.getByRole('button', { name: 'Hapus' }).first().click();
         const confirmOk = page.locator('[data-confirm-ok]');
-        if (await confirmOk.isVisible()) await confirmOk.click();
+        await expect(confirmOk).toBeVisible({ timeout: 5000 });
+        await confirmOk.click();
+        await expect(page.locator('tr', { hasText: title })).toHaveCount(0, { timeout: 5000 });
       }
     }
   });

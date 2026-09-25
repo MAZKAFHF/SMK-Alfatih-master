@@ -12,7 +12,7 @@
     <section class="py-12 lg:py-16">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="grid gap-10 lg:grid-cols-3">
-                <div class="lg:col-span-2">
+                <div class="reveal lg:col-span-2">
                     <x-thumb :src="$program->image" ratio="aspect-video" class="rounded-2xl" :alt="$program->name" />
 
                     <article class="prose-content mt-8">{!! nl2br(e($program->description)) !!}</article>
@@ -33,11 +33,12 @@
                         </div>
                     </x-ui.card>
 
-                    <x-ui.card class="bg-gradient-to-br from-primary-700 to-primary-900 text-white border-transparent">
-                        <h2 class="text-base font-bold">Tertarik dengan {{ $program->name }}?</h2>
-                        <p class="mt-2 text-sm leading-relaxed text-primary-100">Daftar sekarang melalui PPDB online dan wujudkan masa depanmu.</p>
+                    <x-ui.card class="border-transparent bg-navy-900 text-white">
+                        <h2 class="font-display text-base font-bold">Tertarik dengan {{ $program->name }}?</h2>
+                        <p class="mt-2 text-sm leading-relaxed text-slate-300">Daftar sekarang melalui PPDB online dan wujudkan masa depanmu.</p>
+                        <span class="mt-3 block h-1 w-12 rounded-full bg-gold-500" aria-hidden="true"></span>
                         <div class="mt-5">
-                            <x-ui.button variant="accent" href="{{ route('ppdb.index') }}">Daftar PPDB</x-ui.button>
+                            <x-ui.button variant="accent" href="{{ route('ppdb.index') }}" class="clip-corner-sm">Daftar PPDB</x-ui.button>
                         </div>
                     </x-ui.card>
                 </aside>

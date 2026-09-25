@@ -132,11 +132,18 @@
                 </x-ui.card>
 
                 <x-ui.card class="p-6">
+                    <div class="mb-5 flex items-center gap-2" aria-hidden="true">
+                        <span class="flex size-6 items-center justify-center rounded-full bg-primary-600 text-[11px] font-bold text-white">1</span>
+                        <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"></span>
+                        <span class="flex size-6 items-center justify-center rounded-full bg-primary-600 text-[11px] font-bold text-white">2</span>
+                        <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"></span>
+                        <span class="flex size-6 items-center justify-center rounded-full bg-slate-200 text-[11px] font-bold text-slate-500 dark:bg-slate-700 dark:text-slate-400">3</span>
+                    </div>
                     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <p class="text-sm text-slate-500 dark:text-slate-400">
                             Dengan mengirim formulir, Anda menyatakan data yang diisi adalah benar.
                         </p>
-                        <x-ui.button type="submit" size="lg">Kirim Pendaftaran</x-ui.button>
+                        <x-ui.button type="submit" size="lg" class="clip-corner-sm">Kirim Pendaftaran</x-ui.button>
                     </div>
                 </x-ui.card>
             </form>

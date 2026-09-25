@@ -1440,3 +1440,19 @@ Namun, itu hanya **30% dari website sekolah** dari sisi CMS. **70% content** (`P
 ---
 
 *End of PROJECT_MAP.md — Hand off next: chat log includes === SMK AL-FATIH CODEBASE HANDOFF === block for ChatGPT.*
+
+---
+
+## ADDENDUM — ALFATIH//FUTURE Redesign (branch `redesign/identitas-ceria`, 2026-09-25)
+
+**Identitas baru:** Emerald `#087A55` (primer) + Deep Forest `#063E32` + Tech Green `#16B878` + Energy Orange `#F47A28` + Prestige Gold `#D7A83E` + Future Navy `#101C2C`; font display Sora + body Plus Jakarta Sans; bentuk signature clipped-corner; motif geometris 8-titik; Digital Pulse (Learn→Build→Impact); panel RPL "BUILD YOUR FUTURE".
+
+**Komponen baru:** `x-motif-geometric`, `x-digital-pulse`, `x-marquee-strip`, `x-stat-ribbon` (counter), `x-program-card` (tone emerald/orange/gold/navy), `x-mosaic-gallery`, `x-rpl-panel`, `x-admin.page-head`.
+
+**Halaman dirombak:** homepage (Living Campus hero + word-swap + marquee + stats ribbon + mosaic + CTA navy), navbar (transparan→solid + CTA oranye), footer (forest + motif + garis tricolor), `x-page-header` (navy, dipakai 12 halaman), programs/news (kartu baru), gallery (reveal), announcements (border gold), errors (branded navy), PPDB (panel navy + step + status bar), profil editorial baru (`public/pages/profil.blade.php`, aktif bila slug=`profil`), admin sidebar (graphite + ikon) + dashboard konsol TODAY + badge gold/navy + login branding.
+
+**Interaksi JS baru:** reveal (IntersectionObserver), counter, word-swap (dengan reduced-motion guard), navbar-scroll. Tanpa library baru (bundle JS tetap ~267KB).
+
+**Revert:** `git checkout main` (baseline `8d9caa8`) mengembalikan 100% tampilan lama.
+
+**QA redesign:** PHPUnit 103 passed; `npm run build` lolos; config/route/view cache lolos; Playwright 68/68 (`--workers=2`, 4 viewport).

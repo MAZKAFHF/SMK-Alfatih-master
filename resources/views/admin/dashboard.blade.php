@@ -1,39 +1,33 @@
 <x-admin.layouts.app :title="'Dashboard'">
-    {{-- Hero / sambutan --}}
-    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary-700 via-primary-800 to-primary-950 p-6 text-white shadow-card sm:p-8">
-        <div class="pointer-events-none absolute -right-10 -top-10 size-48 rounded-full bg-primary-500/30 blur-3xl" aria-hidden="true"></div>
-        <div class="pointer-events-none absolute -bottom-16 -left-10 size-56 rounded-full bg-accent-500/20 blur-3xl" aria-hidden="true"></div>
-
-        <div class="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-                <p class="text-sm font-medium text-primary-200">{{ ucfirst(now()->translatedFormat('l, d F Y')) }}</p>
-                <h2 class="mt-1.5 text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
-                    Selamat datang, {{ explode(' ', auth()->user()->name)[0] }}
-                </h2>
-                <p class="mt-2 max-w-xl text-sm leading-relaxed text-primary-100">
-                    Pantau pendaftaran PPDB, verifikasi data calon siswa, dan kelola status pendaftaran dari satu tempat.
-                </p>
+    {{-- Konsol hari ini --}}
+    <div class="relative overflow-hidden rounded-xl bg-graphite px-5 py-5 text-white shadow-card sm:px-6 dark:bg-slate-900">
+        <div class="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-primary-500 via-gold-500 to-energy-500" aria-hidden="true"></div>
+        <div class="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div class="flex items-center gap-4">
+                <span class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary-600 text-sm font-extrabold text-white">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>
+                <div class="leading-tight">
+                    <p class="text-xs font-semibold uppercase tracking-widest text-slate-400">{{ ucfirst(now()->translatedFormat('l, d F Y')) }} · Hari ini</p>
+                    <p class="mt-0.5 text-base font-bold">
+                        {{ number_format($stats['pending']) }} menunggu verifikasi
+                        <span class="font-medium text-slate-400">·</span>
+                        <span class="font-medium text-slate-300">{{ number_format($stats['total']) }} total pendaftar</span>
+                    </p>
+                </div>
             </div>
 
-            <div class="flex flex-col gap-3 sm:flex-row lg:shrink-0">
+            <div class="flex flex-col gap-2 sm:flex-row lg:shrink-0">
                 <a
-                    href="{{ route('admin.registrations.index') }}"
-                    class="inline-flex items-center justify-center gap-2 rounded-lg bg-accent-500 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-accent-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400"
+                    href="{{ route('admin.registrations.index', ['status' => 'pending']) }}"
+                    class="inline-flex items-center justify-center gap-2 rounded-lg bg-energy-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-energy-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-energy-500"
                 >
-                    <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0118 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3l1.5 1.5 3-3.75" />
-                    </svg>
-                    Kelola Pendaftar
+                    Verifikasi Sekarang
                 </a>
                 <a
                     href="{{ route('home') }}"
                     target="_blank"
                     rel="noopener"
-                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-white/25 bg-white/10 px-5 py-3 text-sm font-semibold text-white backdrop-blur transition-colors hover:bg-white/20"
+                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
                 >
-                    <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                    </svg>
                     Lihat Website
                 </a>
             </div>

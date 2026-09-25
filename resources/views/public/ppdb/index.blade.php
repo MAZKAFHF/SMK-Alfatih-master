@@ -11,9 +11,10 @@
     <section class="py-12 lg:py-16">
         <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
             {{-- Panel ajakan pendaftaran --}}
-            <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary-700 via-primary-800 to-primary-950 px-6 py-14 text-center shadow-card sm:px-12">
-                <div class="pointer-events-none absolute -right-16 -top-16 size-64 rounded-full bg-white/10 blur-3xl" aria-hidden="true"></div>
-                <div class="pointer-events-none absolute -bottom-20 -left-20 size-64 rounded-full bg-accent-500/20 blur-3xl" aria-hidden="true"></div>
+            <div class="reveal relative overflow-hidden rounded-2xl bg-navy-900 px-6 py-14 text-center shadow-card sm:px-12">
+                <div class="tech-grid pointer-events-none absolute inset-0" aria-hidden="true"></div>
+                <div class="pointer-events-none absolute -right-16 -top-16 size-64 rounded-full bg-energy-500/25 blur-3xl" aria-hidden="true"></div>
+                <div class="pointer-events-none absolute -bottom-20 -left-20 size-64 rounded-full bg-gold-500/20 blur-3xl" aria-hidden="true"></div>
 
                 <div class="relative">
                     <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white ring-1 ring-inset ring-white/25">

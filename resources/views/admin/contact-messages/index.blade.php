@@ -1,10 +1,7 @@
 <x-admin.layouts.app :title="'Pesan Masuk'">
-    <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div><h1 class="text-xl font-extrabold">Pesan Masuk</h1><p class="text-sm text-slate-500">Inbox kontak — {{ $unreadCount }} belum dibaca.</p></div>
-        <div class="flex gap-2">
-            @if($trashedCount>0)<x-ui.button variant="ghost" size="sm" href="{{ route('admin.contact-messages.trash') }}">Trash ({{ $trashedCount }})</x-ui.button>@endif
-        </div>
-    </div>
+    <x-admin.page-head title="Pesan Masuk" context="Inbox kontak — {{ $unreadCount }} belum dibaca.">
+        @if($trashedCount>0)<x-ui.button variant="ghost" size="sm" href="{{ route('admin.contact-messages.trash') }}">Trash ({{ $trashedCount }})</x-ui.button>@endif
+    </x-admin.page-head>
 
     <x-ui.card class="mb-6 p-4">
         <form method="GET" action="{{ route('admin.contact-messages.index') }}" class="flex flex-col gap-3 sm:flex-row">

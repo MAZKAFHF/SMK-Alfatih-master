@@ -48,13 +48,14 @@
         <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
 
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700,800" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700,800|sora:600,700,800" rel="stylesheet" />
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @stack('head')
     </head>
 
     <body class="flex min-h-screen flex-col bg-white dark:bg-slate-950 dark:text-slate-200 {{ $bodyClass }}">
+        <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-primary-600 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white">Lewati ke konten utama</a>
         @include('partials.navbar')
 
         <main id="main-content" class="flex-1">

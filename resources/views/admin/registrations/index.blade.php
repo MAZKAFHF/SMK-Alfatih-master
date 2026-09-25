@@ -5,11 +5,7 @@
             ->all();
     @endphp
 
-    <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p class="text-sm text-slate-500 dark:text-slate-400">
-            Total <strong class="font-semibold text-slate-900 dark:text-white">{{ number_format($registrations->total()) }}</strong> pendaftar
-        </p>
-
+    <x-admin.page-head title="Pendaftar PPDB" context="Total {{ number_format($registrations->total()) }} pendaftar.">
         <div class="flex flex-wrap items-center gap-4">
             <a href="{{ route('ppdb.index') }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-sm font-medium text-primary-700 hover:underline dark:text-primary-400">
                 <svg class="size-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -34,7 +30,7 @@
                 </x-ui.button>
             @endif
         </div>
-    </div>
+    </x-admin.page-head>
 
     <x-ui.card class="mb-6 p-4">
         <form method="GET" action="{{ route('admin.registrations.index') }}" class="flex flex-col gap-3 sm:flex-row">

@@ -1,11 +1,8 @@
 <x-admin.layouts.app :title="'Berita'">
-    <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div><h1 class="text-xl font-extrabold text-slate-900 dark:text-white">Berita</h1><p class="text-sm text-slate-500">Kelola artikel &amp; penjadwalan publikasi.</p></div>
-        <div class="flex gap-2">
-            @if($trashedCount>0)<x-ui.button variant="ghost" size="sm" href="{{ route('admin.news.trash') }}">Trash ({{ $trashedCount }})</x-ui.button>@endif
-            <x-ui.button href="{{ route('admin.news.create') }}">+ Tambah Berita</x-ui.button>
-        </div>
-    </div>
+    <x-admin.page-head title="Berita" context="Kelola artikel & penjadwalan publikasi.">
+        @if($trashedCount>0)<x-ui.button variant="ghost" size="sm" href="{{ route('admin.news.trash') }}">Trash ({{ $trashedCount }})</x-ui.button>@endif
+        <x-ui.button href="{{ route('admin.news.create') }}">+ Tambah Berita</x-ui.button>
+    </x-admin.page-head>
     <x-ui.card class="mb-6 p-4">
         <form method="GET" action="{{ route('admin.news.index') }}" class="flex flex-col gap-3 sm:flex-row">
             <div class="flex-1"><x-ui.input name="search" placeholder="Cari judul/slug..." value="{{ request('search') }}" /></div>

@@ -1,21 +1,24 @@
-<footer class="border-t border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900">
-    <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+<footer class="relative overflow-hidden border-t border-forest-800 bg-forest-900 text-slate-300 dark:border-slate-800 dark:bg-slate-950">
+    <x-motif-geometric class="absolute -right-10 -top-10 size-48 text-tech-500/15" />
+    <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary-600 via-gold-500 to-energy-500" aria-hidden="true"></div>
+    <div class="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div class="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
             <div class="lg:col-span-1">
                 <a href="{{ route('home') }}" class="flex items-center gap-2.5">
-                    <img src="{{ asset('img/logo.png') }}" alt="Logo SMK Tahfizh Al-Fatih" width="40" height="40" class="size-10 rounded-xl bg-white/10 object-contain p-1 dark:bg-white/5" />
+                    <img src="{{ asset('img/logo.png') }}" alt="Logo SMK Tahfizh Al-Fatih" width="40" height="40" class="size-10 rounded-xl bg-white/10 object-contain p-1" />
                     <span class="leading-tight">
-                        <span class="block text-sm font-extrabold tracking-tight text-slate-900 dark:text-white">SMK TAHFIZH</span>
-                        <span class="block text-[11px] font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400">Al-Fatih</span>
+                        <span class="block font-display text-sm font-extrabold tracking-tight text-white">SMK TAHFIZH</span>
+                        <span class="block text-[11px] font-semibold uppercase tracking-widest text-gold-400">Al-Fatih</span>
                     </span>
                 </a>
-                <p class="mt-4 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+                <p class="mt-4 text-sm leading-relaxed text-slate-300">
                     Sekolah menengah kejuruan berbasis tahfizh Al-Qur'an yang mencetak generasi berprestasi, berakhlak mulia, dan siap kerja.
                 </p>
+                <p class="mt-3 text-[11px] font-bold uppercase tracking-[0.2em] text-gold-500">Build • Character • Future</p>
             </div>
 
             <div>
-                <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white">Tautan Cepat</h3>
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-white">Tautan Cepat</h3>
                 <ul class="mt-4 space-y-2.5 text-sm">
                     @foreach ([
                         ['Beranda', route('home')],
@@ -25,24 +28,24 @@
                         ['Kontak', route('contact.index')],
                     ] as [$label, $url])
                         <li>
-                            <a href="{{ $url }}" class="text-slate-500 transition-colors hover:text-primary-600 dark:text-slate-400 dark:hover:text-primary-400">{{ $label }}</a>
+                            <a href="{{ $url }}" class="text-slate-300 transition-colors hover:text-gold-400">{{ $label }}</a>
                         </li>
                     @endforeach
                 </ul>
             </div>
 
             <div>
-                <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white">PPDB</h3>
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-white">PPDB</h3>
                 <ul class="mt-4 space-y-2.5 text-sm">
-                    <li><a href="{{ route('ppdb.siswa') }}" class="text-slate-500 transition-colors hover:text-primary-600 dark:text-slate-400 dark:hover:text-primary-400">Daftar PPDB</a></li>
-                    <li><a href="{{ route('ppdb.status') }}" class="text-slate-500 transition-colors hover:text-primary-600 dark:text-slate-400 dark:hover:text-primary-400">Cek Status</a></li>
-                    <li><a href="{{ route('announcements.index') }}" class="text-slate-500 transition-colors hover:text-primary-600 dark:text-slate-400 dark:hover:text-primary-400">Pengumuman</a></li>
+                    <li><a href="{{ route('ppdb.siswa') }}" class="text-slate-300 transition-colors hover:text-gold-400">Daftar PPDB</a></li>
+                    <li><a href="{{ route('ppdb.status') }}" class="text-slate-300 transition-colors hover:text-gold-400">Cek Status</a></li>
+                    <li><a href="{{ route('announcements.index') }}" class="text-slate-300 transition-colors hover:text-gold-400">Pengumuman</a></li>
                 </ul>
             </div>
 
             <div>
-                <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white">Kontak</h3>
-                <ul class="mt-4 space-y-2.5 text-sm text-slate-500 dark:text-slate-400">
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-white">Kontak</h3>
+                <ul class="mt-4 space-y-2.5 text-sm text-slate-300">
                     <li class="flex gap-2.5">
                         <svg class="mt-0.5 size-4 shrink-0 text-primary-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -66,7 +69,7 @@
             </div>
         </div>
 
-        <div class="mt-12 border-t border-slate-200 pt-6 text-center text-xs text-slate-400 dark:border-slate-800">
+        <div class="mt-12 border-t border-white/10 pt-6 text-center text-xs text-slate-400">
             &copy; {{ date('Y') }} SMK Tahfizh Al-Fatih. Seluruh hak cipta dilindungi.
         </div>
     </div>

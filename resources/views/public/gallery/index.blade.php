@@ -33,7 +33,7 @@
                 </div>
             @endif
 
-            <div class="mt-10 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4" data-gallery-grid>
+            <div class="reveal mt-10 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4" data-gallery-grid>
                 @foreach ($galleries as $gallery)
                     <button
                         type="button"

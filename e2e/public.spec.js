@@ -5,7 +5,7 @@ test.describe('Public Website', () => {
     const errors = [];
     page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
     await page.goto('/');
-    await expect(page.locator('h1')).toContainText('SMK Tahfizh');
+    await expect(page.locator('h1')).toContainText('Membangun Generasi');
     await expect(page.getByRole('navigation', { name: 'Navigasi utama' })).toBeVisible();
     expect(errors).toEqual([]);
   });
@@ -15,7 +15,7 @@ test.describe('Public Website', () => {
     const toggle = page.locator('[data-nav-toggle]');
     if (await toggle.isVisible()) {
       await toggle.click();
-      await expect(page.locator('[data-nav-menu]')).not.toHaveClass(/hidden/);
+      await expect(page.locator('[data-nav-menu]')).toBeVisible();
       await page.keyboard.press('Escape');
     }
   });
@@ -93,5 +93,23 @@ test.describe('Public Website', () => {
     await page.goto('/');
     const width = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 5);
     expect(width).toBeTruthy();
+  });
+
+  test('homepage identity components render', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('[data-word-swap]').first()).toBeVisible();
+    await expect(page.locator('.marquee').first()).toBeVisible();
+    await expect(page.locator('.pulse-track').first()).toBeVisible();
+    // counters resolve to final values after scroll into view
+    const stats = page.locator('[data-counter]');
+    await stats.first().scrollIntoViewIfNeeded();
+    await expect.poll(async () => await stats.first().innerText(), { timeout: 8000 }).not.toBe('0');
+  });
+
+  test('profile page is editorial', async ({ page }) => {
+    await page.goto('/profil');
+    await expect(page.getByRole('heading', { name: 'Profil Sekolah' }).first()).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Baca Visi & Misi' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Daftar PPDB' }).first()).toBeVisible();
   });
 });

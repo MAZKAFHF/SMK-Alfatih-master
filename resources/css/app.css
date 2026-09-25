@@ -10,7 +10,40 @@
 @theme {
     --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
         'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-    --font-display: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Sora', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+
+    /* ALFATIH//FUTURE identity tokens — existing primary/accent untouched */
+    --color-forest-700: #0a5c46;
+    --color-forest-800: #063e32;
+    --color-forest-900: #04291f;
+
+    --color-tech-400: #2dd48a;
+    --color-tech-500: #16b878;
+    --color-tech-600: #0e9a63;
+
+    --color-energy-500: #f47a28;
+    --color-energy-600: #d96215;
+    --color-energy-700: #b34e10;
+
+    --color-gold-300: #f3d889;
+    --color-gold-400: #e5bd55;
+    --color-gold-500: #d7a83e;
+    --color-gold-600: #b3872c;
+
+    --color-navy-700: #1a2f47;
+    --color-navy-800: #14253a;
+    --color-navy-900: #101c2c;
+    --color-navy-950: #0a1320;
+
+    --color-night-700: #254039;
+    --color-night-800: #13221d;
+    --color-night-900: #0d1715;
+
+    /* Motion tokens */
+    --ease-future: cubic-bezier(0.22, 1, 0.36, 1);
+    --dur-fast: 150ms;
+    --dur-base: 550ms;
+    --dur-slow: 700ms;
 
     --color-primary-50: #ecfdf5;
     --color-primary-100: #d1fae5;
@@ -197,6 +230,131 @@
     }
     to {
         width: 0%;
+    }
+}
+
+@layer components {
+    /* ---------- ALFATIH//FUTURE foundation ---------- */
+
+    /* Navbar states: transparan di atas hero, solid setelah scroll */
+    #site-header {
+        transition: background-color 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
+        border-bottom: 1px solid transparent;
+    }
+    #site-header.navbar-solid {
+        @apply border-slate-200/70 bg-white/90 shadow-sm backdrop-blur-md dark:border-slate-800/70 dark:bg-slate-950/90;
+    }
+
+    /* Signature clipped corner — identitas bentuk */
+    .clip-corner {
+        clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+    }
+    .clip-corner-sm {
+        clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+    }
+
+    /* Scroll reveal */
+    .reveal {
+        opacity: 0;
+        transform: translateY(18px);
+        transition: opacity var(--dur-base) var(--ease-future), transform var(--dur-base) var(--ease-future);
+        transition-delay: var(--reveal-delay, 0ms);
+    }
+    .reveal.revealed {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Marquee strip */
+    .marquee {
+        display: flex;
+        width: max-content;
+        animation: marquee-scroll 30s linear infinite;
+    }
+    .marquee:hover {
+        animation-play-state: paused;
+    }
+
+    /* Digital Pulse line */
+    .pulse-track {
+        position: relative;
+    }
+    .pulse-dot {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        translate: 0 -50%;
+        animation: pulse-travel 7s var(--ease-future) infinite;
+    }
+
+    /* Card lift — hover depth terkendali */
+    .lift {
+        transition: transform var(--dur-fast) var(--ease-future), box-shadow var(--dur-fast) var(--ease-future);
+    }
+    .lift:hover {
+        transform: translateY(-4px);
+    }
+
+    /* Hero keyword swap */
+    .word-swap {
+        display: inline-block;
+        overflow: hidden;
+        vertical-align: bottom;
+    }
+    .word-swap > span {
+        display: inline-block;
+        animation: word-rise 0.45s var(--ease-future) both;
+    }
+
+    /* Tech grid backdrop */
+    .tech-grid {
+        background-image:
+            linear-gradient(to right, rgb(255 255 255 / 0.06) 1px, transparent 1px),
+            linear-gradient(to bottom, rgb(255 255 255 / 0.06) 1px, transparent 1px);
+        background-size: 36px 36px;
+    }
+    .tech-grid-light {
+        background-image:
+            linear-gradient(to right, rgb(8 122 85 / 0.07) 1px, transparent 1px),
+            linear-gradient(to bottom, rgb(8 122 85 / 0.07) 1px, transparent 1px);
+        background-size: 36px 36px;
+    }
+}
+
+@keyframes marquee-scroll {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+@keyframes pulse-travel {
+    0% {
+        left: 0;
+        opacity: 0;
+    }
+    8% {
+        opacity: 1;
+    }
+    92% {
+        opacity: 1;
+    }
+    100% {
+        left: calc(100% - 10px);
+        opacity: 0;
+    }
+}
+
+@keyframes word-rise {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
