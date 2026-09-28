@@ -39,7 +39,7 @@ class NewsController extends Controller
         if (empty($data['published_at']) && $data['status'] === 'published') {
             $data['published_at'] = now();
         } elseif (! empty($data['published_at'])) {
-            $data['published_at'] = \Carbon\Carbon::parse($data['published_at'], 'Asia/Jakarta')->utc();
+            $data['published_at'] = \App\Services\JakartaDateTime::toStorage($data['published_at'], 'published_at');
         }
         if ($request->hasFile('thumbnail')) {
             $data['thumbnail'] = MediaService::store($request->file('thumbnail'), 'news', 1200);
@@ -70,7 +70,7 @@ class NewsController extends Controller
             unset($data['thumbnail']);
         }
         if (! empty($data['published_at'])) {
-            $data['published_at'] = \Carbon\Carbon::parse($data['published_at'], 'Asia/Jakarta')->utc();
+            $data['published_at'] = \App\Services\JakartaDateTime::toStorage($data['published_at'], 'published_at');
         } elseif ($data['status'] === 'published' && empty($data['published_at']) && empty($news->published_at)) {
             $data['published_at'] = now();
         }

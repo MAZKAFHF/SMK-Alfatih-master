@@ -25,3 +25,10 @@ Thumbs.db
 
 # Local Netlify folder
 .netlify
+
+# Generated test / E2E artifacts (regenerable, never commit)
+test-results/
+playwright-report/
+coverage/
+.phpunit.cache/
+*.sqlite-journal

@@ -10,7 +10,7 @@
                     <td class="px-4 py-3 font-semibold">{{ $n->title }}</td>
                     <td class="px-4 py-3 text-xs">{{ $n->deleted_at->translatedFormat('d M Y H:i') }}</td>
                     <td class="px-4 py-3 text-right space-x-1">
-                        <form method="POST" action="{{ route('admin.news.restore',$n->id) }}" class="inline">@csrf <x-ui.button size="sm" type="submit">Restore</x-ui.button></form>
+                        <form method="POST" novalidate action="{{ route('admin.news.restore',$n->id) }}" class="inline">@csrf <x-ui.button size="sm" type="submit">Restore</x-ui.button></form>
                         <x-ui.button size="sm" variant="danger" onclick="confirmDialog({title:'Hapus permanen?', message:'{{ $n->title }}', formAction:'{{ route('admin.news.force-delete',$n->id) }}', method:'DELETE'})">Hapus Permanen</x-ui.button>
                     </td>
                 </tr>

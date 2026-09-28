@@ -17,7 +17,7 @@
 
     <div
         data-dropdown-menu
-        class="absolute z-50 mt-2 hidden min-w-44 rounded-xl border border-slate-200 bg-white p-1.5 shadow-pop dark:border-slate-700 dark:bg-slate-800 {{ $alignments[$align] }}"
+        class="ctl-popover absolute z-50 mt-2 hidden min-w-44 p-1.5 {{ $alignments[$align] }}"
         role="menu"
     >
         {{ $slot }}

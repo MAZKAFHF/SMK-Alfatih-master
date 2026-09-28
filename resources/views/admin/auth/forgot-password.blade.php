@@ -7,7 +7,7 @@
 
                 @if(session('success'))<div class="mt-4"><x-ui.alert variant="success" title="Berhasil">{{ session('success') }}</x-ui.alert></div>@endif
 
-                <form method="POST" action="{{ route('admin.password.email') }}" class="mt-6 space-y-5">
+                <form method="POST" novalidate action="{{ route('admin.password.email') }}" class="mt-6 space-y-5">
                     @csrf
                     <x-ui.input label="Email" name="email" type="email" value="{{ old('email') }}" required autofocus />
                     <x-ui.button type="submit" size="lg" full="true">Kirim Tautan Reset</x-ui.button>

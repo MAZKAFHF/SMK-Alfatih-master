@@ -32,13 +32,29 @@ return Application::configure(basePath: dirname(__DIR__))
             $middleware->trustProxies(at: $proxies);
         }
 
-        $middleware->redirectGuestsTo(fn () => route('admin.login'));
+        // Tamu yang belum login: portal/* -> portal.login, selain itu -> admin.login
+        $middleware->redirectGuestsTo(function () {
+            if (str_starts_with(request()->path(), 'portal')) {
+                return route('portal.login');
+            }
 
-        $middleware->redirectUsersTo(fn () => route('admin.dashboard'));
+            return route('admin.login');
+        });
+
+        // Pengguna yang sudah login membuka halaman tamu (daftar/masuk):
+        // portal/* -> portal.dashboard, selain itu -> admin.dashboard
+        $middleware->redirectUsersTo(function () {
+            if (str_starts_with(request()->path(), 'portal')) {
+                return route('portal.dashboard');
+            }
+
+            return route('admin.dashboard');
+        });
 
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
             'superadmin' => EnsureUserIsSuperAdmin::class,
+            'applicant' => \App\Http\Middleware\EnsureUserIsApplicant::class,
         ]);
 
         $middleware->append(SecurityHeaders::class);

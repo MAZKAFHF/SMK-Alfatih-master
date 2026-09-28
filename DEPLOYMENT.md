@@ -94,8 +94,9 @@ php artisan config:cache && php artisan route:cache && php artisan view:cache
 
 ## Scheduler & Queue
 
-- Scheduler tidak wajib saat ini (backup via cron di `BACKUP_RESTORE.md`).
-- Queue dipakai untuk email (log driver di dev, smtp di prod). Jika `QUEUE_CONNECTION=sync`, email kirim sinkron, tidak perlu worker.
+- Scheduler WAJIB untuk retensi otomatis (log 03:00, trash 03:15, akun pemohon 03:30) + backup terjadwal.
+- Cron hosting: `* * * * * php /path/artisan schedule:run >> /dev/null 2>&1` (tanpa ini cleanup tidak berjalan otomatis).
+- Verifikasi: `php artisan schedule:list`.
 
 ## CDN / Assets
 

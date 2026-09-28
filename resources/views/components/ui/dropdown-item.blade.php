@@ -2,24 +2,21 @@
     'href' => null,
     'active' => false,
     'danger' => false,
+    'disabled' => false,
 ])
 
 @php
-    $classes = [
-        'flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition-colors',
-        $danger
-            ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950'
-            : ($active ? 'bg-primary-50 text-primary-700 font-medium dark:bg-primary-950 dark:text-primary-400' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-white'),
-        $attributes->get('class'),
-    ];
+    $style = $danger
+        ? 'color: var(--ctl-danger);'
+        : ($active ? 'color: var(--ctl-primary); font-weight: 600;' : 'color: var(--ctl-text);');
 @endphp
 
 @if ($href)
-    <a href="{{ $href }}" data-dropdown-close role="menuitem" {{ $attributes->except('class')->class($classes) }}>
+    <a href="{{ $href }}" data-dropdown-close role="menuitem" @if($disabled) aria-disabled="true" @endif style="{{ $style }}" {{ $attributes->except('class')->class(['ctl-option', '!rounded-lg', $attributes->get('class')]) }}>
         {{ $slot }}
     </a>
 @else
-    <button type="button" data-dropdown-close role="menuitem" {{ $attributes->merge(['class' => implode(' ', $classes)]) }}>
+    <button type="button" data-dropdown-close role="menuitem" @disabled($disabled) style="{{ $style }}" {{ $attributes->merge(['class' => 'ctl-option !rounded-lg']) }}>
         {{ $slot }}
     </button>
 @endif

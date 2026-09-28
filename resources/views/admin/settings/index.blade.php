@@ -1,6 +1,6 @@
 <x-admin.layouts.app :title="'Pengaturan'">
     <h1 class="text-xl font-extrabold text-slate-900 dark:text-white">Pengaturan Website</h1>
-    <p class="mt-1 text-sm text-slate-500">Atur informasi sekolah, homepage, SEO &amp; PPDB.</p>
+    <p class="mt-1 text-sm text-slate-500">Atur informasi sekolah, homepage, konten halaman, dan SEO. PPDB dikelola melalui Periode PPDB.</p>
 
     @php
         $pageLabels = [
@@ -17,12 +17,11 @@
             <button type="button" data-tab-trigger data-target="#tab-homepage" data-active="false" class="whitespace-nowrap px-4 py-2 text-sm font-semibold border-b-2 data-[active=true]:border-primary-600 data-[active=false]:border-transparent data-[active=false]:text-slate-500">Homepage</button>
             <button type="button" data-tab-trigger data-target="#tab-pages" data-active="false" class="whitespace-nowrap px-4 py-2 text-sm font-semibold border-b-2 data-[active=true]:border-primary-600 data-[active=false]:border-transparent data-[active=false]:text-slate-500">Konten Halaman</button>
             <button type="button" data-tab-trigger data-target="#tab-seo" data-active="false" class="whitespace-nowrap px-4 py-2 text-sm font-semibold border-b-2 data-[active=true]:border-primary-600 data-[active=false]:border-transparent data-[active=false]:text-slate-500">SEO &amp; Sosial</button>
-            <button type="button" data-tab-trigger data-target="#tab-ppdb" data-active="false" class="whitespace-nowrap px-4 py-2 text-sm font-semibold border-b-2 data-[active=true]:border-primary-600 data-[active=false]:border-transparent data-[active=false]:text-slate-500">PPDB</button>
         </div>
 
         <div id="tab-general" data-tab-panel>
             <x-ui.card class="p-6">
-                <form method="POST" action="{{ route('admin.settings.update') }}" enctype="multipart/form-data" class="space-y-5">
+                <form method="POST" novalidate action="{{ route('admin.settings.update') }}" enctype="multipart/form-data" class="space-y-5">
                     @csrf @method('PUT')
                     @php $settings = $settings ?? collect(); @endphp
                     <div class="grid gap-5 sm:grid-cols-2">
@@ -37,8 +36,8 @@
                         <x-ui.input label="Google Maps URL" name="maps_url" value="{{ old('maps_url', \App\Models\SiteSetting::get('maps_url')) }}" placeholder="https://maps.google.com/..." class="sm:col-span-2" />
                     </div>
                     <div class="grid gap-5 sm:grid-cols-2">
-                        <x-ui.input label="Logo (png/jpg/webp)" name="logo" type="file" accept="image/*" />
-                        <x-ui.input label="Favicon" name="favicon" type="file" accept="image/*" />
+                        <x-ui.file-upload label="Logo" name="logo" accept="PNG/JPG/WEBP" max-note="Maks. 2 MB" button-text="Pilih Logo" />
+                        <x-ui.file-upload label="Favicon" name="favicon" accept="PNG/ICO/JPG" max-note="Maks. 1 MB" button-text="Pilih Favicon" />
                     </div>
                     <div class="flex justify-end"><x-ui.button type="submit">Simpan Umum</x-ui.button></div>
                 </form>
@@ -47,7 +46,7 @@
 
         <div id="tab-homepage" data-tab-panel class="hidden">
             <x-ui.card class="p-6">
-                <form method="POST" action="{{ route('admin.settings.update') }}" class="space-y-5">
+                <form method="POST" novalidate action="{{ route('admin.settings.update') }}" class="space-y-5">
                     @csrf @method('PUT')
                     <p class="text-sm text-slate-500">Angka statistik di homepage (kosongkan untuk sembunyikan). Verifikasi kebenaran data sebelum menyimpan.</p>
                     <div class="grid gap-5 sm:grid-cols-2">
@@ -63,17 +62,21 @@
 
         <div id="tab-seo" data-tab-panel class="hidden">
             <x-ui.card class="p-6">
-                <form method="POST" action="{{ route('admin.settings.update') }}" class="space-y-5">
+                <form method="POST" novalidate action="{{ route('admin.settings.update') }}" class="space-y-5">
                     @csrf @method('PUT')
                     <x-ui.input label="SEO Default Title" name="seo_title" value="{{ old('seo_title', \App\Models\SiteSetting::get('seo_title')) }}" />
                     <x-ui.textarea label="SEO Default Description" name="seo_description" rows="3">{{ old('seo_description', \App\Models\SiteSetting::get('seo_description')) }}</x-ui.textarea>
-                    <div class="grid gap-5 sm:grid-cols-2">
-                        <x-ui.input label="Instagram" name="social_instagram" value="{{ old('social_instagram', \App\Models\SiteSetting::get('social_instagram')) }}" placeholder="https://instagram.com/..." />
-                        <x-ui.input label="YouTube" name="social_youtube" value="{{ old('social_youtube', \App\Models\SiteSetting::get('social_youtube')) }}" />
-                        <x-ui.input label="Facebook" name="social_facebook" value="{{ old('social_facebook', \App\Models\SiteSetting::get('social_facebook')) }}" />
-                        <x-ui.input label="TikTok" name="social_tiktok" value="{{ old('social_tiktok', \App\Models\SiteSetting::get('social_tiktok')) }}" />
+                    <div class="rounded-xl p-4" style="background: var(--ctl-sunken); border: 1px solid var(--ctl-border);">
+                        <h3 class="text-sm font-bold" style="color: var(--ctl-text);">MEDIA SOSIAL</h3>
+                        <p class="mt-1 text-xs" style="color: var(--ctl-muted);">Tautan resmi yang tampil di footer &amp; halaman kontak. Kosongkan untuk menyembunyikan platform. Perubahan langsung tampil di website tanpa cache:clear.</p>
+                        <div class="mt-4 grid gap-5 sm:grid-cols-2">
+                            <x-ui.input label="Instagram" name="social_instagram" value="{{ old('social_instagram', \App\Models\SiteSetting::get('social_instagram', 'https://www.instagram.com/smktahfizhalfatihpku/')) }}" placeholder="https://www.instagram.com/smktahfizhalfatihpku/" help="Wajib URL instagram.com. Kosongkan untuk sembunyikan." />
+                            <x-ui.input label="Facebook" name="social_facebook" value="{{ old('social_facebook', \App\Models\SiteSetting::get('social_facebook', 'https://www.facebook.com/people/SmkTahfizh-AlFatih')) }}" placeholder="https://www.facebook.com/people/SmkTahfizh-AlFatih" help="Wajib URL facebook.com. Kosongkan untuk sembunyikan." />
+                            <x-ui.input label="YouTube" name="social_youtube" value="{{ old('social_youtube', \App\Models\SiteSetting::get('social_youtube', 'https://www.youtube.com/@SMKTAHFIZHALFATIH')) }}" placeholder="https://www.youtube.com/@SMKTAHFIZHALFATIH" help="Wajib URL youtube.com. Kosongkan untuk sembunyikan." />
+                            <x-ui.input label="TikTok" name="social_tiktok" value="{{ old('social_tiktok', \App\Models\SiteSetting::get('social_tiktok')) }}" placeholder="https://tiktok.com/@..." help="Opsional. Kosongkan untuk sembunyikan." />
+                        </div>
                     </div>
-                    <div class="flex justify-end"><x-ui.button type="submit">Simpan SEO</x-ui.button></div>
+                    <div class="flex justify-end"><x-ui.button type="submit">Simpan SEO &amp; Sosial</x-ui.button></div>
                 </form>
             </x-ui.card>
         </div>
@@ -98,7 +101,7 @@
                             <x-ui.card class="p-6">
                                 <h3 class="text-sm font-bold text-slate-900 dark:text-white">Edit: {{ $label }}</h3>
                                 <p class="mt-1 text-xs text-slate-500">URL: <a href="{{ route('pages.show', $page->slug) }}" target="_blank" class="text-primary-600 hover:underline">/{{ $page->slug }}</a> • Status: {{ $page->status->label() }}</p>
-                                <form method="POST" action="{{ route('admin.pages.update', $page) }}" enctype="multipart/form-data" class="mt-4 space-y-5">
+                                <form method="POST" novalidate action="{{ route('admin.pages.update', $page) }}" enctype="multipart/form-data" class="mt-4 space-y-5">
                                     @csrf @method('PUT')
                                     <div class="grid gap-5 sm:grid-cols-2">
                                         <x-ui.input label="Judul" name="title" value="{{ old('title', $page->title) }}" required />
@@ -152,26 +155,5 @@
             </div>
         </div>
 
-        <div id="tab-ppdb" data-tab-panel class="hidden">
-            <x-ui.card class="p-6">
-                <form method="POST" action="{{ route('admin.settings.ppdb') }}" class="space-y-5">
-                    @csrf @method('PUT')
-                    <div class="grid gap-5 sm:grid-cols-2">
-                        <x-ui.input label="Tahun Ajaran" name="academic_year" value="{{ old('academic_year',$ppdb->academic_year) }}" required />
-                        <x-ui.input label="Kuota (opsional)" name="quota" type="number" value="{{ old('quota',$ppdb->quota) }}" />
-                        <x-ui.input label="Dibuka Pada" name="opens_at" type="datetime-local" value="{{ old('opens_at',$ppdb->opens_at?->format('Y-m-d\TH:i')) }}" />
-                        <x-ui.input label="Ditutup Pada" name="closes_at" type="datetime-local" value="{{ old('closes_at',$ppdb->closes_at?->format('Y-m-d\TH:i')) }}" />
-                        <x-ui.select label="Status Override" name="status_override" :value="old('status_override',$ppdb->status_override)" :options="['open'=>'Paksa Buka','closed'=>'Paksa Tutup']" placeholder="Otomatis (berdasarkan tanggal)"><option value="">Otomatis</option></x-ui.select>
-                        <div class="flex items-center gap-2 pt-6">
-                            <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="is_open" value="1" {{ old('is_open',$ppdb->is_open) ? 'checked' : '' }} class="rounded border-slate-300" /> Aktif</label>
-                        </div>
-                    </div>
-                    <x-ui.textarea label="Pengumuman PPDB" name="announcement" rows="3">{{ old('announcement',$ppdb->announcement) }}</x-ui.textarea>
-                    <x-ui.input label="Kontak Bantuan" name="contact_info" value="{{ old('contact_info',$ppdb->contact_info) }}" placeholder="WA Panitia: 0812..." />
-                    <div class="flex justify-end"><x-ui.button type="submit">Simpan PPDB</x-ui.button></div>
-                </form>
-                <div class="mt-4 rounded-lg bg-slate-50 p-3 text-xs text-slate-500 dark:bg-slate-800">Status saat ini: <strong class="text-slate-900 dark:text-white">{{ $ppdb->statusLabel() }}</strong> • {{ $ppdb->isOpen() ? 'Pendaftaran menerima POST' : 'POST ditolak server' }}</div>
-            </x-ui.card>
-        </div>
     </div>
 </x-admin.layouts.app>

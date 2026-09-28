@@ -10,7 +10,7 @@
                     <td class="px-4 py-3 text-sm">{{ $m->name }}</td>
                     <td class="px-4 py-3 text-xs">{{ $m->deleted_at->translatedFormat('d M Y') }}</td>
                     <td class="px-4 py-3 text-right space-x-1">
-                        <form method="POST" action="{{ route('admin.contact-messages.restore',$m->id) }}" class="inline">@csrf <x-ui.button size="sm" type="submit">Restore</x-ui.button></form>
+                        <form method="POST" novalidate action="{{ route('admin.contact-messages.restore',$m->id) }}" class="inline">@csrf <x-ui.button size="sm" type="submit">Restore</x-ui.button></form>
                         <x-ui.button size="sm" variant="danger" onclick="confirmDialog({title:'Hapus permanen?', formAction:'{{ route('admin.contact-messages.force-delete',$m->id) }}', method:'DELETE'})">Hapus Permanen</x-ui.button>
                     </td>
                 </tr>

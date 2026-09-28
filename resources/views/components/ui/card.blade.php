@@ -6,9 +6,9 @@
 
 @php
     $classes = [
-        'rounded-xl border border-slate-200 bg-white shadow-card dark:border-slate-800 dark:bg-slate-900',
+        'ctl-card',
         $padding ? 'p-6' : '',
-        $hover ? 'transition-shadow duration-200 hover:shadow-card-hover' : '',
+        $hover ? 'transition-shadow duration-200' : '',
         $attributes->get('class'),
     ];
 @endphp

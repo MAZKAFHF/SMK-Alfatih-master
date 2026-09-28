@@ -1,11 +1,11 @@
 <x-admin.layouts.app :title="'Pendaftar PPDB'">
-    @php
-        $statusOptions = collect(\App\Enums\RegistrationStatus::cases())
-            ->mapWithKeys(fn ($status) => [$status->value => $status->label()])
-            ->all();
-    @endphp
-
-    <x-admin.page-head title="Pendaftar PPDB" context="Total {{ number_format($registrations->total()) }} pendaftar.">
+    @php $ctxPeriod = ($activePeriodId ?? null) ? $periods->firstWhere('id', $activePeriodId) : null; @endphp
+    <x-admin.page-head title="Pendaftar PPDB" context="{{ $ctxPeriod ? 'PPDB '.$ctxPeriod->academic_year.' • ' : '' }}Total {{ number_format($registrations->total()) }} pendaftar.">
+        @if(!empty($isHistoryView))
+            <x-ui.badge color="slate" size="sm">Riwayat — baca saja</x-ui.badge>
+        @endif
+        <div class="flex flex-wrap items-center gap-2">
+            <x-ui.button size="sm" href="{{ route('admin.registrations.create') }}">+ Entri Manual</x-ui.button>
         <div class="flex flex-wrap items-center gap-4">
             <a href="{{ route('ppdb.index') }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-sm font-medium text-primary-700 hover:underline dark:text-primary-400">
                 <svg class="size-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -15,51 +15,52 @@
                 Lihat halaman PPDB
             </a>
 
-            @if ($registrations->total() > 0)
-                <x-ui.button
-                    variant="danger"
-                    size="sm"
-                    data-confirm-title="Hapus semua data pendaftaran?"
-                    data-confirm-message="Seluruh {{ number_format($registrations->total()) }} data pendaftaran akan dihapus secara permanen dan tidak dapat dikembalikan."
-                    onclick="confirmDialog({ title: this.dataset.confirmTitle, message: this.dataset.confirmMessage, confirmText: 'Ya, Hapus Semua', formAction: '{{ route('admin.registrations.destroy-all') }}', method: 'DELETE' })"
-                >
-                    <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                    </svg>
-                    Hapus Semua
-                </x-ui.button>
-            @endif
+        </div>
         </div>
     </x-admin.page-head>
 
+    @isset($counts)
+    <div class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
+        @foreach([['Total', $counts['total'] ?? 0], ['Menunggu Verifikasi', $counts['submitted'] ?? 0], ['Perlu Perbaikan', $counts['needs_revision'] ?? 0], ['Terverifikasi', $counts['verified'] ?? 0], ['Menunggu Keputusan', $counts['waiting_decision'] ?? 0]] as [$label, $val])
+        <x-ui.card class="!p-3"><p class="ctl-faint text-[11px] uppercase tracking-wider">{{ $label }}</p><p class="text-xl font-extrabold">{{ number_format($val) }}</p></x-ui.card>
+        @endforeach
+    </div>
+    @endisset
+
     <x-ui.card class="mb-6 p-4">
-        <form method="GET" action="{{ route('admin.registrations.index') }}" class="flex flex-col gap-3 sm:flex-row">
-            <div class="flex-1">
+        <form method="GET" action="{{ route('admin.registrations.index') }}" class="grid gap-3 lg:grid-cols-5">
+            <div class="lg:col-span-2">
                 <x-ui.input
                     name="search"
-                    placeholder="Cari nama, nomor pendaftaran, email, atau no. HP..."
+                    placeholder="Cari nama, nomor, NIK, NISN, ortu, email, HP..."
                     value="{{ request('search') }}"
                 />
             </div>
 
-            <div class="sm:w-56">
-                <x-ui.select
-                    name="status"
-                    :value="request('status')"
-                    :options="$statusOptions"
-                    placeholder="Semua status"
-                    :placeholder-option="false"
-                >
-                    <option value="" {{ blank(request('status')) ? 'selected' : '' }}>Semua status</option>
-                </x-ui.select>
+            <div>
+                <x-ui.select name="application_status" :value="request('application_status')" :options="['' => 'Semua status'] + collect(\App\Enums\ApplicationStatus::cases())->mapWithKeys(fn($s) => [$s->value => $s->label()])->all()" placeholder="Status aplikasi" :placeholder-option="false"></x-ui.select>
             </div>
 
-            <x-ui.button type="submit" variant="secondary">Cari</x-ui.button>
+            <div>
+                <x-ui.select name="program_id" :value="request('program_id')" :options="['' => 'Semua program'] + ($programs ?? collect())->pluck('name','id')->all()" placeholder="Program" :placeholder-option="false"></x-ui.select>
+            </div>
 
-            @if (request()->has('search') || request()->has('status'))
-                <x-ui.button variant="ghost" href="{{ route('admin.registrations.index') }}">Reset</x-ui.button>
-            @endif
+            <div>
+                <x-ui.select name="period_id" :value="$activePeriodId" :options="($periods ?? collect())->mapWithKeys(fn($p) => [$p->id => $p->academic_year.' — '.\App\Models\PpdbPeriod::statusLabelFor($p->status)])->all()" placeholder="Periode" :placeholder-option="false"></x-ui.select>
+            </div>
+
+            <div class="flex gap-2">
+                <x-ui.button type="submit" variant="secondary">Cari</x-ui.button>
+                @if (request()->query())
+                    <x-ui.button variant="ghost" href="{{ route('admin.registrations.index') }}">Reset</x-ui.button>
+                @endif
+            </div>
         </form>
+        <div class="mt-3 flex flex-wrap gap-2 text-xs">
+            <a href="{{ route('admin.slots.index') }}" class="font-semibold text-primary-700">Kelola Slot &rarr;</a>
+            <a href="{{ route('admin.registrations.export', request()->query()) }}" class="font-semibold text-primary-700">Export CSV terfilter &rarr;</a>
+            <a href="{{ route('admin.registrations.print-list', request()->query()) }}" target="_blank" class="font-semibold text-primary-700">Cetak Daftar Terfilter &rarr;</a>
+        </div>
     </x-ui.card>
 
     @if ($registrations->isEmpty())
@@ -79,37 +80,37 @@
 
         {{-- Tabel dengan scroll horizontal di layar kecil --}}
         <div class="-mx-4 px-4 sm:mx-0 sm:px-0">
-            <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-card dark:border-slate-800 dark:bg-slate-900">
-                <table class="min-w-[820px] w-full divide-y divide-slate-200 text-sm dark:divide-slate-700">
-                    <thead class="bg-slate-50 dark:bg-slate-800">
+            <div class="ctl-table-wrap">
+                <table class="ctl-table min-w-[820px]">
+                    <thead>
                         <tr>
-                            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">No. Pendaftaran</th>
-                            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Nama</th>
-                            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Program</th>
-                            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Kontak</th>
-                            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Tanggal</th>
-                            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Status</th>
-                            <th scope="col" class="sticky right-0 bg-slate-50 px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500 shadow-[calc(-8px_0_8px_-8px_rgba(15,23,42,0.15))] dark:bg-slate-800 dark:text-slate-400">Aksi</th>
+                            <th scope="col">No. Pendaftaran</th>
+                            <th scope="col">Nama</th>
+                            <th scope="col">Program</th>
+                            <th scope="col">Kontak</th>
+                            <th scope="col">Tanggal</th>
+                            <th scope="col">Status</th>
+                            <th scope="col" class="!text-right">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50">
+                    <tbody>
                         @foreach ($registrations as $registration)
-                            <tr class="group hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                <td class="px-4 py-3 whitespace-nowrap font-mono text-xs font-medium text-slate-600 dark:text-slate-400">{{ $registration->registration_number }}</td>
-                                <td class="px-4 py-3">
-                                    <p class="font-semibold text-slate-900 dark:text-white">{{ $registration->name }}</p>
-                                    <p class="text-xs text-slate-500 dark:text-slate-400">{{ $registration->school_origin ?? '—' }}</p>
+                            <tr>
+                                <td class="whitespace-nowrap font-mono text-xs font-medium">{{ $registration->registration_number }}</td>
+                                <td>
+                                    <p class="font-semibold">{{ $registration->name }}</p>
+                                    <p class="ctl-muted text-xs">{{ $registration->school_origin ?? '—' }}</p>
                                 </td>
-                                <td class="px-4 py-3 text-slate-600 dark:text-slate-400">{{ $registration->program?->name ?? '—' }}</td>
-                                <td class="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">
+                                <td>{{ $registration->program?->name ?? '—' }}</td>
+                                <td class="text-sm">
                                     <p>{{ $registration->phone ?? '—' }}</p>
-                                    <p class="text-xs text-slate-400 dark:text-slate-500">{{ $registration->email ?? '' }}</p>
+                                    <p class="ctl-faint text-xs">{{ $registration->email ?? '' }}</p>
                                 </td>
-                                <td class="px-4 py-3 whitespace-nowrap text-slate-600 dark:text-slate-400">{{ $registration->created_at->translatedFormat('d M Y') }}</td>
-                                <td class="px-4 py-3">
-                                    <x-ui.badge :color="$registration->status->badgeColor()" size="sm" dot>{{ $registration->status->label() }}</x-ui.badge>
+                                <td class="whitespace-nowrap">{{ $registration->created_at->translatedFormat('d M Y') }}</td>
+                                <td>
+                                    <x-ui.badge :color="$registration->application_status->badgeColor()" size="sm" dot>{{ $registration->application_status->label() }}</x-ui.badge>
                                 </td>
-                                <td class="sticky right-0 bg-white px-4 py-3 text-right shadow-[calc(-8px_0_8px_-8px_rgba(15,23,42,0.15))] group-hover:bg-slate-50 dark:bg-slate-900 dark:group-hover:bg-slate-800/50">
+                                <td class="!text-right">
                                     <x-ui.button variant="outline" size="sm" href="{{ route('admin.registrations.show', $registration) }}">Detail</x-ui.button>
                                 </td>
                             </tr>

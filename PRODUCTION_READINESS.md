@@ -16,15 +16,15 @@
 ## Database
 - [x] SoftDeletes untuk programs/news/pages/galleries/announcements/contact_messages/ppdb_registrations
 - [x] Trash/restore/forceDelete (force hanya superadmin)
-- [x] Mass delete redesign: superadmin + password + "HAPUS SEMUA" + audit + soft
+- [x] Aksi mass delete pendaftar dihapus; penghapusan melalui Trash per data
 - [x] Atomic registration_number (transaction + lockForUpdate + unique retry)
 - [x] Indexes (status, slug, registration_number, etc)
 - [x] SQLite compatible MySQL (`DATABASE_PRODUCTION_GUIDE.md`)
 
 ## Backups
-- [x] Strategy documented `BACKUP_RESTORE.md` (daily file + media tar, retain 7)
-- [x] Restore procedure tested via migrate:status & temp restore doc
-- [ ] Actual cron created on host (external — user perlu `crontab -e` di VPS)
+- [x] Backup terjadwal mencakup DB, media publik, dokumen PPDB privat, manifest SHA-256, dan retensi
+- [x] Verifikasi backup tersedia melalui `app:backup-verify`; restore runbook terdokumentasi
+- [ ] Scheduler host dan replikasi off-site diaktifkan saat deployment
 
 ## CMS
 - [x] Programs CRUD + image + trash + audit
@@ -32,14 +32,14 @@
 - [x] Galleries CRUD + category + audit
 - [x] Announcements CRUD + schedule + audit
 - [x] Pages CRUD + slug/meta/order + audit
-- [x] Contact inbox (list/search/filter/read/archive/trash/audit, unread badge)
+- [x] Contact inbox dengan status penanganan, kanal respons, catatan, arsip, dan audit
 
 ## PPDB
-- [x] Period management (`ppdb_settings` academic_year/opens_at/closes_at/is_open/override/quota) + server reject POST if closed
-- [x] Duplicate prevention (2min duplicate check) + client disable submit
+- [x] Period management (`ppdb_periods`: academic_year/opens_at/closes_at/status/override/quota) + server reject create/submit jika tidak OPEN
+- [x] Account-based application creation + server-side duplicate guard per akun/periode
 - [x] Atomic number concurrency-safe
-- [x] Privacy: status requires registration_number + birth_date, rate limited 10/min
-- [x] Admin management: search/status/program/date/academic year, audit status+notes, soft delete/restore
+- [x] Privacy: tidak ada lookup nomor publik; portal memakai auth + ownership policy
+- [x] Admin management: search/application-status/program/periode, state-machine workflow, audit, soft delete/restore
 - [x] Export CSV filtered (super?) admin, audit export
 
 ## Contact
@@ -61,8 +61,8 @@
 - [x] Storage health: `php artisan storage:link` documented + health check writable
 
 ## Tests
-- [x] PHPUnit 44 passed (after hardening)
-- [ ] Expanded CMS tests (new controllers not yet fully covered — next sprint)
+- [x] PHPUnit 228 passed / 1.319 assertions pada validasi final
+- [x] Feature test CMS, portal, workflow, backup, dan browser E2E tersedia
 - [x] `npm run build` passed, `artisan config:cache` etc.
 
 ## Build

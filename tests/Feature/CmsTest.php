@@ -319,6 +319,10 @@ class CmsTest extends TestCase
         // show marks read
         $this->actingAs($admin)->get(route('admin.contact-messages.show', $msg))->assertOk();
         $this->assertTrue(ContactMessage::find($msg->id)->is_read);
+        $this->actingAs($admin)->put(route('admin.contact-messages.handling', $msg), [
+            'handling_status' => 'resolved', 'response_channel' => 'email', 'admin_note' => 'Sudah dibalas.',
+        ])->assertRedirect();
+        $this->assertDatabaseHas('contact_messages', ['id' => $msg->id, 'handling_status' => 'resolved', 'response_channel' => 'email', 'resolved_by' => $admin->id]);
         // archive
         $this->actingAs($admin)->post(route('admin.contact-messages.archive', $msg))->assertRedirect();
         $this->assertTrue(ContactMessage::find($msg->id)->is_archived);
@@ -363,6 +367,15 @@ class CmsTest extends TestCase
     }
 
     // SETTINGS
+
+    public function test_settings_page_does_not_create_missing_pages_on_get(): void
+    {
+        $admin = $this->admin();
+        Page::query()->where('slug', 'fasilitas')->delete();
+        $before = Page::withTrashed()->count();
+        $this->actingAs($admin)->get(route('admin.settings.index'))->assertOk()->assertSee('belum ada', false);
+        $this->assertSame($before, Page::withTrashed()->count());
+    }
 
     public function test_settings_update_and_cache_invalidation(): void
     {

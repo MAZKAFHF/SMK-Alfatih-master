@@ -1,6 +1,7 @@
 @props([
     'label' => 'Gambar',
     'name' => 'image',
+    'id' => null,
     'value' => null, // URL or path
     'help' => null,
     'required' => false,
@@ -9,41 +10,69 @@
 ])
 
 @php
+    $id = $id ?? $name.'-'.substr(md5(uniqid('', true)), 0, 8);
     $error = $errors->first($name);
-    $hasError = $error ? true : false;
 @endphp
 
 <div>
     @if($label)
-        <label class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
+        <span class="ctl-label" id="{{ $name }}-label">
             {{ $label }}
-            @if($required)<span class="text-red-500">*</span>@endif
-        </label>
+            @if($required)<span class="ctl-req" aria-hidden="true">*</span>@endif
+        </span>
     @endif
 
     @if($value)
         <div class="mb-3">
-            <p class="mb-1.5 text-xs font-medium text-slate-500">Gambar saat ini:</p>
-            <img src="{{ $value }}" alt="Preview" class="h-32 w-auto rounded-lg border object-cover" loading="lazy" />
+            <p class="ctl-faint mb-1.5 text-xs font-medium">Gambar saat ini:</p>
+            <img src="{{ $value }}" alt="Pratinjau {{ $label }}" class="h-32 w-auto rounded-[10px] object-cover" style="border: 1px solid var(--ctl-border);" loading="lazy" />
         </div>
     @endif
 
-    <input
-        type="file"
-        name="{{ $name }}"
-        accept="{{ $accept }}"
-        class="block w-full rounded-lg border bg-white text-sm text-slate-900 shadow-sm file:mr-4 file:rounded-lg file:border-0 file:bg-slate-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-slate-700 hover:file:bg-slate-200 dark:bg-slate-900 dark:text-white dark:file:bg-slate-800 dark:file:text-slate-300 {{ $hasError ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : 'border-slate-300 focus:border-primary-500 focus:ring-primary-200' }}"
-        @if($required && !$value) required @endif
-        aria-describedby="{{ $help ? $name.'-help' : '' }} {{ $hasError ? $name.'-error' : '' }}"
-    />
+    <label
+        for="{{ $id }}"
+        class="ctl-file-drop !flex-row !justify-start !gap-3 !p-4"
+        @if($error) data-error="true" @endif
+    >
+        <span class="flex size-10 shrink-0 items-center justify-center rounded-full" style="background: var(--ctl-primary-soft); color: var(--ctl-primary);" aria-hidden="true">
+            <x-admin.icon name="upload" class="size-5" />
+        </span>
+        <span class="min-w-0">
+            <span class="block truncate text-sm font-semibold" style="color: var(--ctl-text);" data-ctl-file-name>{{ $value ? 'Ganti gambar' : 'Pilih gambar' }}</span>
+            <span class="ctl-faint block text-xs">{{ $maxSize }}</span>
+        </span>
+        <input
+            type="file"
+            id="{{ $id }}"
+            name="{{ $name }}"
+            accept="{{ $accept }}"
+            class="sr-only"
+            data-ctl-file-input
+            @if($required && !$value) required @endif
+            @if($error) aria-invalid="true" @endif
+            aria-describedby="{{ $help ? $name.'-help' : $name }} {{ $error ? $name.'-error' : '' }}"
+        />
+    </label>
 
-    @if($help || $maxSize)
-        <p id="{{ $name }}-help" class="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
-            {{ $help ?? '' }} @if($help && $maxSize) • @endif {{ $maxSize }}
-        </p>
+    @if($help)
+        <p id="{{ $name }}-help" class="ctl-help">{{ $help }}</p>
     @endif
 
     @if($error)
-        <p id="{{ $name }}-error" class="mt-1.5 text-sm text-red-600 dark:text-red-400">{{ $error }}</p>
+        <p role="alert" id="{{ $name }}-error" class="ctl-error-text">{{ $error }}</p>
     @endif
 </div>
+
+@once
+@push('scripts')
+<script>
+document.addEventListener('change', (e) => {
+    const input = e.target.closest('[data-ctl-file-input]');
+    if (!input || !input.files?.length) return;
+    const label = input.closest('label');
+    const nameEl = label?.querySelector('[data-ctl-file-name]');
+    if (nameEl) nameEl.textContent = input.files[0].name;
+});
+</script>
+@endpush
+@endonce

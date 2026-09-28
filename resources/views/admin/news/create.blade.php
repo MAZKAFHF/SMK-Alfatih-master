@@ -2,7 +2,7 @@
     <div class="mb-5"><a href="{{ route('admin.news.index') }}" class="text-sm text-slate-500 hover:text-slate-800">&larr; Kembali</a>
         <h1 class="mt-2 text-xl font-extrabold text-slate-900 dark:text-white">Tambah Berita</h1></div>
     <x-ui.card class="p-6">
-        <form method="POST" action="{{ route('admin.news.store') }}" enctype="multipart/form-data" class="space-y-6">
+        <form method="POST" novalidate action="{{ route('admin.news.store') }}" enctype="multipart/form-data" class="space-y-6">
             @csrf
             <x-ui.form-section title="Informasi Berita" description="Judul, slug, dan konten yang akan tampil di halaman publik.">
                 <div class="grid gap-5 sm:grid-cols-2">
@@ -19,7 +19,7 @@
             <x-ui.publish-panel status="{{ old('status','draft') }}">
                 <div class="grid gap-5 sm:grid-cols-2">
                     <x-ui.select label="Status" name="status" :value="old('status','draft')" :options="['draft'=>'Draft','published'=>'Diterbitkan','archived'=>'Diarsipkan']" required />
-                    <x-ui.input label="Jadwal Publikasi" name="published_at" type="datetime-local" value="{{ old('published_at') }}" help="Kosongkan untuk terbit sekarang." />
+                    <x-ui.datetime-picker label="Jadwal Publikasi" name="published_at" value="{{ old('published_at') }}" help="Kosongkan untuk terbit sekarang." />
                 </div>
             </x-ui.publish-panel>
 

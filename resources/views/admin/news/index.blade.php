@@ -6,7 +6,7 @@
     <x-ui.card class="mb-6 p-4">
         <form method="GET" action="{{ route('admin.news.index') }}" class="flex flex-col gap-3 sm:flex-row">
             <div class="flex-1"><x-ui.input name="search" placeholder="Cari judul/slug..." value="{{ request('search') }}" /></div>
-            <div class="sm:w-44"><x-ui.select name="status" :value="request('status')" :options="['draft'=>'Draft','published'=>'Published','archived'=>'Archived']" placeholder="Semua status"><option value="" {{ blank(request('status')) ? 'selected' : '' }}>Semua status</option></x-ui.select></div>
+            <div class="sm:w-44"><x-ui.select name="status" :value="request('status')" :options="['draft'=>'Draft','published'=>'Published','archived'=>'Archived']" placeholder="Semua status"></x-ui.select></div>
             <x-ui.button type="submit" variant="secondary">Cari</x-ui.button>
         </form>
     </x-ui.card>
@@ -15,7 +15,7 @@
     @else
         <x-ui.table :head="['Judul','Slug','Penulis','Status','Publikasi','Aksi']">
             @foreach($news as $item)
-                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                <tr>
                     <td class="px-4 py-3">
                         <div class="flex gap-3">
                             @if($item->thumbnail)<img src="{{ $item->thumbnail }}" class="size-10 rounded object-cover" loading="lazy" width="40" height="40" alt="" />@endif

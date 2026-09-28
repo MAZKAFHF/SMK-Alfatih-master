@@ -11,6 +11,7 @@ class AuditLog extends Model
 
     protected $fillable = [
         'user_id',
+        'actor_type',
         'action',
         'auditable_type',
         'auditable_id',
@@ -44,6 +45,7 @@ class AuditLog extends Model
 
         return static::create([
             'user_id' => $actor?->id,
+            'actor_type' => $actor ? 'user' : 'system',
             'action' => $action,
             'auditable_type' => $auditable ? get_class($auditable) : null,
             'auditable_id' => $auditable?->getKey(),
@@ -54,5 +56,10 @@ class AuditLog extends Model
             'user_agent' => $request?->userAgent(),
             'created_at' => now(),
         ]);
+    }
+
+    public static function recordSystem(string $action, ?Model $auditable = null, ?array $metadata = null): self
+    {
+        return static::record(null, $action, $auditable, null, $metadata);
     }
 }

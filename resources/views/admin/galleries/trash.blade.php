@@ -10,7 +10,7 @@
                     <td class="px-4 py-3 text-xs">{{ $g->category }}</td>
                     <td class="px-4 py-3 text-xs">{{ $g->deleted_at->translatedFormat('d M Y') }}</td>
                     <td class="px-4 py-3 text-right space-x-1">
-                        <form method="POST" action="{{ route('admin.galleries.restore',$g->id) }}" class="inline">@csrf <x-ui.button size="sm" type="submit">Restore</x-ui.button></form>
+                        <form method="POST" novalidate action="{{ route('admin.galleries.restore',$g->id) }}" class="inline">@csrf <x-ui.button size="sm" type="submit">Restore</x-ui.button></form>
                         <x-ui.button size="sm" variant="danger" onclick="confirmDialog({title:'Hapus permanen?', message:'{{ $g->title }}', formAction:'{{ route('admin.galleries.force-delete',$g->id) }}', method:'DELETE'})">Hapus Permanen</x-ui.button>
                     </td>
                 </tr>

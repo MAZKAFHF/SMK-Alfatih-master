@@ -9,17 +9,9 @@
                     <span class="mt-3 block h-1 w-12 rounded-full bg-gradient-to-r from-primary-600 via-gold-500 to-energy-500" aria-hidden="true"></span>
                 </div>
 
-                @if ($errors->any())
-                    <x-ui.alert variant="danger" title="Gagal masuk">
-                        <ul class="list-disc space-y-1 pl-4">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </x-ui.alert>
-                @endif
+                <x-ui.validation-summary title="Gagal masuk" />
 
-                <form method="POST" action="{{ route('admin.login.attempt') }}" class="mt-6 space-y-5">
+                <form method="POST" novalidate action="{{ route('admin.login.attempt') }}" class="mt-6 space-y-5">
                     @csrf
 
                     <x-ui.input
@@ -43,10 +35,7 @@
                     />
 
                     <div class="flex items-center justify-between">
-                        <label class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                            <input type="checkbox" name="remember" value="1" class="size-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500 dark:border-slate-600 dark:bg-slate-700" />
-                            Ingat saya
-                        </label>
+                        <x-ui.checkbox label="Ingat saya" name="remember" value="1" />
                         <a href="{{ route('admin.password.request') }}" class="text-sm font-medium text-primary-700 hover:underline dark:text-primary-400">Lupa password?</a>
                     </div>
 
@@ -70,7 +59,7 @@
                             </div>
                         </div>
 
-                        <form method="POST" action="{{ route('admin.login.attempt') }}" class="mt-5">
+                        <form method="POST" novalidate action="{{ route('admin.login.attempt') }}" class="mt-5">
                             @csrf
                             <input type="hidden" name="email" value="{{ $demoEmail }}">
                             <input type="hidden" name="password" value="{{ $demoPassword }}">

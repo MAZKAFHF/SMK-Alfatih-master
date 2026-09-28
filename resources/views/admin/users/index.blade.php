@@ -15,7 +15,7 @@
 
     <x-ui.table :head="['Nama', 'Email', 'Role', 'Terdaftar', 'Aksi']">
         @foreach ($users as $user)
-            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+            <tr>
                 <td class="px-4 py-3">
                     <div class="flex items-center gap-3">
                         <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary-100 text-sm font-bold text-primary-700 dark:bg-primary-900 dark:text-primary-400">
@@ -56,7 +56,7 @@
 
     {{-- Modal: tambah admin --}}
     <x-ui.modal id="create-user-modal" title="Tambah Akun Admin">
-        <form method="POST" action="{{ route('admin.users.store') }}" class="space-y-4">
+        <form method="POST" novalidate action="{{ route('admin.users.store') }}" class="space-y-4">
             @csrf
 
             <x-ui.input label="Nama Lengkap" name="name" value="{{ old('name') }}" placeholder="Nama admin" required />

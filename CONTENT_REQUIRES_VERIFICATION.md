@@ -48,7 +48,7 @@ Verifikasi alamat lengkap (kecamatan, kota, kode pos), telepon/wa aktif, email r
 
 ## PPDB
 
-- `academic_year` default `2026/2027` dari `ppdb_settings` seed; verifikasi tahun ajaran berjalan.
+- Tahun ajaran, jadwal, status, kuota, pengumuman, dan kontak dikelola per baris `ppdb_periods`; verifikasi periode aktif sebelum publikasi.
 - `quota`, `announcement`, `contact_info` perlu diisi panitia.
 
 ## Media

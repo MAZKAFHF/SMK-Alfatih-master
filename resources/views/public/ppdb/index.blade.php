@@ -1,7 +1,7 @@
 <x-layouts.app :title="'PPDB Online'">
     <x-page-header
         title="PPDB Online"
-        subtitle="Penerimaan Peserta Didik Baru SMK Tahfizh Al-Fatih Tahun Ajaran 2026/2027"
+        :subtitle="'Penerimaan Peserta Didik Baru SMK Tahfizh Al-Fatih Tahun Ajaran '.($ppdb?->academic_year ?? '')"
         :breadcrumbs="[
             ['label' => 'Beranda', 'url' => route('home')],
             ['label' => 'PPDB'],
@@ -19,55 +19,110 @@
                 <div class="relative">
                     <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white ring-1 ring-inset ring-white/25">
                         <span class="size-1.5 rounded-full bg-emerald-300" aria-hidden="true"></span>
-                        PPDB Tahun Ajaran 2026/2027 &mdash; Dibuka
+                        PPDB Tahun Ajaran {{ $ppdbState->period?->academic_year ?? '—' }} &mdash; {{ $ppdbState->publicLabel() }}
                     </span>
 
+                    @if($ppdbState->status === 'open')
                     <h2 class="mx-auto mt-5 max-w-2xl text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
-                        Daftarkan Dirimu di SMK Tahfizh Al-Fatih
+                        Pendaftaran PPDB Sedang Dibuka
                     </h2>
                     <p class="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-primary-100 sm:text-base">
-                        Isi formulir secara online, pilih program keahlian yang diminati, lalu pantau proses seleksi langsung dari halaman cek status.
+                        Daftarkan dirimu di SMK Tahfizh Al-Fatih. Isi formulir online, pilih program keahlian, lalu pantau seleksi dari portal.
                     </p>
+                    @elseif($ppdbState->status === 'upcoming')
+                    <h2 class="mx-auto mt-5 max-w-2xl text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+                        PPDB Belum Dibuka
+                    </h2>
+                    <p class="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-primary-100 sm:text-base">
+                        Penerimaan Peserta Didik Baru SMK Tahfizh Al-Fatih belum dibuka saat ini. Silakan kembali pada jadwal pembukaan di bawah. Informasi terbaru juga tersedia melalui website resmi sekolah.
+                    </p>
+                    @elseif($ppdbState->status === 'full')
+                    <h2 class="mx-auto mt-5 max-w-2xl text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+                        Kuota PPDB Telah Terpenuhi
+                    </h2>
+                    <p class="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-primary-100 sm:text-base">
+                        Pendaftaran online untuk periode ini tidak lagi menerima calon siswa baru karena kuota telah terpenuhi.
+                    </p>
+                    @elseif($ppdbState->status === 'closed')
+                    <h2 class="mx-auto mt-5 max-w-2xl text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+                        PPDB Telah Ditutup
+                    </h2>
+                    <p class="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-primary-100 sm:text-base">
+                        Terima kasih atas antusiasme Anda. Periode PPDB telah berakhir dan pendaftaran periode berikutnya belum dibuka kembali. Informasi jadwal berikutnya akan diumumkan melalui website resmi sekolah.
+                    </p>
+                    @else
+                    <h2 class="mx-auto mt-5 max-w-2xl text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+                        Informasi PPDB
+                    </h2>
+                    <p class="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-primary-100 sm:text-base">
+                        PPDB saat ini belum tersedia. Informasi pembukaan pendaftaran akan diumumkan melalui website resmi SMK Tahfizh Al-Fatih.
+                    </p>
+                    @endif
+
+                    {{-- Jadwal + kuota kanonis --}}
+                    @if($ppdbState->period && ($ppdbState->period->opens_at || $ppdbState->period->closes_at || $ppdbState->quota))
+                    <dl class="mx-auto mt-6 grid max-w-2xl gap-3 text-left sm:grid-cols-3">
+                        <div class="rounded-lg bg-white/10 px-4 py-3 ring-1 ring-inset ring-white/20">
+                            <dt class="text-[11px] font-bold uppercase tracking-widest text-primary-100">Mulai</dt>
+                            <dd class="mt-1 text-sm font-bold text-white">{{ $ppdbState->period->opens_at?->timezone('Asia/Jakarta')->translatedFormat('d M Y') ?? '—' }}</dd>
+                            <dd class="text-xs text-primary-100">{{ $ppdbState->period->opens_at?->timezone('Asia/Jakarta')->format('H.i') }} WIB</dd>
+                        </div>
+                        <div class="rounded-lg bg-white/10 px-4 py-3 ring-1 ring-inset ring-white/20">
+                            <dt class="text-[11px] font-bold uppercase tracking-widest text-primary-100">Selesai</dt>
+                            <dd class="mt-1 text-sm font-bold text-white">{{ $ppdbState->period->closes_at?->timezone('Asia/Jakarta')->translatedFormat('d M Y') ?? '—' }}</dd>
+                            <dd class="text-xs text-primary-100">{{ $ppdbState->period->closes_at?->timezone('Asia/Jakarta')->format('H.i') }} WIB</dd>
+                        </div>
+                        <div class="rounded-lg bg-white/10 px-4 py-3 ring-1 ring-inset ring-white/20">
+                            <dt class="text-[11px] font-bold uppercase tracking-widest text-primary-100">Status</dt>
+                            <dd class="mt-1 text-sm font-bold text-white">{{ $ppdbState->publicLabel() }}</dd>
+                            <dd class="text-xs text-primary-100">@if($ppdbState->quota !== null)Kuota tersisa: {{ $ppdbState->remainingQuota() }} dari {{ $ppdbState->quota }}@else Tanpa batas kuota @endif</dd>
+                        </div>
+                    </dl>
+                    @endif
 
                     <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                        <a href="{{ route('ppdb.siswa') }}" class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-white px-6 py-3 text-base font-semibold text-primary-800 shadow-sm transition-colors duration-150 select-none whitespace-nowrap hover:bg-primary-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
-                            <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                            </svg>
-                            Daftar Sekarang
+                        @if($ppdbState->canRegister())
+                        <a href="{{ route('portal.register') }}" class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-white px-6 py-3 text-base font-semibold text-primary-800 shadow-sm transition-colors duration-150 select-none whitespace-nowrap hover:bg-primary-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
+                            Buat Akun & Daftar
                         </a>
-                        <a href="{{ route('ppdb.status') }}" class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg px-6 py-3 text-base font-semibold text-white ring-1 ring-inset ring-white/30 transition-colors duration-150 select-none whitespace-nowrap hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
-                            <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                            </svg>
-                            Cek Status Pendaftaran
+                        @else
+                        <a href="{{ route('portal.register') }}" class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-white/10 px-6 py-3 text-base font-semibold text-white ring-1 ring-inset ring-white/30 transition-colors hover:bg-white/20 sm:w-auto">
+                            Buat Akun Portal
+                        </a>
+                        @endif
+                        <a href="{{ route('portal.login') }}" class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-energy-500 px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-energy-600 sm:w-auto">
+                            Masuk Portal
                         </a>
                     </div>
+                    <p class="mt-4 text-xs text-primary-100">Satu akun orang tua dapat digunakan untuk banyak anak dan tetap dapat dibuat kapan saja. Pendaftaran, pemantauan proses, riwayat periode, wawancara, dan hasil tersedia secara privat di Portal Pendaftar.</p>
                 </div>
             </div>
 
-            {{-- Alur pendaftaran --}}
+            {{-- Alur pendaftaran 6 langkah --}}
             <div class="mt-12">
                 <h3 class="text-center text-lg font-bold tracking-tight text-slate-900 dark:text-white">Alur Pendaftaran</h3>
-                <p class="mx-auto mt-2 max-w-xl text-center text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-                    Hanya tiga langkah mudah untuk bergabung bersama kami.
-                </p>
-
-                <ol class="mt-8 grid gap-4 sm:grid-cols-3">
+                <p class="mx-auto mt-2 max-w-xl text-center text-sm leading-relaxed text-slate-500 dark:text-slate-400">Enam langkah jelas — Anda selalu tahu posisi dan aksi berikutnya.</p>
+                <ol class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     @foreach ([
-                        ['title' => 'Lengkapi Formulir', 'desc' => 'Isi data diri, asal sekolah, dan pilih program keahlian yang diminati.'],
-                        ['title' => 'Verifikasi Panitia', 'desc' => 'Panitia akan memverifikasi kelengkapan dan kebenaran data Anda.'],
-                        ['title' => 'Pengumuman Hasil', 'desc' => 'Pantau hasil seleksi kapan saja melalui halaman cek status.'],
+                        ['title' => 'Buat Akun', 'desc' => 'Daftar dengan email + password. Satu akun untuk semua anak.'],
+                        ['title' => 'Isi Pendaftaran', 'desc' => 'Data siswa, alamat, orang tua, sekolah, satu program, dokumen.'],
+                        ['title' => 'Verifikasi Dokumen', 'desc' => 'Panitia memeriksa per-dokumen; perbaiki jika diminta tanpa daftar baru.'],
+                        ['title' => 'Pilih Jadwal Wawancara', 'desc' => 'Pilih slot tersedia; aman dari double booking.'],
+                        ['title' => 'Wawancara & Tahfizh/Tahsin', 'desc' => 'Hadir sesuai jadwal dengan instruksi lokasi.'],
+                        ['title' => 'Lihat Hasil', 'desc' => 'Panel resmi Lulus / Belum Lulus + lanjut via WhatsApp admin.'],
                     ] as $i => $step)
                         <li class="rounded-2xl border border-slate-200 bg-white p-6 shadow-card dark:border-slate-800 dark:bg-slate-900">
-                            <span class="flex size-10 items-center justify-center rounded-full bg-primary-100 text-sm font-extrabold text-primary-700 dark:bg-primary-900 dark:text-primary-400">
-                                {{ $i + 1 }}
-                            </span>
+                            <span class="flex size-10 items-center justify-center rounded-full bg-primary-100 text-sm font-extrabold text-primary-700 dark:bg-primary-900 dark:text-primary-400">{{ $i + 1 }}</span>
                             <h4 class="mt-4 text-base font-bold text-slate-900 dark:text-white">{{ $step['title'] }}</h4>
                             <p class="mt-1.5 text-sm leading-relaxed text-slate-500 dark:text-slate-400">{{ $step['desc'] }}</p>
                         </li>
                     @endforeach
                 </ol>
+            </div>
+
+            <div class="mt-12 grid gap-4 lg:grid-cols-2">
+                <div class="rounded-2xl border bg-white p-6 dark:bg-slate-900"><h3 class="font-bold">Dokumen Awal</h3><ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-600"><li>Kartu Keluarga (KK)</li><li>KTP Orang Tua / Wali</li><li>Akta Kelahiran</li><li>Rapor</li><li>Foto Siswa</li></ul><p class="mt-2 text-xs text-slate-400">Ijazah dapat diminta pada tahap lanjut. Persyaratan final mengikuti periode aktif.</p></div>
+                <div class="rounded-2xl border bg-white p-6 dark:bg-slate-900"><h3 class="font-bold">FAQ</h3><ul class="mt-2 space-y-2 text-sm text-slate-600"><li><strong>Bisakah 1 akun untuk banyak anak?</strong> Ya — tambah calon siswa di portal.</li><li><strong>Dokumen salah?</strong> Perbaiki via portal tanpa daftar baru.</li><li><strong>Ubah jadwal?</strong> Ajukan reschedule beralasan; jadwal lama aman.</li><li><strong>Kapan ijazah?</strong> Tahap lanjut via info admin.</li><li><strong>Hasil?</strong> Panel resmi di portal + email; lanjut via WhatsApp.</li></ul></div>
             </div>
         </div>
     </section>

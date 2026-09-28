@@ -3,21 +3,26 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\UpdateRegistrationStatusRequest;
 use App\Models\PPDBRegistration;
 use App\Services\AuditService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 
 class RegistrationController extends Controller
 {
     public function index(Request $request)
     {
+        // Default = periode dashboard (aktif → riwayat terakhir), bukan semua tahun.
+        $ctx = \App\Services\PpdbContext::resolveFromRequest($request);
+        $defaultPeriodId = (! $request->filled('period') && ! $request->filled('period_id')) ? $ctx['period']?->id : null;
+        $periodFilter = $request->filled('period_id') ? $request->integer('period_id')
+            : ($request->filled('period') ? $request->integer('period') : $defaultPeriodId);
+
         $registrations = PPDBRegistration::query()
-            ->with('program')
-            ->when($request->filled('status'), function ($query) use ($request) {
-                $query->where('status', $request->string('status'));
-            })
+            ->with(['program', 'period', 'documents', 'appointment.slot', 'decision'])
+            ->when($request->filled('application_status'), fn ($q) => $q->where('application_status', $request->string('application_status')))
+            ->when($request->filled('program_id'), fn ($q) => $q->where('program_id', $request->integer('program_id')))
+            ->when($periodFilter, fn ($q) => $q->where('period_id', $periodFilter))
+            ->when($request->filled('source'), fn ($q) => $q->where('source', $request->string('source')))
             ->when($request->filled('search'), function ($query) use ($request) {
                 $search = $request->string('search');
 
@@ -25,73 +30,129 @@ class RegistrationController extends Controller
                     $query->where('name', 'like', "%{$search}%")
                         ->orWhere('registration_number', 'like', "%{$search}%")
                         ->orWhere('email', 'like', "%{$search}%")
-                        ->orWhere('phone', 'like', "%{$search}%");
+                        ->orWhere('phone', 'like', "%{$search}%")
+                        ->orWhere('nik', 'like', "%{$search}%")
+                        ->orWhere('nisn', 'like', "%{$search}%")
+                        ->orWhere('parent_name', 'like', "%{$search}%")
+                        ->orWhere('father_name', 'like', "%{$search}%")
+                        ->orWhere('mother_name', 'like', "%{$search}%");
                 });
             })
             ->latest()
             ->paginate(15)
             ->withQueryString();
 
-        return view('admin.registrations.index', compact('registrations'));
+        $programs = \App\Models\Program::orderBy('name')->get(['id', 'name']);
+        $periods = \App\Models\PpdbPeriod::orderByDesc('id')->get(['id', 'academic_year', 'status']);
+        // Ringkasan di-scope periode yang sedang dilihat.
+        $scopeCounts = fn ($q) => $periodFilter ? $q->where('period_id', $periodFilter) : $q;
+        $counts = [
+            'total' => $scopeCounts(PPDBRegistration::query())->count(),
+            'submitted' => $scopeCounts(PPDBRegistration::query()->where('application_status', 'submitted'))->count(),
+            'needs_revision' => $scopeCounts(PPDBRegistration::query()->where('application_status', 'needs_revision'))->count(),
+            'verified' => $scopeCounts(PPDBRegistration::query()->whereIn('application_status', ['verified', 'waiting_slot', 'scheduled']))->count(),
+            'waiting_decision' => $scopeCounts(PPDBRegistration::query()->whereIn('application_status', ['interviewed', 'waiting_decision']))->count(),
+        ];
+        $activePeriodId = $periodFilter;
+        $isHistoryView = $periodFilter && \App\Models\PpdbPeriod::find($periodFilter)?->isHistory();
+
+        return view('admin.registrations.index', compact('registrations', 'programs', 'periods', 'counts', 'activePeriodId', 'isHistoryView'));
     }
 
     public function show(PPDBRegistration $registration)
     {
-        $registration->load('program');
+        $registration->load(['program', 'period', 'account', 'documents.revisions', 'appointment.slot', 'appointment.assessment', 'decision', 'history.actor', 'notes.author']);
 
-        return view('admin.registrations.show', compact('registration'));
+        $emailLog = \App\Models\EmailLog::where('application_id', $registration->id)->latest()->first();
+        $reschedules = \App\Models\RescheduleRequest::whereHas('appointment', fn ($q) => $q->where('application_id', $registration->id))->with(['oldSlot', 'newSlot'])->latest()->get();
+
+        return view('admin.registrations.show', compact('registration', 'emailLog', 'reschedules'));
     }
 
-    public function update(UpdateRegistrationStatusRequest $request, PPDBRegistration $registration)
+    public function print(PPDBRegistration $registration)
     {
-        $old = $registration->getOriginal();
-        try {
-            $validated = $request->validated();
-            if (isset($validated['admin_notes'])) {
-                $validated['admin_notes'] = trim((string) $validated['admin_notes']);
-            }
-            $registration->update($validated);
+        $registration->load(['program', 'period', 'documents', 'appointment.slot', 'decision']);
 
-            AuditService::log('ppdb_status_update', $registration, ['status' => $old['status']], ['status' => $registration->status->value, 'admin_notes' => $registration->admin_notes]);
-
-            return back()->with('success', "Status pendaftaran {$registration->registration_number} berhasil diperbarui.");
-        } catch (\Throwable $e) {
-            return back()->with('error', 'Gagal memperbarui status pendaftaran. Silakan coba lagi.');
-        }
+        return view('admin.registrations.print', compact('registration'));
     }
 
-    // Soft-delete all — superadmin + password + confirmation
-    public function destroyAll(Request $request)
+    /** Cetak daftar (filter-aware): layout print khusus, tanpa sidebar/nav admin. */
+    public function printList(Request $request)
     {
-        if (! auth()->user()?->is_superadmin) {
-            abort(403, 'Hanya superadmin dapat menghapus massal.');
-        }
+        $ctx = \App\Services\PpdbContext::resolveFromRequest($request);
+        $defaultPeriodId = (! $request->filled('period') && ! $request->filled('period_id')) ? $ctx['period']?->id : null;
+        $periodFilter = $request->filled('period_id') ? $request->integer('period_id')
+            : ($request->filled('period') ? $request->integer('period') : $defaultPeriodId);
 
-        $request->validate([
-            'password' => ['required', 'string'],
-            'confirmation' => ['required', 'in:HAPUS SEMUA'],
+        $registrations = PPDBRegistration::query()->with(['program', 'period', 'appointment.slot', 'decision'])
+            ->when($request->filled('application_status'), fn ($q) => $q->where('application_status', $request->string('application_status')))
+            ->when($request->filled('program_id'), fn ($q) => $q->where('program_id', $request->integer('program_id')))
+            ->when($periodFilter, fn ($q) => $q->where('period_id', $periodFilter))
+            ->when($request->filled('search'), fn ($q) => $q->where(fn ($qq) => $qq->where('name', 'like', "%{$request->string('search')}%")->orWhere('registration_number', 'like', "%{$request->string('search')}%")))
+            ->orderBy('created_at')
+            ->limit(500)
+            ->get();
+
+        $periodObj = $periodFilter ? \App\Models\PpdbPeriod::find($periodFilter) : null;
+        $filters = collect([
+            'Periode' => $periodObj?->academic_year,
+            'Alur' => $request->filled('application_status') ? \App\Enums\ApplicationStatus::tryFrom($request->string('application_status')->toString())?->label() : null,
+            'Program' => $request->filled('program_id') ? \App\Models\Program::find($request->integer('program_id'))?->name : null,
+        ])->filter();
+
+        return view('admin.registrations.print-list', compact('registrations', 'filters'));
+    }
+
+    /** Entri manual admin — boleh saat publik ditutup, tetap validasi + audit + source jelas. */
+    public function create()
+    {
+        $programs = \App\Models\Program::active()->orderBy('order')->get();
+        $periods = \App\Models\PpdbPeriod::orderByDesc('id')->get();
+
+        return view('admin.registrations.create', compact('programs', 'periods'));
+    }
+
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:150'],
+            'gender' => ['required', 'in:laki-laki,perempuan'],
+            'program_id' => ['required', 'exists:programs,id'],
+            'period_id' => ['required', 'exists:ppdb_periods,id'],
+            'nisn' => ['nullable', 'string', 'max:20'],
+            'birth_place' => ['nullable', 'string', 'max:100'],
+            'birth_date' => ['nullable', 'date', 'before:today'],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'email' => ['nullable', 'email', 'max:150'],
+            'school_origin' => ['nullable', 'string', 'max:150'],
+            'father_name' => ['nullable', 'string', 'max:150'],
+            'mother_name' => ['nullable', 'string', 'max:150'],
+            'override_reason' => ['nullable', 'string', 'max:500'],
         ]);
-
-        if (! Hash::check($request->input('password'), auth()->user()->password)) {
-            return back()->with('error', 'Password salah — penghapusan dibatalkan.');
+        $period = \App\Models\PpdbPeriod::find($data['period_id']);
+        // Entri manual melewati aturan publik, tetapi bila periode
+        // TUTUP/PENUH wajib ada alasan override eksplisit + audit.
+        $state = \App\Services\PpdbAvailability::forPeriod($period);
+        if (! $state->canRegister() && blank($data['override_reason'] ?? null)) {
+            return back()->withInput()->withErrors([
+                'override_reason' => 'Periode '.$state->publicLabel().' — tulis alasan override untuk entri manual pengecualian.',
+            ]);
         }
+        $data['academic_year'] = $period->academic_year;
+        $data['source'] = 'admin_manual';
+        $data['created_by'] = auth()->id();
+        $data['application_status'] = \App\Enums\ApplicationStatus::Submitted->value;
+        $data['status'] = 'pending';
+        $data['submitted_at'] = now();
+        $overrideReason = $data['override_reason'] ?? null;
+        unset($data['override_reason']);
 
-        try {
-            $count = PPDBRegistration::count();
+        $app = PPDBRegistration::create($data);
+        \App\Services\DocumentService::ensurePlaceholders($app);
+        \App\Models\StatusHistory::create(['application_id' => $app->id, 'from_status' => null, 'to_status' => 'submitted', 'actor_id' => auth()->id(), 'note' => 'Entri manual admin'.($overrideReason ? ' (override: '.$overrideReason.')' : '')]);
+        AuditService::log('ppdb_manual_create', $app, null, ['override_reason' => $overrideReason, 'period_state' => $state->status]);
 
-            if ($count === 0) {
-                return back()->with('warning', 'Tidak ada data pendaftaran yang dapat dihapus.');
-            }
-
-            PPDBRegistration::query()->delete(); // soft
-
-            AuditService::log('ppdb_destroy_all', null, null, ['count' => $count]);
-
-            return redirect()->route('admin.registrations.index')
-                ->with('success', "{$count} data pendaftaran dipindahkan ke Trash (soft delete).");
-        } catch (\Throwable $e) {
-            return back()->with('error', 'Gagal menghapus data pendaftaran. Silakan coba lagi.');
-        }
+        return redirect()->route('admin.registrations.show', $app)->with('success', 'Pendaftaran manual dibuat: '.$app->registration_number);
     }
 
     public function destroy(PPDBRegistration $registration)
@@ -137,6 +198,10 @@ class RegistrationController extends Controller
             abort(403);
         }
         $registration = PPDBRegistration::onlyTrashed()->findOrFail($id);
+        \App\Services\DocumentService::deleteAllFor($registration);
+        if ($registration->photo_path) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($registration->photo_path);
+        }
         $label = $registration->registration_number;
         $registration->forceDelete();
         AuditService::log('ppdb_force_delete', null, null, ['registration_number' => $label]);
@@ -146,14 +211,22 @@ class RegistrationController extends Controller
 
     public function export(Request $request)
     {
-        $query = PPDBRegistration::query()->with('program')
-            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
+        // Default = periode dashboard (aktif → riwayat). Terima `period` maupun `period_id`.
+        $ctx = \App\Services\PpdbContext::resolveFromRequest($request);
+        $defaultPeriodId = (! $request->filled('period') && ! $request->filled('period_id')) ? $ctx['period']?->id : null;
+        $periodFilter = $request->filled('period_id') ? $request->integer('period_id')
+            : ($request->filled('period') ? $request->integer('period') : $defaultPeriodId);
+
+        $query = PPDBRegistration::query()->with(['program', 'period', 'appointment.slot', 'decision'])
+            ->when($request->filled('application_status'), fn ($q) => $q->where('application_status', $request->string('application_status')))
             ->when($request->filled('program_id'), fn ($q) => $q->where('program_id', $request->integer('program_id')))
+            ->when($periodFilter, fn ($q) => $q->where('period_id', $periodFilter))
             ->when($request->filled('academic_year'), fn ($q) => $q->where('academic_year', $request->string('academic_year')))
             ->when($request->filled('search'), fn ($q) => $q->where(fn ($qq) => $qq->where('name', 'like', "%{$request->string('search')}%")->orWhere('registration_number', 'like', "%{$request->string('search')}%")))
             ->orderBy('created_at');
 
-        $filename = 'ppdb-'.now()->format('Ymd_His').'.csv';
+        $periodTag = $periodFilter ? \App\Models\PpdbPeriod::find($periodFilter)?->academic_year ?? '' : '';
+        $filename = 'ppdb-'.preg_replace('/[^0-9A-Za-z]+/', '', (string) $periodTag).'-'.now('Asia/Jakarta')->format('Ymd_His').'.csv';
 
         AuditService::log('ppdb_export', null, null, ['filters' => $request->query(), 'count' => $query->count()]);
 
@@ -162,7 +235,7 @@ class RegistrationController extends Controller
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ];
 
-        $columns = ['Nomor Registrasi', 'Nama', 'NISN', 'Jenis Kelamin', 'Tempat Lahir', 'Tanggal Lahir', 'Alamat', 'Asal Sekolah', 'HP', 'Email', 'Orang Tua', 'Program', 'Status', 'Tahun Ajaran', 'Tanggal Daftar'];
+        $columns = ['Nomor Registrasi', 'Nama', 'NIK', 'NISN', 'Jenis Kelamin', 'Tempat Lahir', 'Tanggal Lahir', 'Alamat', 'Asal Sekolah', 'HP', 'Email', 'Ayah', 'Ibu', 'Program', 'Status Alur', 'Tgl Wawancara', 'Hasil', 'Tahun Ajaran', 'Tanggal Daftar (WIB)'];
 
         return response()->stream(function () use ($query, $columns) {
             $out = fopen('php://output', 'w');
@@ -174,6 +247,7 @@ class RegistrationController extends Controller
                     fputcsv($out, [
                         $r->registration_number,
                         $r->name,
+                        $r->nik,
                         $r->nisn,
                         $r->gender,
                         $r->birth_place,
@@ -182,11 +256,14 @@ class RegistrationController extends Controller
                         $r->school_origin,
                         $r->phone,
                         $r->email,
-                        $r->parent_name,
+                        $r->father_name ?? $r->parent_name,
+                        $r->mother_name,
                         $r->program?->name,
-                        $r->status->value,
+                        $r->application_status->label(),
+                        $r->appointment?->slot ? $r->appointment->slot->date->format('Y-m-d').' '.$r->appointment->slot->start_time : '',
+                        $r->decision?->result->label() ?? '',
                         $r->academic_year,
-                        $r->created_at->format('Y-m-d H:i'),
+                        $r->created_at->setTimezone('Asia/Jakarta')->format('Y-m-d H:i'),
                     ]);
                 }
             });

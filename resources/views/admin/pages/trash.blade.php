@@ -9,7 +9,7 @@
                     <td class="px-4 py-3 font-semibold">{{ $p->title }}</td>
                     <td class="px-4 py-3 text-xs">{{ $p->deleted_at->translatedFormat('d M Y') }}</td>
                     <td class="px-4 py-3 text-right space-x-1">
-                        <form method="POST" action="{{ route('admin.pages.restore',$p->id) }}" class="inline">@csrf <x-ui.button size="sm" type="submit">Restore</x-ui.button></form>
+                        <form method="POST" novalidate action="{{ route('admin.pages.restore',$p->id) }}" class="inline">@csrf <x-ui.button size="sm" type="submit">Restore</x-ui.button></form>
                         <x-ui.button size="sm" variant="danger" onclick="confirmDialog({title:'Hapus permanen?', formAction:'{{ route('admin.pages.force-delete',$p->id) }}', method:'DELETE'})">Hapus Permanen</x-ui.button>
                     </td>
                 </tr>

@@ -10,7 +10,7 @@
         <form method="GET" action="{{ route('admin.programs.index') }}" class="flex flex-col gap-3 sm:flex-row">
             <div class="flex-1"><x-ui.input name="search" placeholder="Cari nama atau slug..." value="{{ request('search') }}" /></div>
             <div class="sm:w-44">
-                <x-ui.select name="status" :value="request('status')" :options="['active'=>'Aktif','inactive'=>'Nonaktif']" placeholder="Semua status"><option value="" {{ blank(request('status')) ? 'selected' : '' }}>Semua status</option></x-ui.select>
+                <x-ui.select name="status" :value="request('status')" :options="['active'=>'Aktif','inactive'=>'Nonaktif']" placeholder="Semua status"></x-ui.select>
             </div>
             <x-ui.button type="submit" variant="secondary">Cari</x-ui.button>
             @if(request()->has('search')||request()->has('status'))<x-ui.button variant="ghost" href="{{ route('admin.programs.index') }}">Reset</x-ui.button>@endif
@@ -22,7 +22,7 @@
     @else
         <x-ui.table :head="['Program','Slug','Status','Urutan','Aksi']">
             @foreach($programs as $program)
-                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                <tr>
                     <td class="px-4 py-3">
                         <div class="flex items-center gap-3">
                             @if($program->image)

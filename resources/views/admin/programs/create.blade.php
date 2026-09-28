@@ -3,7 +3,7 @@
         <h1 class="mt-2 text-xl font-extrabold text-slate-900 dark:text-white">Tambah Program Keahlian</h1></div>
 
     <x-ui.card class="p-6">
-        <form method="POST" action="{{ route('admin.programs.store') }}" enctype="multipart/form-data" class="space-y-5">
+        <form method="POST" novalidate action="{{ route('admin.programs.store') }}" enctype="multipart/form-data" class="space-y-5">
             @csrf
             <div class="grid gap-5 sm:grid-cols-2">
                 <x-ui.input label="Nama Program" name="name" value="{{ old('name') }}" placeholder="Contoh: PPLG" required />

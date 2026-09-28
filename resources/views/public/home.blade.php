@@ -13,7 +13,7 @@
                         <span class="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
                         <span class="relative inline-flex size-2 rounded-full bg-emerald-500"></span>
                     </span>
-                    PPDB 2026/2027 Telah Dibuka
+                    PPDB {{ $ppdbState->period?->academic_year ?? '' }} {{ $ppdbState->publicLabel() }}
                 </div>
 
                 <p class="mt-6 text-xs font-bold uppercase tracking-[0.25em] text-energy-600 dark:text-energy-500">SMK Tahfizh Al-Fatih</p>
@@ -29,12 +29,16 @@
                 </p>
 
                 <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-                    <x-ui.button size="lg" href="{{ route('ppdb.index') }}" class="clip-corner-sm">
+                    @if($ppdbState->canRegister())
+                    <x-ui.button size="lg" href="{{ route('ppdb.index') }}" class="clip-corner-sm" shine>
                         <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM3 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 019.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
                         </svg>
                         Daftar PPDB
                     </x-ui.button>
+                    @else
+                    <x-ui.button size="lg" variant="outline" href="{{ route('ppdb.index') }}" class="clip-corner-sm">Lihat Informasi PPDB</x-ui.button>
+                    @endif
                     <x-ui.button size="lg" variant="outline" href="{{ route('pages.show', 'profil') }}">Lihat Profil Sekolah</x-ui.button>
                 </div>
 
@@ -234,16 +238,30 @@
 
             <div class="relative flex flex-col items-center justify-between gap-6 lg:flex-row">
                 <div class="text-center lg:text-left">
-                    <p class="text-xs font-bold uppercase tracking-[0.25em] text-gold-400">PPDB 2026/2027</p>
+                    <p class="text-xs font-bold uppercase tracking-[0.25em] text-gold-400">PPDB {{ $ppdbState->period?->academic_year ?? '' }}</p>
                     <h2 class="mt-2 font-display text-2xl font-extrabold text-white sm:text-3xl">Your Next Chapter Starts Here.</h2>
                     <p class="mt-2 max-w-xl text-sm leading-relaxed text-slate-300 sm:text-base">
-                        Pendaftaran Peserta Didik Baru telah dibuka. Kuota terbatas!
+                        @if($ppdbState->status === 'open')
+                            Pendaftaran Peserta Didik Baru sedang dibuka.@if($ppdbState->quota) Kuota tersisa: {{ $ppdbState->remainingQuota() }} dari {{ $ppdbState->quota }}.@endif
+                        @elseif($ppdbState->status === 'upcoming')
+                            Pendaftaran PPDB belum dibuka. @if($ppdbState->period?->opens_at)Dibuka {{ $ppdbState->period->opens_at->timezone('Asia/Jakarta')->translatedFormat('d M Y, H.i') }} WIB.@endif
+                        @elseif($ppdbState->status === 'full')
+                            Kuota PPDB telah terpenuhi. Pendaftaran online tidak menerima calon siswa baru.
+                        @elseif($ppdbState->status === 'closed')
+                            Periode PPDB telah berakhir. Pendaftaran berikutnya belum dibuka kembali.
+                        @else
+                            Informasi pembukaan pendaftaran akan diumumkan melalui website resmi sekolah.
+                        @endif
                     </p>
                     <x-digital-pulse :steps="['Daftar', 'Verifikasi', 'Diterima']" class="mx-auto mt-5 max-w-md text-tech-400 lg:mx-0" />
                 </div>
                 <div class="flex shrink-0 flex-col gap-3 sm:flex-row">
+                    @if($ppdbState->canRegister())
                     <x-ui.button variant="accent" size="lg" href="{{ route('ppdb.index') }}" class="clip-corner-sm">Daftar Sekarang</x-ui.button>
-                    <x-ui.button variant="outline" size="lg" href="{{ route('ppdb.status') }}" class="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:border-white/40 focus-visible:outline-white">Cek Status</x-ui.button>
+                    @else
+                    <x-ui.button variant="accent" size="lg" href="{{ route('ppdb.index') }}" class="clip-corner-sm">Informasi PPDB</x-ui.button>
+                    @endif
+                    <x-ui.button variant="outline" size="lg" href="{{ route('portal.login') }}" class="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:border-white/40 focus-visible:outline-white">Masuk Portal</x-ui.button>
                 </div>
             </div>
         </div>

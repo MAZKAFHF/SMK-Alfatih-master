@@ -23,9 +23,14 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'phone',
+        'last_activity_at',
         'is_admin',
         'is_superadmin',
         'is_active',
+        'is_applicant',
+        'retirement_due_at',
+        'retirement_started_at',
     ];
 
     /**
@@ -47,11 +52,35 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'last_activity_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
             'is_superadmin' => 'boolean',
             'is_active' => 'boolean',
+            'is_applicant' => 'boolean',
+            'retirement_due_at' => 'datetime',
+            'retirement_started_at' => 'datetime',
         ];
+    }
+
+    public function applications(): HasMany
+    {
+        return $this->hasMany(PPDBRegistration::class, 'applicant_account_id');
+    }
+
+    public function applicationsWithTrashed(): HasMany
+    {
+        return $this->hasMany(PPDBRegistration::class, 'applicant_account_id')->withTrashed();
+    }
+
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(ApplicantNotification::class, 'account_id');
+    }
+
+    public function isApplicant(): bool
+    {
+        return (bool) $this->is_applicant && ! $this->is_admin;
     }
 
     public function loginLogs(): HasMany

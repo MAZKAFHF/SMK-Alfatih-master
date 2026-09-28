@@ -145,6 +145,9 @@
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
+                // Jika popover primitif (kalender/listbox) sedang terbuka,
+                // biarkan ia yang menutup dirinya sendiri — modal tetap buka.
+                if (document.querySelector('[data-ctl-popover-open]')) return;
                 closeModal(document.querySelector('[data-modal]:not(.hidden)'));
             }
         });
@@ -214,14 +217,37 @@
     function initConfirmDialog() {
         const dialog = document.querySelector('[data-confirm-dialog]');
         if (!dialog) {
+            // Fallback TANPA window.confirm bawaan: dialog branded minimal.
             window.confirmDialog = (options = {}) => {
-                if (typeof options.onConfirm === 'function' && window.confirm(options.message || 'Apakah Anda yakin?')) {
-                    options.onConfirm();
-                    return;
-                }
-                if (options.formAction && window.confirm(options.message || 'Apakah Anda yakin?')) {
-                    submitConfirmForm(options);
-                }
+                const overlay = document.createElement('div');
+                overlay.setAttribute('role', 'alertdialog');
+                overlay.setAttribute('aria-modal', 'true');
+                overlay.style.cssText = 'position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;padding:1rem;background:rgb(2 6 23 / 0.55);';
+                overlay.innerHTML = `<div class="ctl-popover" style="max-width:24rem;width:100%;padding:1.5rem;">
+                    <p style="font-weight:700;color:var(--ctl-text);">${options.title || 'Apakah Anda yakin?'}</p>
+                    <p class="ctl-muted" style="font-size:0.875rem;margin-top:0.25rem;">${options.message || ''}</p>
+                    <div style="display:flex;gap:0.75rem;margin-top:1.25rem;">
+                        <button type="button" data-x-cancel class="ctl-btn ctl-btn-ghost" style="flex:1;">${options.cancelText || 'Batal'}</button>
+                        <button type="button" data-x-ok class="ctl-btn ctl-btn-danger" style="flex:1;">${options.confirmText || 'Ya, lanjutkan'}</button>
+                    </div></div>`;
+                // Teks via textContent agar aman dari injeksi HTML.
+                overlay.querySelector('p').textContent = options.title || 'Apakah Anda yakin?';
+                overlay.querySelector('p.ctl-muted').textContent = options.message || '';
+                const done = (ok) => {
+                    overlay.remove();
+                    document.body.style.overflow = '';
+                    if (ok) {
+                        if (options.formAction) submitConfirmForm(options);
+                        else if (typeof options.onConfirm === 'function') options.onConfirm();
+                    }
+                };
+                overlay.querySelector('[data-x-cancel]').addEventListener('click', () => done(false));
+                overlay.querySelector('[data-x-ok]').addEventListener('click', () => done(true));
+                overlay.addEventListener('click', (e) => { if (e.target === overlay) done(false); });
+                overlay.addEventListener('keydown', (e) => { if (e.key === 'Escape') done(false); });
+                document.body.appendChild(overlay);
+                document.body.style.overflow = 'hidden';
+                overlay.querySelector('[data-x-cancel]').focus();
             };
             return;
         }
@@ -256,6 +282,9 @@
             }
             if (options.method && options.method.toLowerCase() !== 'post') {
                 form.appendChild(input('_method', options.method));
+            }
+            if (options.fields && typeof options.fields === 'object') {
+                for (const [k, v] of Object.entries(options.fields)) form.appendChild(input(k, v));
             }
 
             document.body.appendChild(form);
@@ -373,42 +402,22 @@
 
         const variants = {
             success: {
-                bg: 'bg-white dark:bg-slate-800',
-                border: 'border-emerald-200 dark:border-emerald-700/60',
-                iconBg: 'bg-emerald-100 dark:bg-emerald-900/50',
-                icon: 'text-emerald-600 dark:text-emerald-400',
-                label: 'text-emerald-700 dark:text-emerald-300',
-                bar: 'bg-emerald-500',
+                tone: 'ok',
                 path: 'M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
                 title: 'Berhasil',
             },
             error: {
-                bg: 'bg-white dark:bg-slate-800',
-                border: 'border-red-200 dark:border-red-700/60',
-                iconBg: 'bg-red-100 dark:bg-red-900/50',
-                icon: 'text-red-600 dark:text-red-400',
-                label: 'text-red-700 dark:text-red-300',
-                bar: 'bg-red-500',
+                tone: 'danger',
                 path: 'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z',
                 title: 'Gagal',
             },
             warning: {
-                bg: 'bg-white dark:bg-slate-800',
-                border: 'border-amber-200 dark:border-amber-700/60',
-                iconBg: 'bg-amber-100 dark:bg-amber-900/50',
-                icon: 'text-amber-600 dark:text-amber-400',
-                label: 'text-amber-700 dark:text-amber-300',
-                bar: 'bg-amber-500',
+                tone: 'warn',
                 path: 'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z',
                 title: 'Peringatan',
             },
             info: {
-                bg: 'bg-white dark:bg-slate-800',
-                border: 'border-sky-200 dark:border-sky-700/60',
-                iconBg: 'bg-sky-100 dark:bg-sky-900/50',
-                icon: 'text-sky-600 dark:text-sky-400',
-                label: 'text-sky-700 dark:text-sky-300',
-                bar: 'bg-sky-500',
+                tone: 'info',
                 path: 'M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z',
                 title: 'Info',
             },
@@ -418,31 +427,33 @@
             const v = variants[type] || variants.info;
 
             const toastEl = document.createElement('div');
-            toastEl.className = `pointer-events-auto w-full rounded-xl border ${v.bg} ${v.border} shadow-xl shadow-black/5 ring-1 ring-black/5 dark:shadow-black/20 overflow-hidden`;
+            toastEl.className = 'pointer-events-auto w-full overflow-hidden ctl-popover !rounded-xl';
             toastEl.setAttribute('role', 'status');
             toastEl.style.animation = 'toast-slide-in 0.35s cubic-bezier(0.16,1,0.3,1)';
+            const toneVar = { ok: '--ctl-ok', danger: '--ctl-danger', warn: '--ctl-warn', info: '--ctl-info' }[v.tone];
 
             toastEl.innerHTML = `
                 <div class="flex items-start gap-3 p-4">
-                    <div class="flex size-9 shrink-0 items-center justify-center rounded-lg ${v.iconBg}">
-                        <svg class="size-5 ${v.icon}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <div class="flex size-9 shrink-0 items-center justify-center rounded-lg" style="background: color-mix(in srgb, var(${toneVar}) 14%, transparent); color: var(${toneVar});">
+                        <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="${v.path}" />
                         </svg>
                     </div>
                     <div class="flex-1 min-w-0 pt-0.5">
-                        <p class="text-sm font-semibold ${v.label}">${v.title}</p>
-                        <p class="mt-0.5 text-sm text-slate-600 dark:text-slate-300 leading-snug">${message}</p>
+                        <p class="text-sm font-semibold" style="color: var(${toneVar});">${v.title}</p>
+                        <p class="mt-0.5 text-sm leading-snug" style="color: var(--ctl-text);"></p>
                     </div>
-                    <button type="button" class="shrink-0 rounded-lg p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-colors" aria-label="Tutup">
+                    <button type="button" class="ctl-btn ctl-btn-ghost !p-1.5" aria-label="Tutup">
                         <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
-                <div class="h-1 w-full bg-slate-100 dark:bg-slate-700">
-                    <div class="h-full ${v.bar} rounded-full" style="animation: toast-progress ${duration}ms linear forwards;"></div>
+                <div class="h-1 w-full" style="background: var(--ctl-sunken);">
+                    <div class="h-full rounded-full" style="background: var(${toneVar}); animation: toast-progress ${duration}ms linear forwards;"></div>
                 </div>
             `;
+            toastEl.querySelector('p + p').textContent = message;
 
             toastEl.querySelector('button').addEventListener('click', () => dismissToast(toastEl));
             container.appendChild(toastEl);
@@ -497,6 +508,17 @@
         document.querySelectorAll('input, select, textarea').forEach((el) => {
             el.addEventListener('invalid', () => {
                 el.classList.add('border-red-300');
+            });
+        });
+        // Ringkasan validasi -> klik item memindahkan fokus ke field terkait
+        document.querySelectorAll('[data-validation-summary] a[href^="#"]').forEach((link) => {
+            link.addEventListener('click', (e) => {
+                const target = document.getElementById(link.getAttribute('href').slice(1));
+                if (target && /^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName)) {
+                    e.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    target.focus({ preventScroll: true });
+                }
             });
         });
     }

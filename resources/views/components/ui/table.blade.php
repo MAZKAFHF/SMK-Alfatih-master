@@ -4,22 +4,19 @@
     'striped' => false,
 ])
 
-<div class="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-card dark:border-slate-800 dark:bg-slate-900">
-    <table {{ $attributes->merge(['class' => 'min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-700']) }}>
+<div class="ctl-table-wrap">
+    <table {{ $attributes->merge(['class' => 'ctl-table']) }}>
         @if (count($head) > 0)
-            <thead class="bg-slate-50 dark:bg-slate-800">
+            <thead>
                 <tr>
                     @foreach ($head as $heading)
-                        <th
-                            scope="col"
-                            class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-                        >{{ $heading }}</th>
+                        <th scope="col">{{ $heading }}</th>
                     @endforeach
                 </tr>
             </thead>
         @endif
 
-        <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50">
+        <tbody>
             {{ $slot }}
         </tbody>
     </table>

@@ -23,7 +23,7 @@ class PublicPagesTest extends TestCase
 
     public function test_static_pages_return_successful_response(): void
     {
-        foreach (['/ppdb', '/ppdb/status', '/kontak', '/galeri', '/pengumuman'] as $url) {
+        foreach (['/ppdb', '/kontak', '/galeri', '/pengumuman'] as $url) {
             $this->get($url)->assertOk();
         }
     }

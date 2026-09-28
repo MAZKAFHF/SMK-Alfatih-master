@@ -2,11 +2,12 @@
 
 namespace Tests\Feature;
 
-use App\Enums\RegistrationStatus;
+use App\Enums\ApplicationStatus;
 use App\Models\PPDBRegistration;
 use App\Models\Program;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class AdminTest extends TestCase
@@ -94,7 +95,7 @@ class AdminTest extends TestCase
     {
         $this->registration();
         PPDBRegistration::factory()->create([
-            'status' => RegistrationStatus::Accepted,
+            'application_status' => ApplicationStatus::Passed,
             'program_id' => Program::factory()->create(['status' => 'active']),
         ]);
 
@@ -114,22 +115,6 @@ class AdminTest extends TestCase
             ->assertOk();
     }
 
-    public function test_admin_can_update_registration_status(): void
-    {
-        $registration = $this->registration();
-
-        $this->actingAs($this->admin())
-            ->put(route('admin.registrations.update', $registration), [
-                'status' => 'accepted',
-            ])->assertRedirect()
-            ->assertSessionHas('success');
-
-        $this->assertDatabaseHas('ppdb_registrations', [
-            'id' => $registration->id,
-            'status' => 'accepted',
-        ]);
-    }
-
     public function test_admin_can_delete_registration(): void
     {
         $registration = $this->registration();
@@ -142,56 +127,39 @@ class AdminTest extends TestCase
         $this->assertSoftDeleted('ppdb_registrations', ['id' => $registration->id]);
     }
 
-    public function test_admin_can_delete_all_registrations(): void
+    public function test_mass_delete_route_and_button_are_removed(): void
     {
         $this->registration();
-        $this->registration();
-
-        // Mass delete now requires superadmin + password + confirmation + soft delete
-        $superadmin = $this->superadmin();
-
-        $this->actingAs($superadmin)
-            ->delete(route('admin.registrations.destroy-all'), [
-                'password' => 'password',
-                'confirmation' => 'HAPUS SEMUA',
-            ])
-            ->assertRedirect(route('admin.registrations.index'))
-            ->assertSessionHas('success');
-
-        // Soft deleted so count without trashed is 0, but raw count still 2
-        $this->assertEquals(0, PPDBRegistration::count());
-        $this->assertEquals(2, PPDBRegistration::withTrashed()->count());
-    }
-
-    public function test_delete_all_warns_when_there_is_no_data(): void
-    {
-        $superadmin = $this->superadmin();
-        $this->actingAs($superadmin)
-            ->delete(route('admin.registrations.destroy-all'), [
-                'password' => 'password',
-                'confirmation' => 'HAPUS SEMUA',
-            ])
-            ->assertRedirect()
-            ->assertSessionHas('warning');
-    }
-
-    public function test_guest_cannot_delete_all_registrations(): void
-    {
-        $this->registration();
-
-        $this->delete(route('admin.registrations.destroy-all'))
-            ->assertRedirect(route('admin.login'));
-
+        $this->assertFalse(\Illuminate\Support\Facades\Route::has('admin.registrations.destroy-all'));
+        $this->actingAs($this->superadmin())->get(route('admin.registrations.index'))->assertOk()->assertDontSee('Hapus Semua', false);
         $this->assertDatabaseCount('ppdb_registrations', 1);
     }
 
-    public function test_guest_cannot_update_registration_status(): void
+    public function test_permanent_delete_removes_private_documents_and_revisions(): void
+    {
+        Storage::fake('ppdb_private');
+        $registration = $this->registration();
+        $document = \App\Models\ApplicationDocument::create([
+            'application_id' => $registration->id, 'type' => 'kk', 'status' => 'uploaded',
+            'disk' => 'ppdb_private', 'path' => 'period-test/app-test/current.pdf', 'version' => 2,
+        ]);
+        \App\Models\DocumentRevision::create(['document_id' => $document->id, 'path' => 'period-test/app-test/old.pdf', 'version' => 1]);
+        Storage::disk('ppdb_private')->put($document->path, 'current');
+        Storage::disk('ppdb_private')->put('period-test/app-test/old.pdf', 'old');
+        $registration->delete();
+
+        $this->actingAs($this->superadmin())->delete(route('admin.registrations.force-delete', $registration->id))->assertRedirect();
+        Storage::disk('ppdb_private')->assertMissing($document->path);
+        Storage::disk('ppdb_private')->assertMissing('period-test/app-test/old.pdf');
+        $this->assertDatabaseMissing('ppdb_registrations', ['id' => $registration->id]);
+    }
+
+    public function test_admin_work_queue_lists_actionable_application(): void
     {
         $registration = $this->registration();
-
-        $this->put(route('admin.registrations.update', $registration), ['status' => 'accepted'])
-            ->assertRedirect(route('admin.login'));
-
-        $this->assertDatabaseHas('ppdb_registrations', ['id' => $registration->id, 'status' => 'pending']);
+        $registration->update(['application_status' => ApplicationStatus::Submitted]);
+        $this->actingAs($this->admin())->get(route('admin.work-queue.index'))
+            ->assertOk()->assertSee('Antrean Kerja')->assertSee($registration->registration_number);
     }
+
 }

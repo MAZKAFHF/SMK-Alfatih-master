@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\PpdbSetting;
 use App\Models\SiteSetting;
 use App\Services\AuditService;
 use App\Services\MediaService;
@@ -15,27 +14,14 @@ class SettingController extends Controller
     public function index()
     {
         $settings = SiteSetting::all()->groupBy('group');
-        $ppdb = PpdbSetting::current();
 
         $coreSlugs = ['profil','sejarah','visi-misi','sambutan-kepala-sekolah','fasilitas'];
         $pages = \App\Models\Page::whereIn('slug', $coreSlugs)->get()->keyBy('slug');
         // Sort in defined order (SQLite compatible, no FIELD)
-        $pages = collect($coreSlugs)->mapWithKeys(fn($slug) => [$slug => $pages[$slug] ?? null])->filter();
-        // Ensure missing core pages are created as draft placeholders (in case seeder not run)
-        foreach ($coreSlugs as $slug) {
-            if (! isset($pages[$slug])) {
-                $pages[$slug] = \App\Models\Page::create([
-                    'title' => ucwords(str_replace('-',' ', $slug)),
-                    'slug' => $slug,
-                    'content' => '<p>Tulis konten '.ucwords(str_replace('-',' ', $slug)).' di sini.</p>',
-                    'status' => 'draft',
-                    'order' => array_search($slug, $coreSlugs) + 1,
-                ]);
-            }
-        }
+        $pages = collect($coreSlugs)->mapWithKeys(fn($slug) => [$slug => $pages[$slug] ?? null]);
         $customPages = \App\Models\Page::whereNotIn('slug', $coreSlugs)->orderBy('order')->orderBy('title')->get();
 
-        return view('admin.settings.index', compact('settings', 'ppdb', 'pages', 'customPages'));
+        return view('admin.settings.index', compact('settings', 'pages', 'customPages'));
     }
 
     public function update(Request $request)
@@ -58,10 +44,33 @@ class SettingController extends Controller
             'seo_description' => ['nullable', 'string', 'max:500'],
             'logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048'],
             'favicon' => ['nullable', 'image', 'mimes:png,ico,jpg', 'max:1024'],
-            'social_instagram' => ['nullable', 'url', 'max:500'],
-            'social_youtube' => ['nullable', 'url', 'max:500'],
-            'social_facebook' => ['nullable', 'url', 'max:500'],
-            'social_tiktok' => ['nullable', 'url', 'max:500'],
+            'social_instagram' => ['nullable', 'url', 'max:500', function ($attr, $value, $fail) {
+                if (filled($value) && ! str_contains(strtolower((string) $value), 'instagram.com')) {
+                    $fail('Link Instagram harus berupa URL Instagram yang valid (contoh: https://www.instagram.com/smktahfizhalfatihpku/).');
+                }
+            }],
+            'social_youtube' => ['nullable', 'url', 'max:500', function ($attr, $value, $fail) {
+                $v = strtolower((string) $value);
+                if (filled($value) && ! str_contains($v, 'youtube.com') && ! str_contains($v, 'youtu.be')) {
+                    $fail('Link YouTube harus berupa URL YouTube yang valid (contoh: https://www.youtube.com/@SMKTAHFIZHALFATIH).');
+                }
+            }],
+            'social_facebook' => ['nullable', 'url', 'max:500', function ($attr, $value, $fail) {
+                $v = strtolower((string) $value);
+                if (filled($value) && ! str_contains($v, 'facebook.com') && ! str_contains($v, 'fb.com')) {
+                    $fail('Link Facebook harus berupa URL Facebook yang valid.');
+                }
+            }],
+            'social_tiktok' => ['nullable', 'url', 'max:500', function ($attr, $value, $fail) {
+                if (filled($value) && ! str_contains(strtolower((string) $value), 'tiktok.com')) {
+                    $fail('Link TikTok harus berupa URL TikTok yang valid.');
+                }
+            }],
+        ], [
+            'social_instagram.url' => 'Link Instagram harus berupa alamat web yang valid diawali http(s)://.',
+            'social_youtube.url' => 'Link YouTube harus berupa alamat web yang valid diawali http(s)://.',
+            'social_facebook.url' => 'Link Facebook harus berupa alamat web yang valid diawali http(s)://.',
+            'social_tiktok.url' => 'Link TikTok harus berupa alamat web yang valid diawali http(s)://.',
         ]);
 
         $map = [
@@ -73,8 +82,10 @@ class SettingController extends Controller
         ];
 
         foreach ($map as $key => $group) {
-            if ($request->has($key)) {
-                SiteSetting::set($key, $request->input($key), 'string', $group);
+            // exists() (bukan has()) agar admin bisa mengosongkan URL
+            // untuk menyembunyikan platform dari website publik.
+            if ($request->exists($key)) {
+                SiteSetting::set($key, trim((string) $request->input($key)), 'string', $group);
             }
         }
 
@@ -102,36 +113,4 @@ class SettingController extends Controller
         return back()->with('success', 'Pengaturan berhasil disimpan.');
     }
 
-    public function ppdbUpdate(Request $request)
-    {
-        $request->validate([
-            'academic_year' => ['required', 'string', 'max:20'],
-            'opens_at' => ['nullable', 'date'],
-            'closes_at' => ['nullable', 'date', 'after:opens_at'],
-            'is_open' => ['nullable', 'boolean'],
-            'status_override' => ['nullable', 'in:open,closed,'],
-            'announcement' => ['nullable', 'string', 'max:2000'],
-            'quota' => ['nullable', 'integer', 'min:0', 'max:99999'],
-            'contact_info' => ['nullable', 'string', 'max:500'],
-        ]);
-
-        $ppdb = PpdbSetting::current();
-        $old = $ppdb->toArray();
-        $opensAt = $request->input('opens_at') ? \Carbon\Carbon::parse($request->input('opens_at'), 'Asia/Jakarta')->utc() : null;
-        $closesAt = $request->input('closes_at') ? \Carbon\Carbon::parse($request->input('closes_at'), 'Asia/Jakarta')->utc() : null;
-        $ppdb->update([
-            'academic_year' => $request->input('academic_year'),
-            'opens_at' => $opensAt,
-            'closes_at' => $closesAt,
-            'is_open' => $request->boolean('is_open'),
-            'status_override' => $request->input('status_override') ?: null,
-            'announcement' => $request->input('announcement'),
-            'quota' => $request->input('quota'),
-            'contact_info' => $request->input('contact_info'),
-        ]);
-        PpdbSetting::flushCache();
-        AuditService::log('ppdb_settings_update', $ppdb, $old, $ppdb->toArray());
-
-        return back()->with('success','Pengaturan PPDB diperbarui.');
-    }
 }

@@ -75,18 +75,13 @@ test.describe('Public Website', () => {
   test('ppdb flow', async ({ page }) => {
     await page.goto('/ppdb');
     await expect(page.getByRole('heading', { name: 'PPDB Online' }).first()).toBeVisible();
+    await expect(page.getByText('Cek Status Lama')).toHaveCount(0);
+    await expect(page.getByText('formulir cepat')).toHaveCount(0);
     await page.goto('/ppdb/siswa');
-    if (await page.getByText('PPDB Ditutup').first().isVisible().catch(() => false)) {
-      await expect(page.getByText('PPDB Ditutup').first()).toBeVisible();
-    } else {
-      await expect(page.locator('form').first()).toBeVisible();
-    }
+    await expect(page).toHaveURL(/\/portal\/daftar$/);
     await page.goto('/ppdb/status');
-    await expect(page.getByRole('heading', { name: 'Cek Status Pendaftaran' }).first()).toBeVisible();
-    await page.locator('input[name="registration_number"]').fill('PPDB-2026-99999');
-    await page.locator('input[name="birth_date"]').fill('2010-01-01');
-    await page.getByRole('button', { name: 'Cek Status' }).click();
-    await expect(page.locator('text=Data tidak ditemukan').first()).toBeVisible();
+    await expect(page).toHaveURL(/\/portal\/masuk$/);
+    await expect(page.locator('input[name="registration_number"]')).toHaveCount(0);
   });
 
   test('no horizontal overflow', async ({ page }) => {

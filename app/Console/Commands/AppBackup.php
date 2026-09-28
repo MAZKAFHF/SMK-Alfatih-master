@@ -6,14 +6,17 @@ use Illuminate\Console\Command;
 
 class AppBackup extends Command
 {
-    protected $signature = 'app:backup {--retention=7 : Keep N daily backups}';
-    protected $description = 'Create timestamped DB + media backup (sqlite or mysql) via Laravel config, handles compressed restores safely';
+    protected $signature = 'app:backup {--retention= : Keep N backup sets; defaults to config}';
+    protected $description = 'Create a verified database, public media, and private PPDB document backup';
 
     public function handle(): int
     {
-        $retention = (int) $this->option('retention');
+        $retention = max(1, (int) ($this->option('retention') ?: config('backup.retention', 14)));
         $timestamp = now()->format('Ymd_His');
-        $backupDir = storage_path('app/backups');
+        // Unit tests must never create or prune operational backups.
+        $backupDir = app()->runningUnitTests()
+            ? storage_path('framework/testing/backups')
+            : (string) config('backup.directory', storage_path('app/backups'));
         if (! is_dir($backupDir)) {
             mkdir($backupDir, 0755, true);
         }
@@ -52,16 +55,19 @@ class AppBackup extends Command
                 $password = $connection['password'] ?? '';
                 $dest = "{$backupDir}/db-{$timestamp}.sql.gz";
                 $cmd = sprintf(
-                    'mysqldump -h %s -P %s -u %s %s %s | gzip > %s',
+                    'mysqldump -h %s -P %s -u %s %s | gzip > %s',
                     escapeshellarg($host),
                     escapeshellarg((string) $port),
                     escapeshellarg($username),
-                    $password !== '' ? '-p'.escapeshellarg($password) : '',
                     escapeshellarg($database),
                     escapeshellarg($dest)
                 );
                 $this->info('Running mysqldump...');
+                if ($password !== '') {
+                    putenv('MYSQL_PWD='.$password);
+                }
                 passthru($cmd, $ret);
+                putenv('MYSQL_PWD');
                 if ($ret !== 0 || ! file_exists($dest)) {
                     $this->error("mysqldump failed (code {$ret})");
                     return self::FAILURE;
@@ -69,18 +75,41 @@ class AppBackup extends Command
                 $this->info("DB dumped to {$dest}");
             }
 
-            $mediaSrc = storage_path('app/public');
-            $mediaDest = "{$backupDir}/media-{$timestamp}.tar.gz";
-            if (is_dir($mediaSrc) && count(glob($mediaSrc.'/*')) > 0) {
-                $phar = new \PharData($mediaDest);
-                $phar->buildFromDirectory($mediaSrc);
-                $this->info("Media archived to {$mediaDest}");
-            } else {
-                $this->warn('No media files to backup');
+            $filesDest = "{$backupDir}/files-{$timestamp}.tar";
+            $archive = new \PharData($filesDest);
+            $fileCount = 0;
+            foreach (['public' => storage_path('app/public'), 'private/ppdb' => storage_path('app/private/ppdb')] as $prefix => $source) {
+                if (! is_dir($source)) {
+                    continue;
+                }
+                $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($source, \FilesystemIterator::SKIP_DOTS));
+                foreach ($iterator as $file) {
+                    if ($file->isFile()) {
+                        $relative = str_replace('\\', '/', substr($file->getPathname(), strlen($source) + 1));
+                        $archive->addFile($file->getPathname(), "{$prefix}/{$relative}");
+                        $fileCount++;
+                    }
+                }
             }
+            $archive->compress(\Phar::GZ);
+            unset($archive);
+            @unlink($filesDest);
+            $this->info("Public media + private PPDB documents archived ({$fileCount} files): {$filesDest}.gz");
+
+            $backupFiles = array_values(array_filter(glob("{$backupDir}/*-{$timestamp}*") ?: [], fn ($file) => ! str_ends_with($file, '.json')));
+            $manifest = [
+                'version' => 1,
+                'created_at' => now()->toIso8601String(),
+                'database_driver' => $db,
+                'files' => array_map(fn ($file) => [
+                    'name' => basename($file), 'bytes' => filesize($file), 'sha256' => hash_file('sha256', $file),
+                ], $backupFiles),
+            ];
+            file_put_contents("{$backupDir}/manifest-{$timestamp}.json", json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
             $this->prune($backupDir, 'db-*', $retention);
-            $this->prune($backupDir, 'media-*', $retention);
+            $this->prune($backupDir, 'files-*', $retention);
+            $this->prune($backupDir, 'manifest-*', $retention);
 
             $this->info("Backup completed: {$timestamp}");
             return self::SUCCESS;
@@ -97,10 +126,22 @@ class AppBackup extends Command
         if (! $files) {
             return;
         }
-        usort($files, fn ($a, $b) => filemtime($b) - filemtime($a));
-        foreach (array_slice($files, $keep) as $old) {
-            @unlink($old);
-            $this->info('Pruned old backup: '.basename($old));
+
+        // A SQLite backup has both .sqlite and .sqlite.gz files. Retention is
+        // counted per timestamped backup set, not per individual file.
+        $sets = [];
+        foreach ($files as $file) {
+            if (preg_match('/^(?:db|files|manifest)-(\d{8}_\d{6})/', basename($file), $matches)) {
+                $sets[$matches[1]][] = $file;
+            }
+        }
+        krsort($sets);
+
+        foreach (array_slice($sets, $keep, null, true) as $oldSet) {
+            foreach ($oldSet as $old) {
+                @unlink($old);
+                $this->info('Pruned old backup: '.basename($old));
+            }
         }
     }
 }

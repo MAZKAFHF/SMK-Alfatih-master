@@ -1,7 +1,7 @@
 <x-admin.layouts.app :title="'Edit Halaman'">
     <div class="mb-5"><a href="{{ route('admin.pages.index') }}" class="text-sm text-slate-500">&larr; Kembali</a><h1 class="mt-2 text-xl font-extrabold">Edit: {{ $page->title }}</h1></div>
     <x-ui.card class="p-6">
-        <form method="POST" action="{{ route('admin.pages.update',$page) }}" enctype="multipart/form-data" class="space-y-5">
+        <form method="POST" novalidate action="{{ route('admin.pages.update',$page) }}" enctype="multipart/form-data" class="space-y-5">
             @csrf @method('PUT')
             <div class="grid gap-5 sm:grid-cols-2">
                 <x-ui.input label="Judul" name="title" value="{{ old('title',$page->title) }}" required />

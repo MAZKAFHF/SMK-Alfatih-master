@@ -58,6 +58,9 @@ class MediaService
 
     public static function delete(?string $path): void
     {
+        if ($path && (str_contains($path, '..') || str_starts_with($path, '/') || preg_match('/^[A-Za-z]:[\\\\\/]/', $path))) {
+            throw new \InvalidArgumentException('Path media tidak aman untuk dihapus.');
+        }
         if ($path && Storage::disk('public')->exists($path)) {
             Storage::disk('public')->delete($path);
         }

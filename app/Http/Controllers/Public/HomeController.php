@@ -28,6 +28,9 @@ class HomeController extends Controller
             ];
         });
 
-        return view('public.home', compact('programs', 'news', 'announcements', 'galleries', 'stats'));
+        // Status PPDB kanonis — SATU kebenaran dengan /ppdb, portal, dashboard.
+        $ppdbState = \App\Services\PpdbAvailability::resolvePublic();
+
+        return view('public.home', compact('programs', 'news', 'announcements', 'galleries', 'stats', 'ppdbState'));
     }
 }

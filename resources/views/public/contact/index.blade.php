@@ -36,6 +36,9 @@
                             </div>
                         </div>
                     @endforeach
+                    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-card dark:border-slate-800 dark:bg-slate-900">
+                        <x-social-links variant="public" title="Ikuti SMK Tahfizh Al-Fatih" />
+                    </div>
                 </div>
 
                 {{-- Form --}}

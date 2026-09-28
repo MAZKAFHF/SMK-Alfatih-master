@@ -20,6 +20,8 @@ class ContactMessageController extends Controller
                     $q->where('is_read', false);
                 } elseif ($request->string('status') === 'archived') {
                     $q->where('is_archived', true);
+                } elseif (in_array($request->string('status')->toString(), ['new', 'in_progress', 'resolved'], true)) {
+                    $q->where('handling_status', $request->string('status'));
                 }
             })
             ->latest()->paginate(20)->withQueryString();
@@ -65,6 +67,25 @@ class ContactMessageController extends Controller
         $contactMessage->update(['is_archived' => false]);
 
         return back()->with('success', 'Pesan dikeluarkan dari arsip.');
+    }
+
+    public function updateHandling(Request $request, ContactMessage $contactMessage)
+    {
+        $data = $request->validate([
+            'handling_status' => ['required', 'in:new,in_progress,resolved'],
+            'response_channel' => ['nullable', 'in:email,whatsapp,phone,in_person,other'],
+            'admin_note' => ['nullable', 'string', 'max:2000'],
+        ]);
+        $resolved = $data['handling_status'] === 'resolved';
+        $contactMessage->update($data + [
+            'resolved_by' => $resolved ? auth()->id() : null,
+            'resolved_at' => $resolved ? now() : null,
+            'is_read' => true,
+            'read_at' => $contactMessage->read_at ?? now(),
+        ]);
+        AuditService::log('contact_handling_update', $contactMessage, null, $data);
+
+        return back()->with('success', 'Status penanganan pesan diperbarui.');
     }
 
     public function destroy(ContactMessage $contactMessage)

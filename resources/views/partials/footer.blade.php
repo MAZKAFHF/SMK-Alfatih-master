@@ -15,6 +15,9 @@
                     Sekolah menengah kejuruan berbasis tahfizh Al-Qur'an yang mencetak generasi berprestasi, berakhlak mulia, dan siap kerja.
                 </p>
                 <p class="mt-3 text-[11px] font-bold uppercase tracking-[0.2em] text-gold-500">Build • Character • Future</p>
+                <div class="mt-5">
+                    <x-social-links variant="footer" title="Ikuti SMK Tahfizh Al-Fatih" />
+                </div>
             </div>
 
             <div>
@@ -37,8 +40,8 @@
             <div>
                 <h3 class="text-sm font-semibold uppercase tracking-wider text-white">PPDB</h3>
                 <ul class="mt-4 space-y-2.5 text-sm">
-                    <li><a href="{{ route('ppdb.siswa') }}" class="text-slate-300 transition-colors hover:text-gold-400">Daftar PPDB</a></li>
-                    <li><a href="{{ route('ppdb.status') }}" class="text-slate-300 transition-colors hover:text-gold-400">Cek Status</a></li>
+                    <li><a href="{{ route('portal.register') }}" class="text-slate-300 transition-colors hover:text-gold-400">Daftar PPDB</a></li>
+                    <li><a href="{{ route('portal.login') }}" class="text-slate-300 transition-colors hover:text-gold-400">Masuk Portal</a></li>
                     <li><a href="{{ route('announcements.index') }}" class="text-slate-300 transition-colors hover:text-gold-400">Pengumuman</a></li>
                 </ul>
             </div>
@@ -69,8 +72,11 @@
             </div>
         </div>
 
-        <div class="mt-12 border-t border-white/10 pt-6 text-center text-xs text-slate-400">
-            &copy; {{ date('Y') }} SMK Tahfizh Al-Fatih. Seluruh hak cipta dilindungi.
+        <div class="mt-12 flex flex-col items-center justify-between gap-2 border-t border-white/10 pt-6 text-xs text-slate-400 sm:flex-row sm:text-left">
+            <p>&copy; {{ date('Y') }} SMK Tahfizh Al-Fatih. Seluruh hak cipta dilindungi.</p>
+            {{-- Developer credit: teks biasa (bukan link) sampai website resmi Mafh tersedia.
+                 Untuk menjadikannya link nanti, ganti <span> menjadi <a href="...">. --}}
+            <p class="transition-colors hover:text-gold-400">Developed by <strong class="font-semibold text-slate-300">Mafh</strong></p>
         </div>
     </div>
 </footer>

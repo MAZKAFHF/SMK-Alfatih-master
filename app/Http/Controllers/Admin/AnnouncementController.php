@@ -37,7 +37,7 @@ class AnnouncementController extends Controller
             $data['published_at'] = now();
         } elseif (! empty($data['published_at'])) {
             // datetime-local from browser is Jakarta local time - convert to UTC for consistent storage
-            $data['published_at'] = \Carbon\Carbon::parse($data['published_at'], 'Asia/Jakarta')->utc();
+            $data['published_at'] = \App\Services\JakartaDateTime::toStorage($data['published_at'], 'published_at');
         }
         $ann = Announcement::create($data);
         AuditService::log('announcement_create', $ann, null, $data);
@@ -57,7 +57,7 @@ class AnnouncementController extends Controller
         $data = $request->validated();
         $data['content'] = HtmlSanitizer::clean($data['content'], 'strict');
         if (! empty($data['published_at'])) {
-            $data['published_at'] = \Carbon\Carbon::parse($data['published_at'], 'Asia/Jakarta')->utc();
+            $data['published_at'] = \App\Services\JakartaDateTime::toStorage($data['published_at'], 'published_at');
         }
         $announcement->update($data);
         AuditService::log('announcement_update', $announcement, $old, $announcement->toArray());

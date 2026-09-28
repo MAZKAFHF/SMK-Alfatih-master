@@ -14,11 +14,11 @@
     $help = $statusLabels[$status] ?? $status;
 @endphp
 
-<div class="rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/30">
-    <h4 class="text-sm font-semibold text-amber-900 dark:text-amber-200">Status Publikasi</h4>
-    <p class="mt-1 text-xs text-amber-800 dark:text-amber-300">{{ $help }}</p>
+<div class="rounded-[14px] p-4" style="border: 1px solid color-mix(in srgb, var(--ctl-warn) 40%, transparent); background: var(--ctl-warn-soft);">
+    <h4 class="text-sm font-semibold" style="color: var(--ctl-text);">Status Publikasi</h4>
+    <p class="ctl-muted mt-1 text-xs">{{ $help }}</p>
     @if($publishedAt)
-        <p class="mt-2 text-xs font-medium text-amber-900 dark:text-amber-200">Jadwal: {{ \Carbon\Carbon::parse($publishedAt)->timezone('Asia/Jakarta')->translatedFormat('d M Y H:i') }} WIB</p>
+        <p class="mt-2 text-xs font-medium" style="color: var(--ctl-text);">Jadwal: {{ \Carbon\Carbon::parse($publishedAt)->timezone('Asia/Jakarta')->translatedFormat('d M Y H:i') }} WIB</p>
     @endif
     <div class="mt-3">
         {{ $slot }}

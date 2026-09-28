@@ -3,10 +3,8 @@
         <div class="w-full max-w-md">
             <x-ui.card class="p-6 sm:p-8">
                 <h1 class="text-xl font-extrabold text-slate-900 dark:text-white">Reset Password</h1>
-                @if($errors->any())
-                    <div class="mt-4"><x-ui.alert variant="danger" title="Gagal"><ul class="list-disc pl-4 space-y-1">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul></x-ui.alert></div>
-                @endif
-                <form method="POST" action="{{ route('admin.password.update') }}" class="mt-6 space-y-5">
+                <div class="mt-4"><x-ui.validation-summary title="Gagal" /></div>
+                <form method="POST" novalidate action="{{ route('admin.password.update') }}" class="mt-6 space-y-5">
                     @csrf
                     <input type="hidden" name="token" value="{{ $token }}">
                     <x-ui.input label="Email" name="email" type="email" value="{{ old('email',$email) }}" required />

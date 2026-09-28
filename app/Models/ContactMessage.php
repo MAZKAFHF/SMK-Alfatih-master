@@ -20,6 +20,11 @@ class ContactMessage extends Model
         'is_read',
         'read_at',
         'is_archived',
+        'handling_status',
+        'response_channel',
+        'admin_note',
+        'resolved_by',
+        'resolved_at',
     ];
 
     protected function casts(): array
@@ -29,6 +34,7 @@ class ContactMessage extends Model
             'is_read' => 'boolean',
             'is_archived' => 'boolean',
             'read_at' => 'datetime',
+            'resolved_at' => 'datetime',
         ];
     }
 

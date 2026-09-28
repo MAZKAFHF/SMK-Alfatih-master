@@ -7,7 +7,7 @@
         <form method="GET" action="{{ route('admin.contact-messages.index') }}" class="flex flex-col gap-3 sm:flex-row">
             <div class="flex-1"><x-ui.input name="search" placeholder="Cari nama/email/subjek..." value="{{ request('search') }}" /></div>
             <div class="sm:w-36">
-                <x-ui.select name="status" :value="request('status')" :options="['unread'=>'Belum dibaca','read'=>'Sudah dibaca','archived'=>'Arsip']" placeholder="Semua"><option value="">Semua</option></x-ui.select>
+                <x-ui.select name="status" :value="request('status')" :options="['new'=>'Baru','in_progress'=>'Diproses','resolved'=>'Selesai','unread'=>'Belum dibaca','read'=>'Sudah dibaca','archived'=>'Arsip']" placeholder="Semua"></x-ui.select>
             </div>
             <x-ui.button type="submit" variant="secondary">Cari</x-ui.button>
         </form>
@@ -25,6 +25,7 @@
                                 <p class="font-semibold text-slate-900 dark:text-white">{{ $msg->name }}</p>
                                 @if(!$msg->is_read)<span class="rounded-full bg-primary-600 px-2 py-0.5 text-[11px] font-bold text-white">Baru</span>@endif
                                 @if($msg->is_archived)<span class="rounded-full bg-slate-200 px-2 py-0.5 text-[11px] text-slate-600">Arsip</span>@endif
+                                <x-ui.badge size="sm" :color="$msg->handling_status === 'resolved' ? 'green' : ($msg->handling_status === 'in_progress' ? 'amber' : 'slate')">{{ ['new'=>'Baru','in_progress'=>'Diproses','resolved'=>'Selesai'][$msg->handling_status] ?? $msg->handling_status }}</x-ui.badge>
                             </div>
                             <p class="text-sm text-slate-600 dark:text-slate-400">{{ $msg->subject }}</p>
                             <p class="mt-1 text-xs text-slate-400">{{ $msg->email }} • {{ $msg->created_at->translatedFormat('d M Y H:i') }}</p>

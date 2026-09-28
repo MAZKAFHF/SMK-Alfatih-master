@@ -32,10 +32,10 @@
                 <x-ui.select
                     name="event"
                     :value="request('event')"
-                    :options="$eventOptions"
+                    :options="['' => 'Semua aktivitas'] + $eventOptions"
+                    placeholder="Semua aktivitas"
                     :placeholder-option="false"
                 >
-                    <option value="" {{ blank(request('event')) ? 'selected' : '' }}>Semua aktivitas</option>
                 </x-ui.select>
             </div>
 
@@ -58,32 +58,32 @@
         {{-- Mobile: kartu --}}
         <div class="space-y-4 lg:hidden">
             @foreach ($logs as $log)
-                <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-card dark:border-slate-800 dark:bg-slate-900">
-                    <div class="flex items-center gap-3 border-b border-slate-100 px-4 py-3 dark:border-slate-700/50">
-                        <span class="flex size-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                <div class="ctl-card overflow-hidden">
+                    <div class="flex items-center gap-3 px-4 py-3" style="border-bottom: 1px solid var(--ctl-border);">
+                        <span class="flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-bold" style="background: var(--ctl-sunken); color: var(--ctl-muted);">
                             {{ strtoupper(substr($log->user?->name ?? '?', 0, 1)) }}
                         </span>
                         <div class="min-w-0 flex-1">
-                            <p class="truncate font-semibold text-slate-900 dark:text-white">{{ $log->user?->name ?? 'Pengguna terhapus' }}</p>
-                            <p class="truncate text-xs text-slate-500 dark:text-slate-400">{{ $log->user?->email ?? '—' }}</p>
+                            <p class="truncate font-semibold">{{ $log->user?->name ?? 'Pengguna terhapus' }}</p>
+                            <p class="ctl-muted truncate text-xs">{{ $log->user?->email ?? '—' }}</p>
                         </div>
                         <x-ui.badge :color="$log->event === \App\Models\LoginLog::EVENT_LOGIN ? 'green' : 'slate'" size="sm" dot>{{ $log->eventLabel() }}</x-ui.badge>
                     </div>
 
                     <dl class="space-y-2.5 px-4 py-3.5 text-sm">
                         <div class="flex items-start justify-between gap-4">
-                            <dt class="shrink-0 text-slate-400 dark:text-slate-500">IP Address</dt>
-                            <dd class="font-mono text-right font-medium text-slate-700 dark:text-slate-300">{{ $log->ip_address ?? '—' }}</dd>
+                            <dt class="ctl-faint shrink-0">IP Address</dt>
+                            <dd class="text-right font-mono font-medium">{{ $log->ip_address ?? '—' }}</dd>
                         </div>
                         <div class="flex items-start justify-between gap-4">
-                            <dt class="shrink-0 text-slate-400 dark:text-slate-500">Waktu</dt>
-                            <dd class="text-right font-medium text-slate-700 dark:text-slate-300">{{ $log->created_at?->translatedFormat('d M Y, H:i:s') }}</dd>
+                            <dt class="ctl-faint shrink-0">Waktu</dt>
+                            <dd class="text-right font-medium">{{ $log->created_at?->translatedFormat('d M Y, H:i:s') }}</dd>
                         </div>
                     </dl>
 
                     @if ($log->user_agent)
-                        <div class="border-t border-slate-100 px-4 py-3 dark:border-slate-700/50">
-                            <p class="break-words text-xs leading-relaxed text-slate-400 dark:text-slate-500">{{ $log->user_agent }}</p>
+                        <div class="px-4 py-3" style="border-top: 1px solid var(--ctl-border);">
+                            <p class="ctl-faint break-words text-xs leading-relaxed">{{ $log->user_agent }}</p>
                         </div>
                     @endif
                 </div>
@@ -94,24 +94,24 @@
         <div class="hidden lg:block">
             <x-ui.table :head="['Pengguna', 'Aktivitas', 'IP Address', 'Perangkat', 'Waktu']">
                 @foreach ($logs as $log)
-                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                        <td class="px-4 py-3">
+                    <tr>
+                        <td>
                             <div class="flex items-center gap-3">
-                                <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                                <span class="flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-bold" style="background: var(--ctl-sunken); color: var(--ctl-muted);">
                                     {{ strtoupper(substr($log->user?->name ?? '?', 0, 1)) }}
                                 </span>
                                 <div class="min-w-0">
-                                    <p class="truncate font-semibold text-slate-900 dark:text-white">{{ $log->user?->name ?? 'Pengguna terhapus' }}</p>
-                                    <p class="truncate text-xs text-slate-500 dark:text-slate-400">{{ $log->user?->email ?? '—' }}</p>
+                                    <p class="truncate font-semibold">{{ $log->user?->name ?? 'Pengguna terhapus' }}</p>
+                                    <p class="ctl-muted truncate text-xs">{{ $log->user?->email ?? '—' }}</p>
                                 </div>
                             </div>
                         </td>
-                        <td class="px-4 py-3">
+                        <td>
                             <x-ui.badge :color="$log->event === \App\Models\LoginLog::EVENT_LOGIN ? 'green' : 'slate'" size="sm" dot>{{ $log->eventLabel() }}</x-ui.badge>
                         </td>
-                        <td class="px-4 py-3 font-mono text-xs text-slate-600 dark:text-slate-400">{{ $log->ip_address ?? '—' }}</td>
-                        <td class="max-w-[280px] truncate px-4 py-3 text-xs text-slate-500 dark:text-slate-400" title="{{ $log->user_agent }}">{{ $log->user_agent ?? '—' }}</td>
-                        <td class="px-4 py-3 whitespace-nowrap text-slate-600 dark:text-slate-400">{{ $log->created_at?->translatedFormat('d M Y, H:i:s') }}</td>
+                        <td class="font-mono text-xs">{{ $log->ip_address ?? '—' }}</td>
+                        <td class="ctl-muted max-w-[280px] truncate text-xs">{{ $log->user_agent ?? '—' }}</td>
+                        <td class="whitespace-nowrap">{{ $log->created_at?->translatedFormat('d M Y, H:i:s') }}</td>
                     </tr>
                 @endforeach
             </x-ui.table>

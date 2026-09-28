@@ -1,5 +1,6 @@
 import './bootstrap';
 import './app.interactions';
+import './ui-primitives';
 import 'trix';
 import 'trix/dist/trix.css';
 

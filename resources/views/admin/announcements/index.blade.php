@@ -6,7 +6,7 @@
     <x-ui.card class="mb-6 p-4">
         <form method="GET" action="{{ route('admin.announcements.index') }}" class="flex flex-col gap-3 sm:flex-row">
             <div class="flex-1"><x-ui.input name="search" placeholder="Cari judul..." value="{{ request('search') }}" /></div>
-            <div class="sm:w-36"><x-ui.select name="status" :value="request('status')" :options="['draft'=>'Draft','published'=>'Published','archived'=>'Archived']" placeholder="Semua"><option value="">Semua</option></x-ui.select></div>
+            <div class="sm:w-36"><x-ui.select name="status" :value="request('status')" :options="['draft'=>'Draft','published'=>'Published','archived'=>'Archived']" placeholder="Semua"></x-ui.select></div>
             <x-ui.button type="submit" variant="secondary">Cari</x-ui.button>
         </form>
     </x-ui.card>

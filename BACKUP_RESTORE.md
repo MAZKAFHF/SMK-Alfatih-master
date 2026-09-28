@@ -1,103 +1,50 @@
-# BACKUP & RESTORE — SMK Tahfizh Al-Fatih
+# Backup & Restore — SMK Tahfizh Al-Fatih
 
-## Strategy
+Backup aplikasi mencakup tiga komponen dalam satu set bertimestamp:
 
-- **Database**: `sqlite` file (`database/database.sqlite`) atau MySQL dump. Backup daily, retain 7 daily + 4 weekly.
-- **Media**: `storage/app/public/` (uploads programs/news/gallery/pages/settings). Backup bersama database (tar.gz).
+- database (`db-*.sqlite.gz` atau `db-*.sql.gz`);
+- media publik dan dokumen PPDB privat (`files-*.tar.gz`);
+- manifest ukuran dan SHA-256 (`manifest-*.json`).
 
-## Backup Script (example cron)
+Dokumen identitas di `storage/app/private/ppdb` wajib diperlakukan sebagai data rahasia. Jangan menyimpan backup di folder publik atau repository.
 
-```bash
-#!/bin/bash
-set -e
-DATE=$(date +%Y%m%d_%H%M%S)
-APP_DIR=/path/SMK-Alfatih-master
-BACKUP_DIR=/backups/smkalfatih
-mkdir -p $BACKUP_DIR
+## Konfigurasi produksi
 
-# DB
-if grep -q "DB_CONNECTION=sqlite" $APP_DIR/.env; then
-  cp $APP_DIR/database/database.sqlite $BACKUP_DIR/db-$DATE.sqlite
-else
-  mysqldump -h $DB_HOST -u $DB_USER -p$DB_PASS $DB_DATABASE | gzip > $BACKUP_DIR/db-$DATE.sql.gz
-fi
-
-# Media
-tar -czf $BACKUP_DIR/media-$DATE.tar.gz -C $APP_DIR storage/app/public
-
-# Keep only 7 daily
-ls -t $BACKUP_DIR/db-* | tail -n +8 | xargs -r rm
-ls -t $BACKUP_DIR/media-* | tail -n +8 | xargs -r rm
-
-echo "Backup $DATE done"
+```dotenv
+APP_BACKUP_ENABLED=true
+APP_BACKUP_DIR=/mnt/backup-encrypted/smk-alfatih
+APP_BACKUP_RETENTION=14
+APP_BACKUP_DAILY_AT=02:00
 ```
 
-Add cron `0 2 * * * /path/backup.sh >> /var/log/smk-backup.log 2>&1`
+Laravel menjadwalkan `app:backup` setiap hari. Server tetap harus menjalankan scheduler Laravel setiap menit:
 
-## Manual Backup ( artisan tinker )
-
-- SQLite: copy `database/database.sqlite` ke lokasi aman.
-- MySQL: `php artisan db:show` lalu dump.
-
-## Restore Procedure (TEST ON STAGING FIRST, NEVER PROD DIRECTLY)
-
-### SQLite Restore
-
-```bash
-php artisan down
-cp /backups/db-20260923_020000.sqlite database/database.sqlite
-tar -xzf /backups/media-20260923_020000.tar.gz -C .
-php artisan migrate:status # verify
-php artisan up
+```cron
+* * * * * cd /path/SMK-Alfatih-master && php artisan schedule:run >> /var/log/smk-scheduler.log 2>&1
 ```
 
-### MySQL Restore
+Direktori backup sebaiknya merupakan volume terenkripsi atau volume yang direplikasi ke lokasi lain. Pastikan hanya operator berwenang yang dapat membacanya.
+
+## Operasi
 
 ```bash
-php artisan down
-# Compressed dump (.sql.gz) must be decompressed via gunzip pipe:
-gunzip -c /backups/db-20260923_020000.sql.gz | mysql -h $DB_HOST -u $DB_USER -p"$DB_PASS" $DB_DATABASE
-# Alternative: mysql --binary-mode
-tar -xzf /backups/media-20260923_020000.tar.gz -C .
-php artisan storage:link # if needed
-php artisan cache:clear
-php artisan up
+php artisan app:backup
+php artisan app:backup --retention=30
+php artisan app:backup-verify
+php artisan app:backup-verify manifest-20260928_020000.json
 ```
 
-### Backup via Artisan (recommended, env-safe)
+Backup belum dianggap sehat sebelum `app:backup-verify` berhasil dan uji pemulihan berkala di staging selesai.
 
-```bash
-# Uses Laravel config, no password in process args, handles sqlite/mysql automatically
-php artisan app:backup --retention=7
-# Cron (env not needed, artisan loads .env safely):
-0 2 * * * cd /path/SMK-Alfatih-master && php artisan app:backup >> /var/log/smk-backup.log 2>&1
-```
+## Restore (selalu uji di staging dahulu)
 
-### Partial Restore (single table, e.g., ppdb_registrations)
+1. Aktifkan maintenance: `php artisan down`.
+2. Verifikasi manifest yang akan dipulihkan.
+3. Salin database aktif dan folder storage aktif ke lokasi rollback.
+4. Pulihkan database: ekstrak/salin SQLite ke `database/database.sqlite`, atau impor dump MySQL terkompresi.
+5. Ekstrak `files-*.tar.gz` ke `storage/app`; arsip berisi `public/` dan `private/ppdb/`.
+6. Jalankan `php artisan migrate:status`, `php artisan storage:link`, dan `php artisan cache:clear`.
+7. Periksa login admin, satu media publik, dan satu dokumen PPDB privat dengan akun berwenang.
+8. Jalankan smoke test, lalu `php artisan up`.
 
-- Restore ke DB temp: `sqlite3 /tmp/restore.sqlite ".restore /backups/db-xxx.sqlite"` lalu `.dump ppdb_registrations` atau MySQL `mysqldump --where`.
-- Import via `php artisan tinker` dengan `DB::table()->insert`.
-
-## Restore Test
-
-- Cadangkan fresh install ke `/tmp/smk-restore-test`.
-- `cp .env.production.example .env` isi dummy, `touch database/database.sqlite`, `php artisan migrate`, lalu restore satu backup dan verifikasi:
-
-```bash
-php artisan tinker --execute="echo App\Models\PPDBRegistration::count();"
-php artisan test # sanity
-```
-
-Jangan test restore ke DB production.
-
-## Retention & Security
-
-- Enkripsi backup jika berisi PII (PPDB) → `gpg` atau bucket encrypted.
-- Jangan simpan backup di `public/`.
-- Audit siapa akses backup.
-
-## Verification Checklist
-
-- [ ] Backup file ada & size >0
-- [ ] `tar -tzf media-*.tar.gz | head` menampilkan `programs/`, `news/`, etc
-- [ ] Restore test di `/tmp` berhasil, app bisa boot `php artisan about`
+Jangan menguji restore langsung pada database produksi. Catat operator, waktu, manifest, dan hasil uji restore dalam log operasional sekolah.

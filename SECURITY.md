@@ -12,7 +12,7 @@
 ## Authorization
 
 - Middleware `admin` (is_admin) untuk semua `/admin/*`.
-- `superadmin` (is_superadmin) untuk users, login-logs, audit-logs, forceDelete, mass delete.
+- `superadmin` (is_superadmin) untuk users, login-logs, audit-logs, dan forceDelete per data.
 - Controller juga cek `is_active` dan `last superadmin` protection (tidak bisa nonaktifkan/hapus superadmin terakhir).
 - Server-side check di setiap controller, bukan hanya hide button.
 
@@ -25,9 +25,9 @@
 
 ## Rate Limiting
 
-- `throttle:5,1` untuk `POST /kontak` dan `POST /ppdb`.
+- `throttle:5,1` untuk `POST /kontak`; autentikasi Portal juga memiliki throttle per endpoint.
 - Custom `RateLimiter` untuk `POST /admin/login` (5/min per email+IP, lockout 60s, 429).
-- `GET /ppdb/status` rate limit 10/min per IP.
+- `/ppdb/status` tidak memproses data dan hanya redirect permanen ke login Portal.
 
 ## CSRF & Session
 
@@ -47,18 +47,19 @@
 ## Data Safety
 
 - SoftDeletes untuk `programs, news, pages, galleries, announcements, contact_messages, ppdb_registrations`. `DELETE` → trash, `restore`, `forceDelete` hanya superadmin.
-- Mass delete PPDB (`DELETE /admin/registrations`) hanya superadmin + password re-auth + `confirmation = "HAPUS SEMUA"` + audit log + soft delete (tidak hard).
+- Aksi mass delete PPDB telah dihapus. Hapus biasa masuk Trash; force delete dilakukan superadmin per data dan ikut membersihkan foto, dokumen privat, serta revisinya.
 - AuditLog immutable (`audit_logs`) untuk semua mutasi: `ppdb_status_update, program_create, news_*, page_*, gallery_*, announcement_*, contact_*, user_*, settings_*`. Simpan old/new json, user_id, ip, ua.
 
 ## PPDB Privacy
 
-- Status check memerlukan `registration_number` + `birth_date` (rate limited). Sequential number tetap readable tapi butuh second factor untuk mencegah enumeration.
+- Tidak ada status checker publik. Aplikasi dan riwayat hanya dapat dibaca melalui akun pemilik atau admin; `registration_number` hanya referensi operasional.
 - Tidak menampilkan PII di list (list hanya name/program/status, bukan alamat lengkap).
 - Export CSV hanya untuk admin, filtered, tanpa password.
 
 ## Storage
 
-- `MediaService` random filename, tidak expose local path, delete old file only if not used elsewhere.
+- `MediaService` memakai nama acak; dokumen PPDB berada pada disk privat dan hanya dipreview melalui otorisasi.
+- `app:media-audit` memeriksa referensi publik/privat. `--fix` hanya menghapus berkas tanpa referensi database, termasuk referensi data di Trash.
 - `php artisan storage:link` required; health check verifies `storage writable`.
 
 ## Known Hardening TODO (if needed)

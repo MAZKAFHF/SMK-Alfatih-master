@@ -1,12 +1,11 @@
 <x-admin.layouts.app :title="'Tambah Galeri'">
     <div class="mb-5"><a href="{{ route('admin.galleries.index') }}" class="text-sm text-slate-500">&larr; Kembali</a><h1 class="mt-2 text-xl font-extrabold">Tambah Foto</h1></div>
     <x-ui.card class="p-6">
-        <form method="POST" action="{{ route('admin.galleries.store') }}" enctype="multipart/form-data" class="space-y-5">
+        <form method="POST" novalidate action="{{ route('admin.galleries.store') }}" enctype="multipart/form-data" class="space-y-5">
             @csrf
             <x-ui.input label="Judul" name="title" value="{{ old('title') }}" required />
             <div class="grid gap-5 sm:grid-cols-2">
-                <x-ui.input label="Kategori" name="category" value="{{ old('category') }}" placeholder="Misal: Kegiatan, Fasilitas" list="cat-list" />
-                <datalist id="cat-list">@foreach($categories as $c)<option value="{{ $c }}">@endforeach</datalist>
+                <x-ui.input label="Kategori" name="category" value="{{ old('category') }}" placeholder="Misal: Kegiatan, Fasilitas" help="Bebas diisi. Sudah ada: {{ $categories->take(6)->join(', ') ?: '—' }}" />
                 <x-ui.select label="Status" name="status" :value="old('status','published')" :options="['published'=>'Published','draft'=>'Draft','archived'=>'Archived']" required />
                 <x-ui.input label="Urutan" name="order" type="number" value="{{ old('order',0) }}" />
             </div>

@@ -7,9 +7,6 @@ use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use App\Services\AuditService;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class UserManagementController extends Controller
 {
@@ -106,17 +103,4 @@ class UserManagementController extends Controller
         return back()->with('success', "Akun {$label} dihapus.");
     }
 
-    public function resetLink(User $user)
-    {
-        // Generate password reset link via Laravel built-in? For now return info
-        $token = Str::random(64);
-        DB::table('password_reset_tokens')->updateOrInsert(
-            ['email' => $user->email],
-            ['token' => Hash::make($token), 'created_at' => now()]
-        );
-        // In real production, send email. For now display token via flash (dev only)
-        $url = url('/admin/password-reset?token='.$token.'&email='.urlencode($user->email));
-
-        return back()->with('success', 'Link reset dibuat.')->with('info', $url);
-    }
 }

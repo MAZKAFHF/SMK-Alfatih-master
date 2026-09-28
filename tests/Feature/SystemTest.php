@@ -2,9 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Models\Announcement;
 use App\Models\Page;
+use App\Models\PPDBRegistration;
+use App\Models\PpdbPeriod;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\File;
 use Tests\TestCase;
 
 class SystemTest extends TestCase
@@ -39,11 +44,60 @@ class SystemTest extends TestCase
 
     public function test_backup_command_succeeds_sqlite(): void
     {
+        $backupDir = storage_path('framework/testing/backups');
+        File::deleteDirectory($backupDir);
         $this->artisan('app:backup', ['--retention' => 2])->assertExitCode(0);
-        $files = glob(storage_path('app/backups/db-*'));
+        $files = glob($backupDir.'/db-*');
         $this->assertNotEmpty($files);
         $latest = max($files);
         $this->assertGreaterThan(0, filesize($latest));
+        $this->assertNotEmpty(glob($backupDir.'/files-*.tar.gz'));
+        $this->assertNotEmpty(glob($backupDir.'/manifest-*.json'));
+        $this->artisan('app:backup-verify')->assertExitCode(0);
+        File::deleteDirectory($backupDir);
+    }
+
+    public function test_e2e_cleanup_previews_then_removes_only_marked_fixtures(): void
+    {
+        $normalPeriod = PpdbPeriod::query()->firstOrFail();
+        $e2ePeriod = PpdbPeriod::create([
+            'academic_year' => 'E2E-CLEANUP-TEST',
+            'status' => PpdbPeriod::STATUS_CLOSED,
+            'is_open' => false,
+        ]);
+        $normalUser = User::factory()->create(['email' => 'operator@alfatih.sch.id']);
+        $e2eUser = User::factory()->create(['email' => 'cleanup@window.test']);
+
+        $periodFixture = PPDBRegistration::factory()->create([
+            'period_id' => $e2ePeriod->id,
+            'applicant_account_id' => $normalUser->id,
+        ]);
+        $userFixture = PPDBRegistration::factory()->create([
+            'period_id' => $normalPeriod->id,
+            'applicant_account_id' => $e2eUser->id,
+        ]);
+        $normalApplication = PPDBRegistration::factory()->create([
+            'period_id' => $normalPeriod->id,
+            'applicant_account_id' => $normalUser->id,
+        ]);
+        $e2eAnnouncement = Announcement::factory()->create(['title' => 'E2E-ANN-cleanup-test']);
+        $normalAnnouncement = Announcement::factory()->create(['title' => 'Pengumuman operasional']);
+
+        $this->artisan('app:cleanup-e2e')->assertSuccessful();
+        $this->assertDatabaseHas('users', ['id' => $e2eUser->id]);
+        $this->assertDatabaseHas('ppdb_registrations', ['id' => $periodFixture->id]);
+
+        $this->artisan('app:cleanup-e2e', ['--force' => true])->assertSuccessful();
+
+        $this->assertDatabaseMissing('ppdb_periods', ['id' => $e2ePeriod->id]);
+        $this->assertDatabaseMissing('users', ['id' => $e2eUser->id]);
+        $this->assertDatabaseMissing('ppdb_registrations', ['id' => $periodFixture->id]);
+        $this->assertDatabaseMissing('ppdb_registrations', ['id' => $userFixture->id]);
+        $this->assertDatabaseMissing('announcements', ['id' => $e2eAnnouncement->id]);
+        $this->assertDatabaseHas('ppdb_periods', ['id' => $normalPeriod->id]);
+        $this->assertDatabaseHas('users', ['id' => $normalUser->id]);
+        $this->assertDatabaseHas('ppdb_registrations', ['id' => $normalApplication->id]);
+        $this->assertDatabaseHas('announcements', ['id' => $normalAnnouncement->id]);
     }
 
     public function test_error_pages_have_correct_status(): void

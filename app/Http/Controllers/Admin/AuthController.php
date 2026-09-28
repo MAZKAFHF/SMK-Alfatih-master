@@ -70,12 +70,16 @@ class AuthController extends Controller
 
     private function recordActivity(string $event, Request $request): void
     {
-        Auth::user()?->loginLogs()->create([
+        $user = Auth::user();
+        $user?->loginLogs()->create([
             'event' => $event,
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
             'created_at' => now(),
         ]);
+        if ($event === LoginLog::EVENT_LOGIN) {
+            $user?->forceFill(['last_activity_at' => now()])->save();
+        }
     }
 
     private function ensureNotRateLimited(Request $request): void

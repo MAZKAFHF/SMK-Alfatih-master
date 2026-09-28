@@ -3,11 +3,11 @@
     'description' => null,
 ])
 
-<div class="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+<div class="ctl-card !p-6">
     @if($title)
-        <h3 class="text-sm font-semibold text-slate-900 dark:text-white">{{ $title }}</h3>
+        <h3 class="text-sm font-semibold" style="color: var(--ctl-text);">{{ $title }}</h3>
         @if($description)
-            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ $description }}</p>
+            <p class="ctl-muted mt-1 text-xs">{{ $description }}</p>
         @endif
         <div class="mt-4 space-y-5">
             {{ $slot }}

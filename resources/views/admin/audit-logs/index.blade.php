@@ -3,7 +3,7 @@
     <x-ui.card class="mb-6 p-4">
         <form method="GET" action="{{ route('admin.audit-logs.index') }}" class="flex flex-col gap-3 sm:flex-row">
             <div class="flex-1"><x-ui.input name="search" placeholder="Cari label atau user..." value="{{ request('search') }}" /></div>
-            <div class="sm:w-48"><x-ui.select name="action" :value="request('action')" :options="$actions->mapWithKeys(fn($a)=>[$a=>$a])->all()" placeholder="Semua aksi"><option value="">Semua aksi</option></x-ui.select></div>
+            <div class="sm:w-48"><x-ui.select name="action" :value="request('action')" :options="$actions->mapWithKeys(fn($a)=>[$a=>$a])->all()" placeholder="Semua aksi"></x-ui.select></div>
             <x-ui.button type="submit" variant="secondary">Cari</x-ui.button>
         </form>
     </x-ui.card>

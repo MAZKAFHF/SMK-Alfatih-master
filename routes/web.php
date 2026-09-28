@@ -43,9 +43,51 @@ Route::get('/kontak', [ContactController::class, 'index'])->name('contact.index'
 Route::post('/kontak', [ContactController::class, 'send'])->middleware('throttle:5,1')->name('contact.send');
 
 Route::get('/ppdb', [PPDBController::class, 'index'])->name('ppdb.index');
-Route::get('/ppdb/siswa', [PPDBController::class, 'siswa'])->name('ppdb.siswa');
-Route::post('/ppdb', [PPDBController::class, 'store'])->middleware('throttle:5,1')->name('ppdb.store');
-Route::get('/ppdb/status', [PPDBController::class, 'status'])->name('ppdb.status');
+// URL publik lama tetap ramah bagi tautan yang pernah dibagikan, tetapi tidak
+// lagi menjalankan formulir/lookup berbasis nomor pendaftaran.
+Route::get('/ppdb/siswa', fn () => redirect()->route('portal.register', [], 301));
+Route::post('/ppdb', fn () => redirect()->route('portal.register', [], 303));
+Route::get('/ppdb/status', fn () => redirect()->route('portal.login', [], 301));
+
+// ALFATIH//FUTURE — Portal Pemohon (akun orang tua, banyak siswa per akun)
+Route::prefix('portal')->name('portal.')->group(function () {
+    // Halaman auth portal SENGAJA tanpa middleware `guest`: middleware `guest`
+    // global melempar SEMUA pengguna login (termasuk admin) ke /admin.dashboard,
+    // sehingga admin yang klik "Buat Akun" tidak pernah sampai ke portal.
+    // Penanganan "sudah login" dilakukan di controller (pemohon -> dashboard,
+    // admin -> tetap lihat form + notifikasi).
+    Route::get('/daftar', [\App\Http\Controllers\Portal\AuthController::class, 'showRegister'])->name('register');
+    Route::post('/daftar', [\App\Http\Controllers\Portal\AuthController::class, 'register'])->middleware('throttle:5,1')->name('register.store');
+    Route::get('/masuk', [\App\Http\Controllers\Portal\AuthController::class, 'showLogin'])->name('login');
+    Route::post('/masuk', [\App\Http\Controllers\Portal\AuthController::class, 'login'])->middleware('throttle:6,1')->name('login.store');
+    Route::get('/lupa-password', [\App\Http\Controllers\Portal\AuthController::class, 'showForgot'])->name('password.request');
+    Route::post('/lupa-password', [\App\Http\Controllers\Portal\AuthController::class, 'sendReset'])->middleware('throttle:5,1')->name('password.email');
+    Route::get('/reset-password/{token}', [\App\Http\Controllers\Portal\AuthController::class, 'showReset'])->name('password.reset');
+    Route::post('/reset-password', [\App\Http\Controllers\Portal\AuthController::class, 'reset'])->name('password.update');
+    Route::get('/verifikasi/{id}/{hash}', [\App\Http\Controllers\Portal\AuthController::class, 'verifyEmail'])->name('verification.verify');
+
+    Route::middleware(['auth', 'applicant'])->group(function () {
+        Route::post('/keluar', [\App\Http\Controllers\Portal\AuthController::class, 'logout'])->name('logout');
+        Route::post('/verifikasi/kirim-ulang', [\App\Http\Controllers\Portal\AuthController::class, 'resendVerification'])->middleware('throttle:3,1')->name('verification.resend');
+        Route::get('/', [\App\Http\Controllers\Portal\DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/notifikasi', [\App\Http\Controllers\Portal\DashboardController::class, 'notifications'])->name('notifications');
+        Route::post('/notifikasi/{id}/baca', [\App\Http\Controllers\Portal\DashboardController::class, 'readNotification'])->name('notifications.read');
+
+        Route::get('/aplikasi/baru', [\App\Http\Controllers\Portal\ApplicationController::class, 'create'])->name('applications.create');
+        Route::post('/aplikasi', [\App\Http\Controllers\Portal\ApplicationController::class, 'store'])->middleware('throttle:10,1')->name('applications.store');
+        Route::get('/aplikasi/{application}', [\App\Http\Controllers\Portal\ApplicationController::class, 'show'])->name('applications.show');
+        Route::get('/aplikasi/{application}/ubah', [\App\Http\Controllers\Portal\ApplicationController::class, 'edit'])->name('applications.edit');
+        Route::put('/aplikasi/{application}', [\App\Http\Controllers\Portal\ApplicationController::class, 'update'])->name('applications.update');
+        Route::get('/aplikasi/{application}/review', [\App\Http\Controllers\Portal\ApplicationController::class, 'review'])->name('applications.review');
+        Route::post('/aplikasi/{application}/kirim', [\App\Http\Controllers\Portal\ApplicationController::class, 'submit'])->name('applications.submit');
+        Route::post('/aplikasi/{application}/dokumen/{type}', [\App\Http\Controllers\Portal\DocumentController::class, 'upload'])->name('documents.upload');
+        Route::get('/dokumen/{document}/pratinjau', [\App\Http\Controllers\Portal\DocumentController::class, 'preview'])->name('documents.preview');
+
+        Route::get('/aplikasi/{application}/slot', [\App\Http\Controllers\Portal\InterviewController::class, 'slots'])->name('slots.index');
+        Route::post('/aplikasi/{application}/slot', [\App\Http\Controllers\Portal\InterviewController::class, 'book'])->name('slots.book');
+        Route::post('/aplikasi/{application}/reschedule', [\App\Http\Controllers\Portal\InterviewController::class, 'requestReschedule'])->name('reschedule.store');
+    });
+});
 
 Route::get('/health', [HealthController::class, 'index'])->name('health');
 Route::get('/up', fn () => response()->json(['status' => 'ok', 'time' => now()->toIso8601String()]))->name('up.simple');
@@ -78,17 +120,50 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware(['auth', 'admin'])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/work-queue', [\App\Http\Controllers\Admin\WorkQueueController::class, 'index'])->name('work-queue.index');
 
         // Registrations with trash
         Route::get('/registrations/trash', [RegistrationController::class, 'trash'])->name('registrations.trash');
         Route::post('/registrations/{id}/restore', [RegistrationController::class, 'restore'])->name('registrations.restore');
         Route::delete('/registrations/{id}/force', [RegistrationController::class, 'forceDelete'])->middleware('superadmin')->name('registrations.force-delete');
         Route::get('/registrations', [RegistrationController::class, 'index'])->name('registrations.index');
-        Route::delete('/registrations', [RegistrationController::class, 'destroyAll'])->name('registrations.destroy-all');
+        Route::get('/registrations/create', [RegistrationController::class, 'create'])->name('registrations.create');
+        Route::post('/registrations', [RegistrationController::class, 'store'])->name('registrations.store');
         Route::get('/registrations/export', [RegistrationController::class, 'export'])->name('registrations.export');
+        Route::get('/registrations/cetak-daftar', [RegistrationController::class, 'printList'])->name('registrations.print-list');
         Route::get('/registrations/{registration}', [RegistrationController::class, 'show'])->name('registrations.show');
-        Route::put('/registrations/{registration}', [RegistrationController::class, 'update'])->name('registrations.update');
         Route::delete('/registrations/{registration}', [RegistrationController::class, 'destroy'])->name('registrations.destroy');
+        Route::get('/registrations/{registration}/cetak', [RegistrationController::class, 'print'])->name('registrations.print');
+
+        // ALFATIH//CONTROL — PPDB workflow (verifikasi, dokumen, keputusan, slot)
+        Route::post('/registrations/{registration}/verify', [\App\Http\Controllers\Admin\PpdbWorkflowController::class, 'verify'])->name('registrations.verify');
+        Route::post('/registrations/{registration}/request-revision', [\App\Http\Controllers\Admin\PpdbWorkflowController::class, 'requestRevision'])->name('registrations.revise');
+        Route::post('/registrations/{registration}/decide', [\App\Http\Controllers\Admin\PpdbWorkflowController::class, 'decide'])->name('registrations.decide');
+        Route::post('/registrations/{registration}/release', [\App\Http\Controllers\Admin\PpdbWorkflowController::class, 'release'])->name('registrations.release');
+        Route::post('/registrations/{registration}/notes', [\App\Http\Controllers\Admin\PpdbWorkflowController::class, 'addNote'])->name('registrations.note');
+        Route::post('/registrations/{registration}/resend-email', [\App\Http\Controllers\Admin\PpdbWorkflowController::class, 'resendEmail'])->name('registrations.resend');
+        Route::post('/documents/{document}/review', [\App\Http\Controllers\Admin\PpdbWorkflowController::class, 'reviewDocument'])->name('documents.review');
+        Route::get('/documents/{document}/preview', [\App\Http\Controllers\Portal\DocumentController::class, 'preview'])->name('documents.preview');
+
+        Route::get('/interview-slots', [\App\Http\Controllers\Admin\InterviewSlotController::class, 'index'])->name('slots.index');
+        Route::post('/interview-slots', [\App\Http\Controllers\Admin\InterviewSlotController::class, 'store'])->name('slots.store');
+        Route::post('/interview-slots/{slot}/toggle', [\App\Http\Controllers\Admin\InterviewSlotController::class, 'toggle'])->name('slots.toggle');
+        Route::delete('/interview-slots/{slot}', [\App\Http\Controllers\Admin\InterviewSlotController::class, 'destroy'])->name('slots.destroy');
+        Route::post('/appointments/{appointment}/complete', [\App\Http\Controllers\Admin\InterviewSlotController::class, 'complete'])->name('appointments.complete');
+        Route::post('/reschedules/{reschedule}/decide', [\App\Http\Controllers\Admin\InterviewSlotController::class, 'decideReschedule'])->name('reschedules.decide');
+
+        // Periode PPDB (manajemen + histori)
+        Route::get('/periods', [\App\Http\Controllers\Admin\PeriodController::class, 'index'])->name('periods.index');
+        Route::get('/periods/create', [\App\Http\Controllers\Admin\PeriodController::class, 'create'])->name('periods.create');
+        Route::post('/periods', [\App\Http\Controllers\Admin\PeriodController::class, 'store'])->name('periods.store');
+        Route::get('/periods/{period}/edit', [\App\Http\Controllers\Admin\PeriodController::class, 'edit'])->name('periods.edit');
+        Route::put('/periods/{period}', [\App\Http\Controllers\Admin\PeriodController::class, 'update'])->name('periods.update');
+        Route::post('/periods/{period}/open', [\App\Http\Controllers\Admin\PeriodController::class, 'open'])->name('periods.open');
+        Route::post('/periods/{period}/close', [\App\Http\Controllers\Admin\PeriodController::class, 'close'])->name('periods.close');
+        Route::post('/periods/{period}/reopen', [\App\Http\Controllers\Admin\PeriodController::class, 'reopen'])->middleware('superadmin')->name('periods.reopen');
+        Route::post('/periods/{period}/archive', [\App\Http\Controllers\Admin\PeriodController::class, 'archive'])->name('periods.archive');
+        Route::post('/periods/{period}/complete', [\App\Http\Controllers\Admin\PeriodController::class, 'complete'])->middleware('superadmin')->name('periods.complete');
+        Route::delete('/periods/{period}', [\App\Http\Controllers\Admin\PeriodController::class, 'destroy'])->middleware('superadmin')->name('periods.destroy');
 
         // CMS
         Route::resource('programs', AdminProgramController::class)->except(['show']);
@@ -126,12 +201,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('contact-messages/{contactMessage}/unread', [ContactMessageController::class, 'markUnread'])->name('contact-messages.unread');
         Route::post('contact-messages/{contactMessage}/archive', [ContactMessageController::class, 'archive'])->name('contact-messages.archive');
         Route::post('contact-messages/{contactMessage}/unarchive', [ContactMessageController::class, 'unarchive'])->name('contact-messages.unarchive');
+        Route::put('contact-messages/{contactMessage}/handling', [ContactMessageController::class, 'updateHandling'])->name('contact-messages.handling');
         Route::delete('contact-messages/{contactMessage}', [ContactMessageController::class, 'destroy'])->name('contact-messages.destroy');
 
         // Settings
         Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
         Route::put('settings', [SettingController::class, 'update'])->name('settings.update');
-        Route::put('settings/ppdb', [SettingController::class, 'ppdbUpdate'])->name('settings.ppdb');
 
         // Trash overview + Audit
         Route::get('trash', [TrashController::class, 'index'])->name('trash.index');
@@ -145,7 +220,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::put('/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
             Route::post('/users/{user}/toggle-active', [UserManagementController::class, 'toggleActive'])->name('users.toggle-active');
             Route::delete('/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
-            Route::get('/users/{user}/reset-link', [UserManagementController::class, 'resetLink'])->name('users.reset-link');
         });
     });
 });

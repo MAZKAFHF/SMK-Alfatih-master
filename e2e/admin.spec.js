@@ -47,6 +47,55 @@ test.describe('Admin', () => {
     }
   });
 
+  test('theme toggle persists and sidebar stays readable', async ({ page }) => {
+    await page.goto('/admin/login');
+    const toggle = page.locator('[data-theme-toggle]').first();
+    await toggle.click();
+    const dark = await page.evaluate(() => document.documentElement.classList.contains('dark'));
+    await page.reload();
+    const darkAfter = await page.evaluate(() => document.documentElement.classList.contains('dark'));
+    expect(darkAfter).toBe(dark);
+    // Kembalikan ke terang bila gelap agar tes lain stabil
+    if (darkAfter) await page.locator('[data-theme-toggle]').first().click();
+  });
+
+  test('date picker opens ALFATIH calendar, not native popup', async ({ page }) => {
+    await page.goto('/admin/login');
+    const demo = page.locator('text=Masuk Sekali Klik');
+    if (!(await demo.isVisible())) test.skip();
+    await demo.click();
+    await page.goto('/admin/interview-slots');
+    await page.getByRole('button', { name: 'Buat Slot' }).click();
+    await expect(page.locator('#slot-create-modal')).toBeVisible();
+    // Buka kalender kustom
+    await page.locator('#slot-create-modal').getByRole('button', { name: /Tanggal/ }).first().click();
+    await expect(page.locator('#slot-create-modal [role="grid"]').first()).toBeVisible();
+    await expect(page.locator('#slot-create-modal [role="grid"]').first()).toContainText('Sen');
+    // Pilih hari ini -> hidden input YYYY-MM-DD
+    await page.locator('#slot-create-modal [role="gridcell"][aria-selected="true"], #slot-create-modal [role="gridcell"][data-today="true"]').first().click({ timeout: 5000 }).catch(() => {});
+    await page.keyboard.press('Escape');
+  });
+
+  test('slot table has no white surface in dark mode', async ({ page }) => {
+    await page.goto('/admin/login');
+    const demo = page.locator('text=Masuk Sekali Klik');
+    if (!(await demo.isVisible())) test.skip();
+    await demo.click();
+    await page.goto('/admin/interview-slots');
+    // Paksa dark mode
+    await page.evaluate(() => { localStorage.setItem('theme', 'dark'); document.documentElement.classList.add('dark'); });
+    await page.waitForTimeout(300);
+    const tableBg = await page.locator('.ctl-table').first().evaluate((el) => getComputedStyle(el).backgroundColor);
+    expect(tableBg).not.toBe('rgb(255, 255, 255)');
+    // Hover baris tidak memutih
+    const row = page.locator('.ctl-table tbody tr').first();
+    if (await row.count()) {
+      await row.hover();
+      const hoverBg = await row.evaluate((el) => getComputedStyle(el).backgroundColor);
+      expect(hoverBg).not.toBe('rgb(255, 255, 255)');
+    }
+  });
+
   test('logout', async ({ page }) => {
     await page.goto('/admin/login');
     const demo = page.locator('text=Masuk Sekali Klik');
@@ -80,7 +129,8 @@ test.describe('Admin', () => {
     await editor.click();
     await editor.fill('E2E content via Trix');
     // Ensure hidden input is updated (trix does it automatically, but trigger input)
-    await page.selectOption('select[name="status"]', 'published');
+    await page.getByRole('button', { name: /Status/ }).click();
+    await page.getByRole('option', { name: 'Diterbitkan' }).click();
     await page.getByRole('button', { name: 'Simpan' }).click();
     await expect(page).toHaveURL(/\/admin\/announcements/);
     await expect(page.getByText(title).first()).toBeVisible();

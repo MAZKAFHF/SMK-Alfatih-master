@@ -13,7 +13,6 @@ class PublicCacheService
     public const HOME_STATS = 'site:stats';
     public const NAV_PAGES = 'nav_pages';
     public const SITE_SETTINGS_ALL = 'site_settings:all';
-    public const PPDB_CURRENT = 'ppdb_setting:current';
 
     public static function forgetPrograms(): void
     {
@@ -57,11 +56,6 @@ class PublicCacheService
         Cache::forget(self::HOME_STATS);
     }
 
-    public static function forgetPpdbSettings(): void
-    {
-        Cache::forget(self::PPDB_CURRENT);
-    }
-
     public static function forgetAllPublicContent(): void
     {
         Cache::forget(self::HOME_PROGRAMS);
@@ -81,7 +75,6 @@ class PublicCacheService
             'gallery' => self::forgetGalleries(),
             'page' => self::forgetPages(),
             'setting' => self::forgetSettings(),
-            'ppdb' => self::forgetPpdbSettings(),
             default => null,
         };
     }
