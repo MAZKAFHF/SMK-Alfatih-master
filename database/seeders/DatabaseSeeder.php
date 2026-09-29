@@ -12,10 +12,16 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
+        $adminPassword = (string) config('app.initial_admin_password');
+
+        if (app()->environment('production') && $adminPassword === '') {
+            throw new \RuntimeException('ADMIN_INITIAL_PASSWORD wajib dikonfigurasi sebelum menjalankan seeder di production.');
+        }
+
         User::factory()->create([
             'name' => 'Admin Al-Fatih',
             'email' => 'admin@smkalfatih.sch.id',
-            'password' => 'admin1234',
+            'password' => $adminPassword !== '' ? $adminPassword : 'admin1234',
             'is_admin' => true,
             'is_superadmin' => true,
         ]);
@@ -26,7 +32,6 @@ class DatabaseSeeder extends Seeder
             NewsSeeder::class,
             GallerySeeder::class,
             AnnouncementSeeder::class,
-            PPDBSeeder::class,
         ]);
     }
 }
