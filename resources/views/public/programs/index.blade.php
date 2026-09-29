@@ -1,7 +1,9 @@
 <x-layouts.app :title="'Program Keahlian'">
-    <x-page-header
-        title="Program Keahlian"
-        subtitle="Pilih kompetensi yang sesuai dengan minat dan bakatmu. Semua program dirancang untuk membekali siswa dengan keterampilan siap kerja."
+    <x-page-hero
+        variant="tech"
+        eyebrow="SMK Teknologi"
+        title="Belajar untuk Membangun."
+        description="Kenali setiap program keahlian dan pilih bidang belajar yang paling sesuai dengan minat serta bakatmu."
         :breadcrumbs="[
             ['label' => 'Beranda', 'url' => route('home')],
             ['label' => 'Program Keahlian'],
@@ -14,9 +16,9 @@
                 <x-ui.empty-state title="Belum ada program keahlian" description="Program keahlian akan segera diumumkan." />
             @endif
 
-            <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4" data-stagger>
                 @foreach ($programs as $program)
-                    <div class="reveal" style="--reveal-delay: {{ $loop->index * 80 }}ms">
+                    <div data-stagger-item>
                         <x-program-card :program="$program" :tone="['emerald', 'orange', 'gold', 'navy'][$loop->index % 4]" />
                     </div>
                 @endforeach

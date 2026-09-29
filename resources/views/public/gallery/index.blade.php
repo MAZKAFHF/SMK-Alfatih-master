@@ -1,7 +1,9 @@
 <x-layouts.app :title="'Galeri'">
-    <x-page-header
-        title="Galeri Sekolah"
-        subtitle="Dokumentasi kegiatan, fasilitas, dan prestasi SMK Tahfizh Al-Fatih."
+    <x-page-hero
+        variant="visual"
+        eyebrow="Dokumentasi"
+        title="Kehidupan di Al-Fatih."
+        description="Dokumentasi kegiatan, fasilitas, dan prestasi SMK Tahfizh Al-Fatih."
         :breadcrumbs="[
             ['label' => 'Beranda', 'url' => route('home')],
             ['label' => 'Galeri'],
@@ -33,11 +35,12 @@
                 </div>
             @endif
 
-            <div class="reveal mt-10 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4" data-gallery-grid>
+            <div class="reveal mt-10 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4" data-gallery-grid data-stagger>
                 @foreach ($galleries as $gallery)
                     <button
                         type="button"
                         data-gallery-item
+                        data-stagger-item
                         data-category="{{ $gallery->category }}"
                         data-title="{{ $gallery->title }}"
                         data-src="{{ $gallery->image }}"
@@ -56,7 +59,7 @@
                                 </div>
                             @endif
                         </div>
-                        <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-900/70 to-transparent p-3 pt-10">
+                        <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-900/70 to-transparent p-3 pt-10 opacity-100 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 md:opacity-0">
                             <p class="text-sm font-medium text-white">{{ $gallery->title }}</p>
                         </div>
                     </button>
@@ -77,6 +80,8 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
+            <button type="button" data-lightbox-prev class="absolute left-3 top-1/2 z-10 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur transition-colors hover:bg-white/20 sm:left-6" aria-label="Foto sebelumnya"><span aria-hidden="true">←</span></button>
+            <button type="button" data-lightbox-next class="absolute right-3 top-1/2 z-10 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur transition-colors hover:bg-white/20 sm:right-6" aria-label="Foto berikutnya"><span aria-hidden="true">→</span></button>
             <figure class="max-h-full max-w-4xl">
                 <div data-lightbox-image class="mx-auto flex max-h-[75vh] max-w-full items-center justify-center overflow-hidden rounded-xl bg-white/5"></div>
                 <figcaption class="mt-4 text-center text-sm font-medium text-white" data-lightbox-caption></figcaption>

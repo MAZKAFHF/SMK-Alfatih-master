@@ -1,5 +1,5 @@
-<x-layouts.app :title="'Buat Akun PPDB'">
-<section class="mx-auto max-w-md px-4 py-14">
+<x-portal.auth-frame title="Buat Akun PPDB">
+<section>
 <x-ui.card class="p-6 sm:p-8">
 <h1 class="font-display text-xl font-extrabold">Buat Akun PPDB</h1>
 <p class="mt-1 text-sm text-slate-500">Satu akun untuk mendaftarkan banyak anak. Email + password.</p>
@@ -20,4 +20,4 @@
 </form>
 </x-ui.card>
 </section>
-</x-layouts.app>
+</x-portal.auth-frame>

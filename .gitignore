@@ -32,3 +32,6 @@ playwright-report/
 coverage/
 .phpunit.cache/
 *.sqlite-journal
+
+.vercel
+.env*

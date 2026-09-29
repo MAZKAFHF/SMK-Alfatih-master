@@ -26,6 +26,9 @@ class AuthController extends Controller
         if (auth()->check() && ! auth()->user()->is_admin) {
             return redirect()->route('portal.dashboard');
         }
+        if (\App\Services\PpdbAvailability::resolvePublic()->status === \App\Services\PpdbAvailability::COMPLETED) {
+            return redirect()->route('ppdb.index')->with('info', 'PPDB telah selesai. Akun baru akan tersedia pada periode berikutnya.');
+        }
 
         return view('portal.auth.register')->with('title', 'Buat Akun PPDB');
     }
@@ -37,6 +40,10 @@ class AuthController extends Controller
             throw ValidationException::withMessages(['email' => 'Terlalu banyak percobaan. Coba lagi dalam '.RateLimiter::availableIn($key).' detik.']);
         }
         RateLimiter::hit($key, 60);
+
+        if (\App\Services\PpdbAvailability::resolvePublic()->status === \App\Services\PpdbAvailability::COMPLETED) {
+            throw ValidationException::withMessages(['email' => 'PPDB telah selesai. Akun baru akan tersedia pada periode berikutnya.']);
+        }
 
         // Jika ada sesi login (mis. admin), keluar dulu agar akun pemohon
         // baru menjadi sesi aktif — bukan menumpuk / memantul ke /admin.
@@ -89,6 +96,9 @@ class AuthController extends Controller
         // beralih akun), dengan notifikasi di view.
         if (auth()->check() && ! auth()->user()->is_admin) {
             return redirect()->route('portal.dashboard');
+        }
+        if (\App\Services\PpdbAvailability::resolvePublic()->status === \App\Services\PpdbAvailability::COMPLETED) {
+            return redirect()->route('ppdb.index')->with('info', 'PPDB telah selesai. Masuk portal tersedia kembali pada periode berikutnya.');
         }
 
         return view('portal.auth.login')->with('title', 'Masuk Portal PPDB');

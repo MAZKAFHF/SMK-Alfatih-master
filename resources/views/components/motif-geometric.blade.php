@@ -3,7 +3,7 @@
 ])
 
 {{-- Motif geometris 8-titik Islami halus — tanda tangan visual ALFATIH//FUTURE --}}
-<svg class="pointer-events-none {{ $class }}" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+<svg {{ $attributes->merge(['class' => 'pointer-events-none '.$class]) }} viewBox="0 0 120 120" fill="none" aria-hidden="true">
     <defs>
         <pattern id="afgeo-{{ md5($class) }}" width="60" height="60" patternUnits="userSpaceOnUse">
             <g stroke="currentColor" stroke-width="1" fill="none">

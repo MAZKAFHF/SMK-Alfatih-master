@@ -1,5 +1,6 @@
 @props([
     'align' => 'right',
+    'panelClass' => '',
 ])
 
 @php
@@ -17,7 +18,7 @@
 
     <div
         data-dropdown-menu
-        class="ctl-popover absolute z-50 mt-2 hidden min-w-44 p-1.5 {{ $alignments[$align] }}"
+        class="ctl-popover absolute z-50 mt-2 hidden min-w-44 p-1.5 {{ $alignments[$align] }} {{ $panelClass }}"
         role="menu"
     >
         {{ $slot }}

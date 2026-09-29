@@ -13,7 +13,7 @@
     $t = $tones[$tone] ?? $tones['emerald'];
 @endphp
 
-<a href="{{ route('programs.show', $program) }}" class="group block h-full">
+<a href="{{ route('programs.show', $program) }}" class="group relative block h-full" data-tilt="5" data-spotlight>
     <x-ui.card padding="false" hover="true" class="clip-corner-sm h-full overflow-hidden ring-1 ring-transparent transition {{ $t['ring'] }}">
         <x-thumb :src="$program->image" ratio="aspect-[4/3]" alt="{{ $program->name }}" />
         <div class="p-5">

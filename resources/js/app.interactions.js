@@ -59,11 +59,36 @@
         const menu = document.querySelector('[data-nav-menu]');
         if (!toggle || !menu) return;
 
-        toggle.addEventListener('click', () => {
-            const isHidden = menu.classList.contains('hidden');
-            menu.classList.toggle('hidden', !isHidden);
-            toggle.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
-            toggle.setAttribute('aria-label', isHidden ? 'Tutup menu navigasi' : 'Buka menu navigasi');
+        const isOpen = () => !menu.classList.contains('hidden');
+        const open = () => {
+            menu.classList.remove('hidden');
+            toggle.setAttribute('aria-expanded', 'true');
+            toggle.setAttribute('aria-label', 'Tutup menu navigasi');
+            document.body.style.overflow = 'hidden';
+            menu.querySelector('a[href], button')?.focus();
+        };
+        const close = (restoreFocus = true) => {
+            menu.classList.add('hidden');
+            toggle.setAttribute('aria-expanded', 'false');
+            toggle.setAttribute('aria-label', 'Buka menu navigasi');
+            document.body.style.overflow = '';
+            if (restoreFocus) toggle.focus();
+        };
+        toggle.addEventListener('click', () => (isOpen() ? close() : open()));
+        menu.querySelectorAll('a[href]').forEach((link) => link.addEventListener('click', () => close(false)));
+        document.addEventListener('keydown', (event) => {
+            if (!isOpen()) return;
+            if (event.key === 'Escape') return close();
+            if (event.key !== 'Tab') return;
+            const controls = Array.from(menu.querySelectorAll('a[href], button:not([disabled])'));
+            if (!controls.length) return;
+            const first = controls[0];
+            const last = controls[controls.length - 1];
+            if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+            if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+        });
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 1024 && isOpen()) close(false);
         });
     }
 
@@ -360,37 +385,79 @@
 
         const imageContainer = lightbox.querySelector('[data-lightbox-image]');
         const caption = lightbox.querySelector('[data-lightbox-caption]');
+        const closeButton = lightbox.querySelector('[data-lightbox-close]');
+        const previousButton = lightbox.querySelector('[data-lightbox-prev]');
+        const nextButton = lightbox.querySelector('[data-lightbox-next]');
+        const items = Array.from(document.querySelectorAll('[data-gallery-item]'));
+        let activeIndex = -1;
+        let returnFocus = null;
+
+        const visibleItems = () => items.filter((item) => !item.classList.contains('hidden'));
+
+        const render = (item) => {
+            const title = item.dataset.title || 'Dokumentasi sekolah';
+            const src = item.dataset.src;
+            imageContainer.replaceChildren();
+            if (src) {
+                const image = document.createElement('img');
+                image.src = src;
+                image.alt = title;
+                image.className = 'max-h-[75vh] max-w-full object-contain';
+                imageContainer.appendChild(image);
+            } else {
+                const fallback = document.createElement('div');
+                fallback.className = 'flex aspect-video w-full max-w-3xl items-center justify-center bg-gradient-to-br from-primary-800 via-primary-900 to-accent-900 p-16 text-sm font-bold text-white';
+                fallback.textContent = 'Dokumentasi tidak tersedia';
+                imageContainer.appendChild(fallback);
+            }
+            caption.textContent = title;
+        };
+
+        const move = (direction) => {
+            const available = visibleItems();
+            if (!available.length) return;
+            const current = available.indexOf(items[activeIndex]);
+            const next = (Math.max(current, 0) + direction + available.length) % available.length;
+            activeIndex = items.indexOf(available[next]);
+            render(available[next]);
+        };
 
         const close = () => {
             lightbox.classList.add('hidden');
             document.body.style.overflow = '';
-            imageContainer.innerHTML = '';
+            imageContainer.replaceChildren();
+            if (returnFocus) returnFocus.focus();
+            returnFocus = null;
         };
 
         lightbox.addEventListener('click', (e) => {
             if (e.target.hasAttribute('data-lightbox-backdrop')) close();
         });
-        lightbox.querySelector('[data-lightbox-close]').addEventListener('click', close);
+        closeButton.addEventListener('click', close);
+        previousButton?.addEventListener('click', () => move(-1));
+        nextButton?.addEventListener('click', () => move(1));
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && !lightbox.classList.contains('hidden')) close();
+            if (lightbox.classList.contains('hidden')) return;
+            if (e.key === 'Escape') close();
+            if (e.key === 'ArrowLeft') move(-1);
+            if (e.key === 'ArrowRight') move(1);
+            if (e.key === 'Tab') {
+                const controls = [closeButton, previousButton, nextButton].filter(Boolean);
+                const first = controls[0];
+                const last = controls[controls.length - 1];
+                if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+                if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+            }
         });
 
-        document.querySelectorAll('[data-gallery-item]').forEach((item) => {
+        items.forEach((item, index) => {
             item.addEventListener('click', () => {
-                const title = item.dataset.title;
-                const src = item.dataset.src;
-
-                imageContainer.innerHTML = src
-                    ? `<img src="${src}" alt="${title}" class="max-h-[75vh] max-w-full object-contain" />`
-                    : `<div class="flex aspect-video w-full max-w-3xl items-center justify-center bg-gradient-to-br from-primary-800 via-primary-900 to-accent-900 p-16">
-                           <svg class="size-20 text-primary-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true">
-                               <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-                           </svg>
-                       </div>`;
-
-                caption.textContent = title;
+                activeIndex = index;
+                returnFocus = item;
+                render(item);
                 lightbox.classList.remove('hidden');
                 document.body.style.overflow = 'hidden';
+                closeButton.focus();
             });
         });
     }

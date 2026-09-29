@@ -41,7 +41,7 @@
                aria-label="{{ $link['label'] }}"
                title="{{ $link['label'] }}"
                @class([
-                    'inline-flex size-11 items-center justify-center rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-2',
+                    'social-icon inline-flex size-11 items-center justify-center rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-2',
                     'border border-white/15 bg-white/5 text-slate-300 hover:border-white/25 hover:bg-white/10 hover:text-white focus-visible:outline-white' => $variant === 'footer',
                     'border border-slate-200 bg-white text-slate-500 hover:border-primary-300 hover:text-primary-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:border-primary-600 dark:hover:text-primary-300 focus-visible:outline-primary-600' => $variant !== 'footer',
                ])>

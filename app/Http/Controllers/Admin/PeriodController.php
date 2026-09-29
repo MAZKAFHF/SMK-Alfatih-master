@@ -142,6 +142,9 @@ class PeriodController extends Controller
 
         $summary = app(\App\Services\ApplicantAccountLifecycleService::class)
             ->cleanupPeriod($period->id, \Carbon\CarbonImmutable::now('UTC'));
+        // Jejak completion: jika ada yang gagal, scheduler harian mengulang
+        // otomatis karena akun gagal tetap eligible. Tidak ada status setengah.
+        AuditService::system('applicant_cleanup_after_completion', $period, $summary);
 
         return back()->with('success', 'Periode '.$period->academic_year.' ditandai selesai. Pembersihan akun otomatis: '
             .$summary['retired'].' dipensiunkan, '.$summary['blocked'].' dilewati, '

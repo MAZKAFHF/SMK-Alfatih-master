@@ -1,7 +1,11 @@
 <x-layouts.app :title="'PPDB Online'">
-    <x-page-header
-        title="PPDB Online"
-        :subtitle="'Penerimaan Peserta Didik Baru SMK Tahfizh Al-Fatih Tahun Ajaran '.($ppdb?->academic_year ?? '')"
+    <x-page-hero
+        variant="tech"
+        eyebrow="Penerimaan Peserta Didik Baru"
+        title="PPDB SMK Tahfizh Al-Fatih."
+        :description="$ppdbState->canRegister()
+            ? 'Pelajari informasi periode, siapkan dokumen, dan ikuti proses pendaftaran melalui portal resmi.'
+            : 'Lihat status periode, jadwal, persyaratan awal, dan alur resmi penerimaan peserta didik baru.'"
         :breadcrumbs="[
             ['label' => 'Beranda', 'url' => route('home')],
             ['label' => 'PPDB'],
@@ -16,7 +20,7 @@
                 <div class="pointer-events-none absolute -right-16 -top-16 size-64 rounded-full bg-energy-500/25 blur-3xl" aria-hidden="true"></div>
                 <div class="pointer-events-none absolute -bottom-20 -left-20 size-64 rounded-full bg-gold-500/20 blur-3xl" aria-hidden="true"></div>
 
-                <div class="relative">
+                <div class="relative" data-reveal="fade">
                     <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white ring-1 ring-inset ring-white/25">
                         <span class="size-1.5 rounded-full bg-emerald-300" aria-hidden="true"></span>
                         PPDB Tahun Ajaran {{ $ppdbState->period?->academic_year ?? '—' }} &mdash; {{ $ppdbState->publicLabel() }}
@@ -42,6 +46,13 @@
                     </h2>
                     <p class="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-primary-100 sm:text-base">
                         Pendaftaran online untuk periode ini tidak lagi menerima calon siswa baru karena kuota telah terpenuhi.
+                    </p>
+                    @elseif($ppdbState->status === 'completed')
+                    <h2 class="mx-auto mt-5 max-w-2xl text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+                        PPDB {{ $ppdbState->period?->academic_year ?? '' }} Telah Selesai
+                    </h2>
+                    <p class="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-primary-100 sm:text-base">
+                        Seluruh rangkaian PPDB periode ini telah selesai.
                     </p>
                     @elseif($ppdbState->status === 'closed')
                     <h2 class="mx-auto mt-5 max-w-2xl text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
@@ -80,9 +91,10 @@
                     </dl>
                     @endif
 
+                    @if($ppdbState->portalEntryVisible())
                     <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                         @if($ppdbState->canRegister())
-                        <a href="{{ route('portal.register') }}" class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-white px-6 py-3 text-base font-semibold text-primary-800 shadow-sm transition-colors duration-150 select-none whitespace-nowrap hover:bg-primary-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
+                        <a data-magnetic href="{{ route('portal.register') }}" class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-white px-6 py-3 text-base font-semibold text-primary-800 shadow-sm transition-colors duration-150 select-none whitespace-nowrap hover:bg-primary-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
                             Buat Akun & Daftar
                         </a>
                         @else
@@ -95,14 +107,16 @@
                         </a>
                     </div>
                     <p class="mt-4 text-xs text-primary-100">Satu akun orang tua dapat digunakan untuk banyak anak dan tetap dapat dibuat kapan saja. Pendaftaran, pemantauan proses, riwayat periode, wawancara, dan hasil tersedia secara privat di Portal Pendaftar.</p>
+                    @endif
                 </div>
             </div>
 
-            {{-- Alur pendaftaran 6 langkah --}}
-            <div class="mt-12">
+            {{-- Alur pendaftaran 6 langkah — journey rail --}}
+            <div class="mt-12" data-journey>
                 <h3 class="text-center text-lg font-bold tracking-tight text-slate-900 dark:text-white">Alur Pendaftaran</h3>
                 <p class="mx-auto mt-2 max-w-xl text-center text-sm leading-relaxed text-slate-500 dark:text-slate-400">Enam langkah jelas — Anda selalu tahu posisi dan aksi berikutnya.</p>
-                <ol class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <ol class="relative mx-auto mt-8 max-w-2xl space-y-0">
+                    <span data-journey-fill class="absolute bottom-6 left-[19px] top-2 w-0.5 rounded-full bg-gradient-to-b from-primary-500 via-gold-500 to-energy-500" aria-hidden="true"></span>
                     @foreach ([
                         ['title' => 'Buat Akun', 'desc' => 'Daftar dengan email + password. Satu akun untuk semua anak.'],
                         ['title' => 'Isi Pendaftaran', 'desc' => 'Data siswa, alamat, orang tua, sekolah, satu program, dokumen.'],
@@ -110,11 +124,13 @@
                         ['title' => 'Pilih Jadwal Wawancara', 'desc' => 'Pilih slot tersedia; aman dari double booking.'],
                         ['title' => 'Wawancara & Tahfizh/Tahsin', 'desc' => 'Hadir sesuai jadwal dengan instruksi lokasi.'],
                         ['title' => 'Lihat Hasil', 'desc' => 'Panel resmi Lulus / Belum Lulus + lanjut via WhatsApp admin.'],
-                    ] as $i => $step)
-                        <li class="rounded-2xl border border-slate-200 bg-white p-6 shadow-card dark:border-slate-800 dark:bg-slate-900">
-                            <span class="flex size-10 items-center justify-center rounded-full bg-primary-100 text-sm font-extrabold text-primary-700 dark:bg-primary-900 dark:text-primary-400">{{ $i + 1 }}</span>
-                            <h4 class="mt-4 text-base font-bold text-slate-900 dark:text-white">{{ $step['title'] }}</h4>
-                            <p class="mt-1.5 text-sm leading-relaxed text-slate-500 dark:text-slate-400">{{ $step['desc'] }}</p>
+                    ] as $step)
+                        <li data-journey-step class="relative flex gap-4 pb-6 last:pb-0">
+                            <span class="journey-dot relative z-10 mt-1 flex size-10 shrink-0 items-center justify-center rounded-full border-2 border-primary-200 bg-white text-sm font-extrabold text-primary-700 dark:border-primary-800 dark:bg-slate-900 dark:text-primary-400">{{ $loop->iteration }}</span>
+                            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-card dark:border-slate-800 dark:bg-slate-900">
+                                <h4 class="text-base font-bold text-slate-900 dark:text-white">{{ $step['title'] }}</h4>
+                                <p class="mt-1.5 text-sm leading-relaxed text-slate-500 dark:text-slate-400">{{ $step['desc'] }}</p>
+                            </div>
                         </li>
                     @endforeach
                 </ol>

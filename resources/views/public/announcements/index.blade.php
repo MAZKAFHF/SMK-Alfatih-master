@@ -1,7 +1,9 @@
 <x-layouts.app :title="'Pengumuman'">
-    <x-page-header
-        title="Pengumuman"
-        subtitle="Informasi resmi dan pemberitahuan penting dari SMK Tahfizh Al-Fatih."
+    <x-page-hero
+        variant="tech"
+        eyebrow="Info Resmi"
+        title="Pengumuman Sekolah."
+        description="Informasi resmi dan pemberitahuan penting dari SMK Tahfizh Al-Fatih."
         :breadcrumbs="[
             ['label' => 'Beranda', 'url' => route('home')],
             ['label' => 'Pengumuman'],
@@ -14,9 +16,9 @@
                 <x-ui.empty-state title="Belum ada pengumuman" description="Pengumuman akan segera hadir. Silakan kunjungi kembali." />
             @endif
 
-            <div class="space-y-4">
+            <div class="space-y-4" data-stagger>
                 @foreach ($announcements as $announcement)
-                    <article class="reveal rounded-xl border border-slate-200 border-l-4 border-l-gold-500 bg-white p-6 shadow-card dark:border-slate-800 dark:border-l-gold-500 dark:bg-slate-900">
+                    <article data-stagger-item class="rounded-xl border border-slate-200 border-l-4 border-l-gold-500 bg-white p-6 shadow-card dark:border-slate-800 dark:border-l-gold-500 dark:bg-slate-900">
                         <div class="flex items-start gap-4">
                             <span class="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full bg-accent-50 text-accent-600 dark:bg-accent-950 dark:text-accent-400" aria-hidden="true">
                                 <svg class="size-5" viewBox="0 0 24 24" fill="currentColor">

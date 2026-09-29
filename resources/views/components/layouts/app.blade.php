@@ -2,6 +2,8 @@
     'title' => null,
     'description' => null,
     'bodyClass' => null,
+    'surface' => 'future',
+    'chrome' => true,
 ])
 
 @php
@@ -24,6 +26,8 @@
 
         <script>
             (function() {
+                // Pre-paint gates: theme + motion (motion hub re-asserts `js`).
+                document.documentElement.classList.add('js');
                 const saved = localStorage.getItem('theme');
                 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
                 if (saved === 'dark' || (!saved && prefersDark)) {
@@ -54,15 +58,15 @@
         @stack('head')
     </head>
 
-    <body class="flex min-h-screen flex-col bg-white dark:bg-slate-950 dark:text-slate-200 {{ $bodyClass }}">
+    <body data-page-enter data-surface="{{ $surface }}" class="{{ $surface === 'portal' ? 'portal-page' : 'future-page' }} flex min-h-screen flex-col bg-white text-slate-800 dark:bg-slate-950 dark:text-slate-200 {{ $bodyClass }}">
         <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-primary-600 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white">Lewati ke konten utama</a>
-        @include('partials.navbar')
+        @if($chrome) @include('partials.navbar') @endif
 
         <main id="main-content" class="flex-1">
             {{ $slot }}
         </main>
 
-        @include('partials.footer')
+        @if($chrome) @include('partials.footer') @endif
 
         <x-ui.toast />
         @stack('scripts')

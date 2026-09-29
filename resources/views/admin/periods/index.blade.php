@@ -20,7 +20,9 @@
                     <td class="!text-right">
                         <div class="inline-flex flex-wrap justify-end gap-1.5">
                             <a href="{{ route('admin.dashboard', ['period' => $p->id]) }}" class="ctl-btn ctl-btn-ghost ctl-btn-sm">Dasbor</a>
+                            @if($p->status !== 'completed')
                             <a href="{{ route('admin.periods.edit', $p) }}" class="ctl-btn ctl-btn-ghost ctl-btn-sm">Ubah</a>
+                            @endif
                             @if(in_array($p->status, ['draft', 'upcoming']))
                             <form method="POST" action="{{ route('admin.periods.open', $p) }}" class="inline">@csrf<button type="submit" class="ctl-btn ctl-btn-ghost ctl-btn-sm">Buka</button></form>
                             @endif
@@ -29,10 +31,7 @@
                             @endif
                             @if(in_array($p->status, ['closed']) && auth()->user()?->is_superadmin)
                             <form method="POST" action="{{ route('admin.periods.reopen', $p) }}" class="inline">@csrf<button type="submit" class="ctl-btn ctl-btn-ghost ctl-btn-sm">Buka Lagi</button></form>
-                            <button type="button" class="ctl-btn ctl-btn-ghost ctl-btn-sm" onclick="confirmDialog({ title: 'Tandai periode {{ $p->academic_year }} sebagai Selesai?', message: 'Menandai periode sebagai Selesai berarti seluruh proses PPDB telah berakhir. Akun pendaftar yang sudah tidak diperlukan akan dibersihkan otomatis oleh sistem.', confirmText: 'Ya, Tandai Selesai', formAction: '{{ route('admin.periods.complete', $p) }}', method: 'POST', fields: { confirm: '1' } })">Selesaikan</button>
-                            @endif
-                            @if(in_array($p->status, ['completed']) && auth()->user()?->is_superadmin)
-                            <form method="POST" action="{{ route('admin.periods.reopen', $p) }}" class="inline">@csrf<button type="submit" class="ctl-btn ctl-btn-ghost ctl-btn-sm">Buka Lagi</button></form>
+                            <button type="button" class="ctl-btn ctl-btn-ghost ctl-btn-sm" onclick="confirmDialog({ title: 'SELESAIKAN PPDB {{ $p->academic_year }}?', message: 'Pastikan seluruh verifikasi, wawancara, keputusan, dan pengumuman hasil telah selesai. Setelah periode diselesaikan, akun pendaftar yang tidak lagi diperlukan akan dihapus otomatis dan tidak dapat digunakan untuk login kembali. Riwayat PPDB periode ini tetap disimpan.', confirmText: 'Tandai Selesai', cancelText: 'Batal', formAction: '{{ route('admin.periods.complete', $p) }}', method: 'POST', fields: { confirm: '1' } })">Selesaikan</button>
                             @endif
                             @if(in_array($p->status, ['closed', 'draft']))
                             <form method="POST" action="{{ route('admin.periods.archive', $p) }}" class="inline">@csrf<button type="submit" class="ctl-btn ctl-btn-ghost ctl-btn-sm">Arsip</button></form>

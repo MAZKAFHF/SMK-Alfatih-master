@@ -19,6 +19,7 @@ class PageController extends Controller
             $data['visiMisi'] = Page::published()->where('slug', 'visi-misi')->first();
             $data['sambutan'] = Page::published()->where('slug', 'sambutan-kepala-sekolah')->first();
             $data['fasilitas'] = Page::published()->where('slug', 'fasilitas')->first();
+            $data['sejarah'] = Page::published()->where('slug', 'sejarah')->first();
             $data['programs'] = \App\Models\Program::active()->orderBy('order')->get();
             $data['foundedYear'] = \App\Models\SiteSetting::get('founding_year');
         }

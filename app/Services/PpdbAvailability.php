@@ -26,6 +26,7 @@ class PpdbAvailability
     public const OPEN = 'open';
     public const FULL = 'full';
     public const CLOSED = 'closed';
+    public const COMPLETED = 'completed';
 
     /** Status aplikasi yang mengonsumsi kuota (sudah submit final, belum batal). */
     public const COUNTED_STATUSES = [
@@ -67,6 +68,9 @@ class PpdbAvailability
                         ->locale('id')->translatedFormat('j F Y, H.i').' WIB.'
                 : 'Pendaftaran calon siswa belum dibuka. Silakan kembali pada jadwal pembukaan PPDB.',
             self::FULL => 'Kuota PPDB untuk periode ini telah terpenuhi.',
+            self::COMPLETED => $this->period
+                ? 'PPDB '.$this->period->academic_year.' telah selesai. Pendaftaran baru akan dibuka pada periode berikutnya.'
+                : 'PPDB telah selesai. Pendaftaran baru akan dibuka pada periode berikutnya.',
             self::CLOSED => 'Periode pendaftaran telah ditutup. Anda tetap dapat masuk ke Portal untuk melihat pendaftaran yang sudah ada.',
             default => 'Belum ada periode PPDB yang dibuka.',
         };
@@ -80,6 +84,7 @@ class PpdbAvailability
                     ->locale('id')->translatedFormat('j F Y, H.i').' WIB.'
                 : ''),
             self::FULL => 'Kuota PPDB telah terpenuhi.',
+            self::COMPLETED => 'PPDB periode ini telah selesai. Seluruh rangkaian PPDB periode ini telah selesai.',
             self::CLOSED => 'Pendaftaran siswa baru untuk periode ini telah ditutup.',
             default => 'Belum ada periode PPDB yang dibuka.',
         };
@@ -91,9 +96,20 @@ class PpdbAvailability
             self::UPCOMING => 'Belum Dibuka',
             self::OPEN => 'Sedang Dibuka',
             self::FULL => 'Kuota Telah Terpenuhi',
+            self::COMPLETED => 'Telah Selesai',
             self::CLOSED => 'Telah Ditutup',
             default => 'Belum Tersedia',
         };
+    }
+
+    /**
+     * Apakah tautan masuk/daftar Portal boleh dirender. COMPLETED
+     * menyembunyikan SEMUA entry CTA (bukan via CSS); status lain ikut
+     * aturan lama. Rute langsung tetap dijaga backend masing-masing.
+     */
+    public function portalEntryVisible(): bool
+    {
+        return $this->status !== self::COMPLETED;
     }
 
     public static function countedStatuses(): array
@@ -125,6 +141,15 @@ class PpdbAvailability
         }
 
         $forcedOpen = $period->status_override === 'open';
+
+        // Status eksplisit SELESAI mengalahkan turunan tanggal: periode yang
+        // sudah selesai tidak pernah kembali tampil sebagai "Ditutup".
+        if (! $forcedOpen && $period->status === PpdbPeriod::STATUS_COMPLETED) {
+            return new static(self::COMPLETED, $period, $now, $period->quota, static::usedQuota($period->id));
+        }
+        if (! $forcedOpen && $period->status === PpdbPeriod::STATUS_ARCHIVED && $period->isAdmissionsCompleted()) {
+            return new static(self::COMPLETED, $period, $now, $period->quota, static::usedQuota($period->id));
+        }
 
         $opensAt = $period->opens_at ? CarbonImmutable::parse($period->opens_at, 'Asia/Jakarta') : null;
         $closesAt = $period->closes_at ? CarbonImmutable::parse($period->closes_at, 'Asia/Jakarta') : null;

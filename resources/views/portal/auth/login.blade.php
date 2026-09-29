@@ -1,5 +1,5 @@
-<x-layouts.app :title="'Masuk Portal PPDB'">
-<section class="mx-auto max-w-md px-4 py-14">
+<x-portal.auth-frame title="Masuk Portal PPDB">
+<section>
 <x-ui.card class="p-6 sm:p-8">
 <h1 class="font-display text-xl font-extrabold">Masuk Portal PPDB</h1>
 <p class="mt-1 text-sm text-slate-500">Kelola pendaftaran semua anak dalam satu akun.</p>
@@ -18,4 +18,4 @@
 </form>
 </x-ui.card>
 </section>
-</x-layouts.app>
+</x-portal.auth-frame>

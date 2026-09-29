@@ -46,20 +46,17 @@ class ApplicantAccountLifecycleService
             if (! $period->isAdmissionsCompleted()) {
                 $reasons[] = 'ppdb_not_completed';
             }
-            // Explicit per-period deadline wins; otherwise fall back to
-            // operational completion + configurable grace (school-approvable).
+            // FINAL OWNER RULE: SELESAI berarti seluruh proses pemohon berakhir.
+            // Tidak ada masa tunggu retensi untuk tipe ini: begitu SEMUA
+            // periode tertaut completed + pekerjaan terminal + tidak ada
+            // tunggakan, akun langsung eligible pada run pembersihan
+            // berikutnya (aksi Selesaikan + scheduler harian).
+            // account_retention_until tetap dicatat sebagai info audit.
             $retentionUntil = $period->account_retention_until
                 ?? $period->operational_completed_at?->copy()->addDays((int) config('retention.applicants.real_retention_days', 90));
-            if (! $retentionUntil) {
-                $reasons[] = 'retention_not_configured';
-            } else {
-                $dueAt = ! $dueAt || $retentionUntil->gt($dueAt)
-                    ? $retentionUntil
-                    : $dueAt;
-                if ($retentionUntil->gt($cutoff)) {
-                    $reasons[] = 'retention_not_expired';
-                }
-            }
+            $dueAt = $retentionUntil && (! $dueAt || $retentionUntil->gt($dueAt))
+                ? $retentionUntil
+                : $dueAt;
             if (! in_array($application->application_status, [
                 ApplicationStatus::Passed,
                 ApplicationStatus::NotPassed,

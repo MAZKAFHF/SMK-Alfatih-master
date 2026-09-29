@@ -278,14 +278,15 @@
         }
     }
 
-    /* Scroll reveal */
-    .reveal {
+    /* Scroll reveal — initial-hidden applies only when JS runs (html.js),
+       so content stays readable with JS disabled and for crawlers. */
+    html.js .reveal {
         opacity: 0;
         transform: translateY(18px);
         transition: opacity var(--dur-base) var(--ease-future), transform var(--dur-base) var(--ease-future);
         transition-delay: var(--reveal-delay, 0ms);
     }
-    .reveal.revealed {
+    html.js .reveal.revealed {
         opacity: 1;
         transform: translateY(0);
     }
@@ -377,6 +378,369 @@
     .word-swap > span {
         display: inline-block;
         animation: word-rise 0.45s var(--ease-future) both;
+    }
+
+    /* ============================================================
+       ALFATIH//FUTURE motion system — centralized primitives.
+       Timing tiers: micro 120–200ms • interaction 200–350ms
+       • section 400–650ms • cinematic 650–1100ms.
+       Easing: --ease-future everywhere unless noted.
+       Hidden pre-states apply ONLY under html.js (progressive
+       enhancement: no-JS/crawler content stays visible).
+       ============================================================ */
+    :root {
+        --motion-micro: 160ms;
+        --motion-fast: 150ms;
+        --motion-interaction: 280ms;
+        --motion-normal: 380ms;
+        --motion-section: 440ms;
+        --motion-cinematic: 680ms;
+    }
+
+    /* ---------- data-reveal variants ---------- */
+    html.js [data-reveal] {
+        opacity: 0;
+        transform: translateY(22px);
+        transition:
+            opacity var(--motion-section) var(--ease-future),
+            transform var(--motion-section) var(--ease-future);
+        transition-delay: var(--reveal-delay, 0ms);
+        will-change: opacity, transform;
+    }
+    html.js [data-reveal='fade'] { transform: none; }
+    html.js [data-reveal='left'] { transform: translateX(-26px); }
+    html.js [data-reveal='scale'] { transform: scale(0.96) translateY(10px); }
+    html.js [data-reveal].is-in,
+    html.js [data-stagger].is-in [data-stagger-item],
+    html.js [data-stagger-item].is-in {
+        opacity: 1;
+        transform: none;
+    }
+    /* stagger children */
+    html.js [data-stagger-item] {
+        opacity: 0;
+        transform: translateY(16px);
+        transition:
+            opacity var(--motion-section) var(--ease-future),
+            transform var(--motion-section) var(--ease-future);
+        transition-delay: calc(var(--stagger-i, 0) * 70ms + var(--reveal-delay, 0ms));
+    }
+
+    /* ---------- mask-line headline reveal ---------- */
+    html.js [data-mask-line] {
+        display: block;
+        overflow: hidden;
+        padding-bottom: 0.08em;
+        margin-bottom: -0.08em;
+    }
+    html.js [data-mask-line] > span {
+        display: block;
+        transform: translateY(110%);
+        transition: transform var(--motion-cinematic) var(--ease-future);
+        transition-delay: var(--reveal-delay, 0ms);
+    }
+    html.js .is-in [data-mask-line] > span,
+    html.js [data-mask-line].is-in > span {
+        transform: translateY(0);
+    }
+
+    /* ---------- hero enter sequence ---------- */
+    html.js [data-hero-item] {
+        opacity: 0;
+        transform: translateY(20px);
+        transition:
+            opacity var(--motion-cinematic) var(--ease-future),
+            transform var(--motion-cinematic) var(--ease-future);
+        transition-delay: var(--hero-delay, 0ms);
+    }
+    html.js [data-hero].is-in [data-hero-item],
+    html.js [data-hero-item].is-in {
+        opacity: 1;
+        transform: none;
+    }
+
+    /* ---------- scroll cue ---------- */
+    .scroll-cue { transition: opacity 300ms ease; }
+    .scroll-cue-line { position: relative; overflow: hidden; }
+    .scroll-cue-line::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: currentColor;
+        animation: cue-drop 2.2s var(--ease-future) infinite;
+    }
+    @keyframes cue-drop {
+        0% { transform: translateY(-100%); }
+        55% { transform: translateY(0); }
+        100% { transform: translateY(100%); }
+    }
+
+    /* ---------- scroll + reading progress ---------- */
+    [data-scroll-progress],
+    [data-reading-progress] {
+        transform: scaleX(0);
+        transform-origin: 0 50%;
+    }
+
+    /* ---------- tilt + spotlight (pointer:fine only via JS) ---------- */
+    [data-tilt] {
+        transform-style: preserve-3d;
+        transition: transform var(--motion-interaction) var(--ease-future), box-shadow var(--motion-interaction) var(--ease-future);
+        will-change: transform;
+    }
+    [data-spotlight] { position: relative; }
+    [data-spotlight]::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: radial-gradient(420px circle at var(--spot-x, 50%) var(--spot-y, 50%), rgb(255 255 255 / 0.09), transparent 65%);
+        opacity: 0;
+        transition: opacity var(--motion-interaction) ease;
+        pointer-events: none;
+    }
+    [data-spotlight]:hover::before { opacity: 1; }
+    .dark [data-spotlight]::before {
+        background: radial-gradient(420px circle at var(--spot-x, 50%) var(--spot-y, 50%), rgb(45 212 138 / 0.12), transparent 65%);
+    }
+
+    /* ---------- depth-scene layers ---------- */
+    [data-depth] { transition: transform 300ms var(--ease-future); will-change: transform; }
+
+    /* ---------- magnetic CTAs ---------- */
+    [data-magnetic] {
+        transition: transform var(--motion-interaction) var(--ease-future), background-color 150ms ease, border-color 150ms ease;
+        will-change: transform;
+    }
+
+    /* ---------- journey progress (vertical line + steps) ---------- */
+    [data-journey-fill] { transform: scaleY(0); transform-origin: 50% 0; transition: transform 900ms var(--ease-future); }
+    [data-journey-step] { transition: opacity var(--motion-section) var(--ease-future), transform var(--motion-section) var(--ease-future); }
+    html.js [data-journey]:not(.is-active) [data-journey-step] { opacity: 0.45; }
+    [data-journey-step].is-on { opacity: 1; }
+    [data-journey-step] .journey-dot { transition: background-color 300ms ease, border-color 300ms ease, box-shadow 300ms ease, transform 300ms var(--ease-future), color 300ms ease; }
+    [data-journey-step].is-on .journey-dot { transform: scale(1.12); background-color: var(--color-primary-600); border-color: var(--color-primary-600); color: #fff; box-shadow: 0 0 0 4px rgb(16 185 129 / 0.18); }
+    /* Ghost numerals light up with color only (no filled badge). */
+    [data-journey-step] .journey-dot.journey-ghost { transform-origin: 0 50%; }
+    [data-journey-step].is-on .journey-dot.journey-ghost { transform: scale(1.04); background-color: transparent; border-color: transparent; color: var(--color-primary-600); box-shadow: none; }
+    .dark [data-journey-step].is-on .journey-dot.journey-ghost { color: var(--color-tech-400); }
+
+    /* ---------- media clip reveal ---------- */
+    html.js [data-media-reveal] {
+        clip-path: inset(6% 4% 6% 4% round 1rem);
+        opacity: 0.4;
+        transform: scale(0.985);
+        transition:
+            clip-path var(--motion-cinematic) var(--ease-future),
+            opacity var(--motion-cinematic) var(--ease-future),
+            transform var(--motion-cinematic) var(--ease-future);
+    }
+    html.js [data-media-reveal].is-in {
+        clip-path: inset(0 0 0 0 round 1rem);
+        opacity: 1;
+        transform: none;
+    }
+
+    /* ---------- animated link underline ---------- */
+    .link-underline {
+        background-image: linear-gradient(currentColor, currentColor);
+        background-size: 0% 1.5px;
+        background-repeat: no-repeat;
+        background-position: 0 100%;
+        transition: background-size var(--motion-interaction) var(--ease-future), color 150ms ease;
+        padding-bottom: 1px;
+    }
+    .link-underline:hover { background-size: 100% 1.5px; }
+
+    /* ---------- navbar: hide-on-scroll + active track + progress ---------- */
+    #site-header { transition: transform 280ms var(--ease-future), background-color 200ms ease, border-color 200ms ease, box-shadow 200ms ease; }
+    #site-header.navbar-hidden { transform: translateY(-100%); }
+    .nav-link { position: relative; }
+    .nav-link::after {
+        content: '';
+        position: absolute;
+        left: 0.75rem;
+        right: 0.75rem;
+        bottom: 0.3rem;
+        height: 2px;
+        border-radius: 999px;
+        background: currentColor;
+        opacity: 0.85;
+        transform: scaleX(0);
+        transform-origin: 0 50%;
+        transition: transform var(--motion-interaction) var(--ease-future);
+    }
+    .nav-link:hover::after { transform: scaleX(0.55); opacity: 0.4; }
+    .nav-link.nav-active::after { transform: scaleX(1); opacity: 1; }
+
+    /* ---------- mobile drawer stagger ---------- */
+    html.js [data-nav-menu].drawer-ready > div > * {
+        opacity: 0;
+        transform: translateX(-10px);
+        transition: opacity 240ms var(--ease-future), transform 240ms var(--ease-future);
+    }
+    html.js [data-nav-menu].drawer-ready:not(.hidden) > div > .drawer-in { opacity: 1; transform: none; }
+
+    /* ---------- footer wordmark glow sweep (calm, one slow loop) ---------- */
+    .footer-glow { position: relative; overflow: hidden; }
+    .footer-glow::after {
+        content: '';
+        position: absolute;
+        inset: -40%;
+        background: linear-gradient(115deg, transparent 44%, rgb(215 168 62 / 0.07) 50%, transparent 56%);
+        animation: glow-sweep 9s var(--ease-future) infinite;
+        pointer-events: none;
+    }
+    @keyframes glow-sweep {
+        0% { transform: translateX(-28%); }
+        60%, 100% { transform: translateX(28%); }
+    }
+
+    /* ---------- social icon lift ---------- */
+    .social-icon { transition: transform var(--motion-micro) var(--ease-future), background-color 150ms ease, color 150ms ease, border-color 150ms ease; }
+    .social-icon:hover { transform: translateY(-2px); }
+
+    /* ---------- accent line draw (hero + section markers) ---------- */
+    [data-draw-line] { transform: scaleX(0); transform-origin: 0 50%; transition: transform 700ms var(--ease-future) 150ms; }
+    html.js .is-in [data-draw-line], html.js [data-draw-line].is-in { transform: scaleX(1); }
+
+    /* ---------- page-enter (lightweight, one-shot) ---------- */
+    html.js body[data-page-enter] {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    html.js body[data-page-enter].is-in {
+        opacity: 1;
+        transform: none;
+        transition: opacity 300ms var(--ease-future), transform 300ms var(--ease-future);
+    }
+
+    /* ---------- combined media treatment (clip + settle) ---------- */
+    html.js [data-media] {
+        clip-path: inset(6% 4% 6% 4% round 1rem);
+        opacity: 0.35;
+        transform: scale(0.985) translateY(12px);
+        transition:
+            clip-path var(--motion-cinematic) var(--ease-future),
+            opacity var(--motion-cinematic) var(--ease-future),
+            transform var(--motion-cinematic) var(--ease-future);
+        will-change: clip-path, opacity, transform;
+    }
+    html.js [data-media].is-in {
+        clip-path: inset(0 0 0 0 round 1rem);
+        opacity: 1;
+        transform: none;
+    }
+
+    /* ---------- background washes ---------- */
+    .wash-offwhite { background-color: #f8fafc; }
+    .dark .wash-offwhite { background-color: #0b1526; }
+    .wash-greentint { background-color: #f0fdf6; }
+    .dark .wash-greentint { background-color: #0c1a14; }
+    .wash-navy { background-color: var(--color-navy-900); }
+    .wash-editorial { background-color: #ffffff; }
+    .dark .wash-editorial { background-color: #020617; }
+
+    /* ---------- public button motion (opt-in; admin ctl-btn untouched) ---------- */
+    .btn-arrow svg:last-child {
+        transition: transform var(--motion-interaction) var(--ease-future);
+    }
+    .btn-arrow:hover svg:last-child { transform: translateX(3px); }
+    .btn-sweep { position: relative; overflow: hidden; isolation: isolate; }
+    .btn-sweep::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background: linear-gradient(105deg, transparent 40%, rgb(255 255 255 / 0.22) 50%, transparent 60%);
+        transform: translateX(-120%);
+        transition: transform var(--motion-normal) var(--ease-future);
+        pointer-events: none;
+    }
+    .btn-sweep:hover::before { transform: translateX(120%); }
+
+    /* ---------- editorial story + manifesto bodies ---------- */
+    .story-body > p:first-of-type {
+        font-size: 1.2em;
+        line-height: 1.75;
+        font-weight: 500;
+    }
+    .manifesto-body {
+        font-size: 1.12rem;
+        line-height: 1.9;
+    }
+    .manifesto-body > ul { list-style: none; padding: 0; counter-reset: manifesto; }
+    .manifesto-body > ul > li {
+        counter-increment: manifesto;
+        position: relative;
+        padding-left: 3.5rem;
+        margin-top: 1.5rem;
+    }
+    .manifesto-body > ul > li::before {
+        content: counter(manifesto, decimal-leading-zero);
+        position: absolute;
+        left: 0;
+        top: 0;
+        font-family: var(--font-display);
+        font-weight: 800;
+        color: var(--color-gold-500);
+    }
+    .manifesto-body > ol { list-style: none; padding: 0; counter-reset: manifesto; }
+    .manifesto-body > ol > li {
+        counter-increment: manifesto;
+        position: relative;
+        padding-left: 3.5rem;
+        margin-top: 1.5rem;
+    }
+    .manifesto-body > ol > li::before {
+        content: counter(manifesto, decimal-leading-zero);
+        position: absolute;
+        left: 0;
+        top: 0;
+        font-family: var(--font-display);
+        font-weight: 800;
+        color: var(--color-gold-500);
+    }
+
+    /* ---------- build-story stages ---------- */
+    html.js [data-build-stage] {
+        opacity: 0.35;
+        transform: translateY(14px);
+        transition: opacity var(--motion-section) var(--ease-future), transform var(--motion-section) var(--ease-future);
+    }
+    html.js [data-build-stage].is-on { opacity: 1; transform: none; }
+
+    /* ---------- reduced motion: everything final, nothing looping ---------- */
+    @media (prefers-reduced-motion: reduce) {
+        html.js body[data-page-enter] {
+            opacity: 1;
+            transform: none;
+            transition: none;
+        }
+        html.js [data-reveal],
+        html.js [data-media],
+        html.js [data-stagger-item],
+        html.js [data-hero-item],
+        html.js [data-mask-line] > span,
+        html.js [data-media-reveal],
+        html.js [data-build-stage] {
+            opacity: 1 !important;
+            transform: none !important;
+            clip-path: none !important;
+            transition: none !important;
+            animation: none !important;
+        }
+        html.js .reveal { opacity: 1; transform: none; transition: none; }
+        .marquee,
+        .pulse-dot,
+        .btn-shine::after,
+        .scroll-cue-line::after,
+        .footer-glow::after,
+        .word-swap > span {
+            animation: none !important;
+        }
+        #site-header.navbar-hidden { transform: none; }
+        [data-tilt], [data-magnetic], [data-depth] { transform: none !important; }
     }
 
     /* Tech grid backdrop */
@@ -682,6 +1046,136 @@
 
     /* Autofill Chrome tidak merusak tema */
     .ctl-input:-webkit-autofill { -webkit-text-fill-color: var(--ctl-input-text); -webkit-box-shadow: 0 0 0 40px var(--ctl-input-bg) inset; caret-color: var(--ctl-input-text); }
+}
+
+/* ============================================================
+   Surface identities
+   FUTURE = expressive public site, PORTAL = calm applicant workspace.
+   CONTROL keeps the existing ctl-* system above. These primitives prevent
+   admin presentation from leaking into public and applicant pages.
+   ============================================================ */
+@layer components {
+    .future-page {
+        background:
+            radial-gradient(circle at 8% 4%, rgb(16 185 129 / 0.05), transparent 28rem),
+            #fff;
+    }
+    .dark .future-page {
+        background:
+            radial-gradient(circle at 8% 4%, rgb(45 212 138 / 0.07), transparent 30rem),
+            #020617;
+    }
+
+    .future-btn,
+    .portal-btn {
+        position: relative;
+        display: inline-flex;
+        min-height: 2.75rem;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        border-radius: 0.75rem;
+        padding: 0.625rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 750;
+        line-height: 1.25rem;
+        text-decoration: none;
+        transition: color 180ms ease, background-color 180ms ease, border-color 180ms ease, box-shadow 220ms var(--ease-future), transform 220ms var(--ease-future);
+    }
+    .future-btn:focus-visible,
+    .portal-btn:focus-visible {
+        outline: 3px solid rgb(45 212 138 / 0.45);
+        outline-offset: 3px;
+    }
+    .future-btn-primary {
+        border: 1px solid #087052;
+        color: #fff;
+        background: linear-gradient(135deg, #0a6b50, #087a58);
+        box-shadow: 0 12px 30px rgb(6 78 59 / 0.18);
+    }
+    .future-btn-primary:hover {
+        transform: translateY(-2px);
+        background: linear-gradient(135deg, #075d47, #086c50);
+        box-shadow: 0 16px 38px rgb(6 78 59 / 0.24);
+    }
+    .future-btn-accent {
+        border: 1px solid #f47a28;
+        color: #fff;
+        background: linear-gradient(135deg, #f47a28, #db5f11);
+        box-shadow: 0 12px 30px rgb(244 122 40 / 0.22);
+    }
+    .future-btn-accent:hover { transform: translateY(-2px); background: linear-gradient(135deg, #e46817, #c9530c); }
+    .future-btn-secondary {
+        border: 1px solid rgb(15 118 89 / 0.22);
+        color: #075e47;
+        background: rgb(255 255 255 / 0.82);
+        box-shadow: 0 8px 24px rgb(15 23 42 / 0.05);
+        backdrop-filter: blur(12px);
+    }
+    .future-btn-secondary:hover { transform: translateY(-2px); border-color: rgb(15 118 89 / 0.42); background: #fff; }
+    .future-btn-ghost { color: #086c50; background: transparent; }
+    .future-btn-ghost:hover { background: rgb(16 185 129 / 0.09); }
+    .future-btn-danger { color: #fff; border: 1px solid #dc2626; background: #dc2626; }
+    .dark .future-btn-secondary { color: #a7f3d0; border-color: rgb(167 243 208 / 0.2); background: rgb(15 23 42 / 0.72); }
+    .dark .future-btn-secondary:hover { border-color: rgb(167 243 208 / 0.42); background: rgb(15 23 42 / 0.95); }
+    .dark .future-btn-ghost { color: #6ee7b7; }
+
+    .future-card {
+        border: 1px solid rgb(15 23 42 / 0.09);
+        border-radius: 1rem;
+        background: rgb(255 255 255 / 0.88);
+        box-shadow: 0 18px 60px rgb(15 23 42 / 0.07);
+        backdrop-filter: blur(16px);
+    }
+    .dark .future-card { border-color: rgb(148 163 184 / 0.16); background: rgb(15 23 42 / 0.82); box-shadow: 0 18px 60px rgb(0 0 0 / 0.22); }
+    .card-interactive { transition: border-color 220ms ease, box-shadow 220ms var(--ease-future), transform 220ms var(--ease-future); }
+    .card-interactive:hover { transform: translateY(-3px); border-color: rgb(16 185 129 / 0.3); box-shadow: 0 22px 64px rgb(15 23 42 / 0.11); }
+
+    .portal-page {
+        --portal-ink: #10231d;
+        --portal-muted: #5f746c;
+        --portal-line: #dce8e2;
+        min-height: 100vh;
+        color: var(--portal-ink);
+        background:
+            radial-gradient(circle at 92% 0%, rgb(45 212 138 / 0.13), transparent 24rem),
+            linear-gradient(180deg, #f8fbf9 0%, #eff6f2 100%);
+    }
+    .dark .portal-page {
+        --portal-ink: #f1f5f3;
+        --portal-muted: #9db1a9;
+        --portal-line: rgb(148 163 184 / 0.18);
+        background: radial-gradient(circle at 92% 0%, rgb(45 212 138 / 0.09), transparent 26rem), #07120e;
+    }
+    .portal-card {
+        border: 1px solid var(--portal-line);
+        border-radius: 1rem;
+        background: rgb(255 255 255 / 0.9);
+        box-shadow: 0 16px 45px rgb(28 64 51 / 0.07);
+    }
+    .dark .portal-card { background: rgb(15 30 24 / 0.88); box-shadow: 0 18px 50px rgb(0 0 0 / 0.2); }
+    .portal-btn-primary { border: 1px solid #087052; color: #fff; background: #087052; box-shadow: 0 9px 24px rgb(8 112 82 / 0.18); }
+    .portal-btn-primary:hover { transform: translateY(-1px); background: #065d45; }
+    .portal-btn-secondary { border: 1px solid var(--portal-line); color: var(--portal-ink); background: rgb(255 255 255 / 0.78); }
+    .portal-btn-secondary:hover { border-color: rgb(8 112 82 / 0.35); background: #fff; }
+    .portal-btn-ghost { color: #087052; background: transparent; }
+    .portal-btn-ghost:hover { background: rgb(8 112 82 / 0.08); }
+    .portal-btn-danger { border: 1px solid #dc2626; color: #b91c1c; background: rgb(254 242 242 / 0.8); }
+    .dark .portal-btn-secondary { background: rgb(15 30 24 / 0.8); }
+
+    .future-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.65rem;
+        color: #0a7658;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+    }
+    .future-kicker::before { content: ''; width: 1.75rem; height: 2px; background: linear-gradient(90deg, #f47a28, #e5bd55); }
+    .dark .future-kicker { color: #6ee7b7; }
+
 }
 
 @keyframes marquee-scroll {

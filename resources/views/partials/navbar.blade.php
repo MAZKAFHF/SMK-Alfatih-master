@@ -1,6 +1,6 @@
 @php
     $pages = \Illuminate\Support\Facades\Cache::remember('nav_pages', 3600, function () {
-        return \App\Models\Page::published()->orderBy('order')->limit(6)->get(['title', 'slug']);
+        return \App\Models\Page::published()->orderBy('order')->limit(6)->get(['title', 'slug', 'meta_description']);
     });
 
     $navigation = [
@@ -15,12 +15,32 @@
 
     $activeLabel = collect($navigation)->first(fn ($item) => request()->url() === $item['url'])['label'] ?? null;
     $activeSlug = request()->segments()[0] ?? '';
+    $navPhone = \App\Models\SiteSetting::get('school_phone');
+    $navEmail = \App\Models\SiteSetting::get('school_email');
+    $navPpdb = \App\Services\PpdbAvailability::resolvePublic();
 @endphp
 
 <header id="site-header" data-navbar class="sticky top-0 z-40 bg-transparent">
-    <nav class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8" aria-label="Navigasi utama">
+    <div data-scroll-progress class="absolute inset-x-0 top-0 h-0.5 origin-left bg-gradient-to-r from-primary-600 via-gold-500 to-energy-500" aria-hidden="true"></div>
+    @if(filled($navPhone) || filled($navEmail) || $navPpdb->portalEntryVisible())
+    <div class="hidden bg-forest-900 text-emerald-50 md:block dark:bg-black/30">
+        <div class="mx-auto flex h-8 max-w-7xl items-center justify-between px-6 text-[11px] font-semibold lg:px-8">
+            <div class="flex items-center gap-5">
+                @if(filled($navEmail))<a href="mailto:{{ $navEmail }}" class="transition-colors hover:text-gold-300">{{ $navEmail }}</a>@endif
+                @if(filled($navPhone))<a href="tel:{{ preg_replace('/[^0-9+]/', '', $navPhone) }}" class="transition-colors hover:text-gold-300">{{ $navPhone }}</a>@endif
+            </div>
+            <div class="flex items-center gap-4 text-emerald-100/80">
+                <span>Build · Character · Future</span>
+                @if($navPpdb->portalEntryVisible())<a href="{{ route('portal.login') }}" class="font-bold text-gold-300 hover:text-gold-200">Portal calon siswa →</a>@endif
+            </div>
+        </div>
+    </div>
+    @endif
+    <nav class="mx-auto flex h-[4.5rem] max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8" aria-label="Navigasi utama">
         <a href="{{ route('home') }}" class="flex items-center gap-2.5">
-            <img src="{{ asset('img/logo.png') }}" alt="Logo SMK Tahfizh Al-Fatih" width="40" height="40" class="size-10 rounded-xl object-contain shadow-sm" />
+            <span data-navbar-logo class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white p-1 shadow-sm ring-1 ring-slate-200/80 dark:ring-white/15">
+                <img src="{{ asset('img/logo.png') }}" alt="Logo SMK Tahfizh Al-Fatih" width="40" height="40" class="h-full w-full object-contain" />
+            </span>
             <span class="leading-tight">
                 <span class="block font-display text-sm font-extrabold tracking-tight text-slate-900 dark:text-white">SMK TAHFIZH</span>
                 <span class="block text-[11px] font-semibold uppercase tracking-widest text-primary-700 dark:text-primary-400">Al-Fatih</span>
@@ -31,11 +51,11 @@
         <div class="hidden items-center gap-1 lg:flex">
             @foreach ($navigation as $item)
                 @if (isset($item['dropdown']))
-                    <x-ui.dropdown>
+                    <x-ui.dropdown align="left" panelClass="!min-w-72 !p-2">
                         <x-slot:trigger>
                             <button
                                 type="button"
-                                class="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors {{ in_array($activeSlug, $item['dropdown']->pluck('slug')->all(), true) ? 'bg-primary-50 text-primary-700 dark:bg-primary-950 dark:text-primary-400' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white' }}"
+                                class="nav-link inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors {{ in_array($activeSlug, $item['dropdown']->pluck('slug')->all(), true) ? 'nav-active text-primary-700 dark:text-primary-400' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white' }}"
                                 aria-expanded="false"
                             >
                                 {{ $item['label'] }}
@@ -46,15 +66,28 @@
                         </x-slot:trigger>
 
                         @foreach ($item['dropdown'] as $page)
-                            <x-ui.dropdown-item :href="route('pages.show', $page->slug)" :active="request()->route('slug') === $page->slug">
-                                {{ $page->title }}
-                            </x-ui.dropdown-item>
+                            <a
+                                href="{{ route('pages.show', $page->slug) }}"
+                                role="menuitem"
+                                data-dropdown-close
+                                class="group flex items-start justify-between gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-primary-50 dark:hover:bg-primary-950/60 {{ request()->route('slug') === $page->slug ? 'bg-primary-50 dark:bg-primary-950/60' : '' }}"
+                            >
+                                <span class="min-w-0">
+                                    <span class="block truncate text-sm font-semibold text-slate-800 group-hover:text-primary-700 dark:text-slate-200 dark:group-hover:text-primary-300">{{ $page->title }}</span>
+                                    @if ($page->meta_description)
+                                        <span class="mt-0.5 block truncate text-xs text-slate-500 dark:text-slate-400">{{ \Illuminate\Support\Str::limit($page->meta_description, 64) }}</span>
+                                    @endif
+                                </span>
+                                <svg class="mt-1 size-4 shrink-0 text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:text-primary-500 dark:text-slate-600" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clip-rule="evenodd" />
+                                </svg>
+                            </a>
                         @endforeach
                     </x-ui.dropdown>
                 @else
                     <a
                         href="{{ $item['url'] }}"
-                        class="rounded-lg px-3 py-2 text-sm font-medium transition-colors {{ $activeLabel === $item['label'] ? 'bg-primary-50 text-primary-700 dark:bg-primary-950 dark:text-primary-400' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white' }}"
+                        class="nav-link rounded-lg px-3 py-2 text-sm font-medium transition-colors {{ $activeLabel === $item['label'] ? 'nav-active text-primary-700 dark:text-primary-400' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white' }}"
                     >{{ $item['label'] }}</a>
                 @endif
             @endforeach
@@ -63,7 +96,7 @@
         <div class="flex items-center gap-2">
             <x-ui.theme-toggle />
             <a href="{{ route('ppdb.index') }}" class="clip-corner-sm hidden items-center justify-center gap-1.5 bg-gradient-to-r from-energy-500 to-energy-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition duration-150 select-none whitespace-nowrap hover:from-energy-600 hover:to-energy-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-energy-500 sm:inline-flex">
-                Pendaftaran
+                {{ $navPpdb->canRegister() ? 'Pendaftaran' : 'Informasi PPDB' }}
             </a>
 
             <button
@@ -80,27 +113,31 @@
         </div>
     </nav>
 
-    <div data-nav-menu class="hidden max-h-[80vh] overflow-y-auto border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950 lg:hidden">
-        <div class="space-y-1 px-4 py-3">
+    <div data-nav-menu class="hidden max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-slate-200 bg-white/95 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/95 lg:hidden">
+        <div class="space-y-1 px-4 py-4 sm:px-6">
+            <p class="px-3 pb-1 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Menu Utama</p>
             @foreach ($navigation as $item)
                 @if (isset($item['dropdown']))
-                    <div class="px-3 pt-2 text-xs font-semibold uppercase tracking-wider text-slate-400">{{ $item['label'] }}</div>
+                    <div class="px-3 pt-3 text-xs font-semibold uppercase tracking-wider text-slate-400">{{ $item['label'] }}</div>
                     @foreach ($item['dropdown'] as $page)
                         <a
                             href="{{ route('pages.show', $page->slug) }}"
-                            class="block rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
-                        >{{ $page->title }}</a>
+                            class="flex items-center justify-between gap-3 rounded-xl px-3 py-3 text-base font-semibold text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                        >{{ $page->title }}<span aria-hidden="true" class="text-slate-300 dark:text-slate-600">→</span></a>
                     @endforeach
                 @else
                     <a
                         href="{{ $item['url'] }}"
-                        class="block rounded-lg px-3 py-2.5 text-sm font-medium transition-colors {{ $activeLabel === $item['label'] ? 'bg-primary-50 text-primary-700 dark:bg-primary-950 dark:text-primary-400' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800' }}"
-                    >{{ $item['label'] }}</a>
+                        class="flex items-center justify-between gap-3 rounded-xl px-3 py-3 text-base font-semibold transition-colors {{ $activeLabel === $item['label'] ? 'bg-primary-50 text-primary-700 dark:bg-primary-950 dark:text-primary-400' : 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800' }}"
+                    >{{ $item['label'] }}<span aria-hidden="true" class="text-slate-300 dark:text-slate-600">→</span></a>
                 @endif
             @endforeach
-            <a href="{{ route('ppdb.index') }}" class="block px-3 py-2.5 sm:hidden">
-                <x-ui.button variant="primary" size="sm" full="true">Pendaftaran</x-ui.button>
-            </a>
+            <div class="px-3 pb-2 pt-4">
+                <a href="{{ route('ppdb.index') }}" class="clip-corner-sm flex w-full items-center justify-center gap-1.5 bg-gradient-to-r from-energy-500 to-energy-600 px-4 py-3 text-base font-bold text-white shadow-sm">
+                    {{ $navPpdb->canRegister() ? 'Pendaftaran PPDB' : 'Informasi PPDB' }}
+                </a>
+                <p class="mt-3 text-center text-xs text-slate-400">SMK Tahfizh Al-Fatih • Build • Character • Future</p>
+            </div>
         </div>
     </div>
 </header>

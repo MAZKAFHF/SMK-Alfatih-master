@@ -6,18 +6,33 @@
     'loading' => false,
     'full' => false,
     'shine' => false,
+    'context' => null,
 ])
 
 @php
-    // API lama dipertahankan; visual dari token ALFATIH//CONTROL (ctl-btn).
-    $variants = [
-        'primary' => 'ctl-btn-primary',
-        'secondary' => 'ctl-btn-secondary',
-        'outline' => 'ctl-btn-secondary',
-        'ghost' => 'ctl-btn-ghost',
-        'danger' => 'ctl-btn-danger',
-        'accent' => 'ctl-btn-primary',
+    $surface = $context
+        ?? (request()->routeIs('admin.*') ? 'control' : (request()->routeIs('portal.*') ? 'portal' : 'future'));
+
+    $variantSets = [
+        'control' => [
+            'primary' => 'ctl-btn-primary', 'secondary' => 'ctl-btn-secondary',
+            'outline' => 'ctl-btn-secondary', 'ghost' => 'ctl-btn-ghost',
+            'danger' => 'ctl-btn-danger', 'accent' => 'ctl-btn-primary',
+        ],
+        'portal' => [
+            'primary' => 'portal-btn-primary', 'secondary' => 'portal-btn-secondary',
+            'outline' => 'portal-btn-secondary', 'ghost' => 'portal-btn-ghost',
+            'danger' => 'portal-btn-danger', 'accent' => 'portal-btn-primary',
+        ],
+        'future' => [
+            'primary' => 'future-btn-primary', 'secondary' => 'future-btn-secondary',
+            'outline' => 'future-btn-secondary', 'ghost' => 'future-btn-ghost',
+            'danger' => 'future-btn-danger', 'accent' => 'future-btn-accent',
+        ],
     ];
+
+    $base = $surface === 'control' ? 'ctl-btn' : ($surface === 'portal' ? 'portal-btn' : 'future-btn');
+    $variants = $variantSets[$surface] ?? $variantSets['future'];
 
     $sizes = [
         'xs' => 'ctl-btn-sm',
@@ -27,7 +42,7 @@
     ];
 
     $classes = implode(' ', [
-        'ctl-btn',
+        $base,
         $variants[$variant] ?? 'ctl-btn-primary',
         $sizes[$size] ?? '',
         $full ? 'w-full' : '',

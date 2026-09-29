@@ -1,25 +1,46 @@
+@php($programPpdb = \App\Services\PpdbAvailability::resolvePublic())
 <x-layouts.app :title="$program->name" :description="$program->short_description">
-    <x-page-header
+    @if($program->image)
+    <x-page-hero
+        variant="tech"
+        eyebrow="Program Keahlian"
         :title="$program->name"
-        :subtitle="$program->short_description"
+        :description="$program->short_description"
+        :breadcrumbs="[
+            ['label' => 'Beranda', 'url' => route('home')],
+            ['label' => 'Program Keahlian', 'url' => route('programs.index')],
+            ['label' => $program->name],
+        ]"
+    >
+        <x-slot:media>
+            <div data-media class="overflow-hidden rounded-2xl shadow-soft">
+                <img src="{{ $program->image }}" alt="{{ $program->name }}" class="aspect-video w-full object-cover" loading="eager" />
+            </div>
+        </x-slot:media>
+    </x-page-hero>
+    @else
+    <x-page-hero
+        variant="editorial"
+        eyebrow="Program Keahlian"
+        :title="$program->name"
+        :description="$program->short_description"
         :breadcrumbs="[
             ['label' => 'Beranda', 'url' => route('home')],
             ['label' => 'Program Keahlian', 'url' => route('programs.index')],
             ['label' => $program->name],
         ]"
     />
+    @endif
 
     <section class="py-12 lg:py-16">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="grid gap-10 lg:grid-cols-3">
-                <div class="reveal lg:col-span-2">
-                    <x-thumb :src="$program->image" ratio="aspect-video" class="rounded-2xl" :alt="$program->name" />
-
-                    <article class="prose-content mt-8">{!! nl2br(e($program->description)) !!}</article>
+                <div class="lg:col-span-2" data-reveal="fade" data-media>
+                    <article class="prose-content">{!! nl2br(e($program->description)) !!}</article>
                 </div>
 
-                <aside class="space-y-6">
-                    <x-ui.card>
+                <aside class="space-y-6" data-stagger>
+                    <x-ui.card data-stagger-item>
                         <h2 class="text-base font-bold text-slate-900 dark:text-white">Cari tahu program lainnya</h2>
                         <div class="mt-4 space-y-3">
                             @foreach ($otherPrograms as $other)
@@ -33,12 +54,12 @@
                         </div>
                     </x-ui.card>
 
-                    <x-ui.card class="border-transparent bg-navy-900 text-white">
+                    <x-ui.card data-stagger-item class="border-transparent bg-navy-900 text-white" data-spotlight>
                         <h2 class="font-display text-base font-bold">Tertarik dengan {{ $program->name }}?</h2>
-                        <p class="mt-2 text-sm leading-relaxed text-slate-300">Daftar sekarang melalui PPDB online dan wujudkan masa depanmu.</p>
+                        <p class="mt-2 text-sm leading-relaxed text-slate-300">{{ $programPpdb->canRegister() ? 'Pelajari informasi PPDB dan mulai pendaftaran melalui portal resmi.' : 'Lihat informasi periode PPDB dan persiapkan kebutuhan pendaftaranmu.' }}</p>
                         <span class="mt-3 block h-1 w-12 rounded-full bg-gold-500" aria-hidden="true"></span>
                         <div class="mt-5">
-                            <x-ui.button variant="accent" href="{{ route('ppdb.index') }}" class="clip-corner-sm">Daftar PPDB</x-ui.button>
+                            <x-ui.button variant="accent" href="{{ route('ppdb.index') }}" class="clip-corner-sm">{{ $programPpdb->canRegister() ? 'Mulai PPDB' : 'Informasi PPDB' }}</x-ui.button>
                         </div>
                     </x-ui.card>
                 </aside>

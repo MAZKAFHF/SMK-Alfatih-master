@@ -52,7 +52,7 @@ php artisan app:trash:purge --dry-run
 php artisan app:applicants:retire --dry-run
 ```
 
-`Program` dan `PPDBRegistration` selalu dikecualikan dari purge Trash generik untuk melindungi statistik, riwayat proses, foto, serta dokumen privat. Lifecycle akun pemohon berjalan harian 03:30 bila `APPLICANT_CLEANUP_ENABLED=true`. Tipe orphan/unused/real masing-masing dapat dimatikan via `APPLICANT_ORPHAN_CLEANUP_ENABLED`, `APPLICANT_VERIFIED_UNUSED_CLEANUP_ENABLED`, `APPLICANT_LIFECYCLE_CLEANUP_ENABLED`. Akun real hanya eligible bila periodenya arsip/selesai + hasil dirilis + operasional selesai + retention lewat (per-periode `account_retention_until`, fallback `APPLICANT_REAL_RETENTION_DAYS=90` hari setelah operasional selesai). `closes_at` lewat saja TIDAK menghapus akun.
+`Program` dan `PPDBRegistration` selalu dikecualikan dari purge Trash generik untuk melindungi statistik, riwayat proses, foto, serta dokumen privat. Lifecycle akun pemohon berjalan harian 03:30 bila `APPLICANT_CLEANUP_ENABLED=true`. Tipe orphan/unused/real masing-masing dapat dimatikan via `APPLICANT_ORPHAN_CLEANUP_ENABLED`, `APPLICANT_VERIFIED_UNUSED_CLEANUP_ENABLED`, `APPLICANT_LIFECYCLE_CLEANUP_ENABLED`. Akun real langsung eligible begitu SEMUA periode tertautnya SELESAI (arsip/selesai + hasil dirilis + operasional selesai), status terminal, dan tidak ada tunggakan — tanpa masa tunggu tambahan. `account_retention_until` yang dihitung sistem bersifat info audit. `closes_at` lewat saja TIDAK menghapus akun.
 
 ## Menyelesaikan periode PPDB
 

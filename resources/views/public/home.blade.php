@@ -1,14 +1,14 @@
 <x-layouts.app>
     {{-- HERO — Living Campus --}}
-    <section class="relative overflow-hidden bg-gradient-to-b from-primary-50 via-white to-white dark:from-night-900 dark:via-slate-950 dark:to-slate-950">
+    <section class="relative overflow-hidden bg-gradient-to-b from-primary-50 via-white to-white dark:from-night-900 dark:via-slate-950 dark:to-slate-950" data-hero data-spotlight>
         <div class="tech-grid-light pointer-events-none absolute inset-0 dark:hidden" aria-hidden="true"></div>
         <div class="tech-grid pointer-events-none absolute inset-0 hidden dark:block" aria-hidden="true"></div>
-        <x-motif-geometric class="absolute -left-10 top-16 size-44 text-primary-600/10 dark:text-tech-500/10" />
-        <x-motif-geometric class="absolute -right-12 bottom-10 size-56 text-gold-500/15" />
+        <x-motif-geometric class="absolute -left-10 top-16 size-44 text-primary-600/10 dark:text-tech-500/10" data-parallax="0.05" />
+        <x-motif-geometric class="absolute -right-12 bottom-10 size-56 text-gold-500/15" data-parallax="0.09" />
 
-        <div class="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:gap-8 lg:px-8 lg:py-24">
-            <div class="reveal">
-                <div class="inline-flex items-center gap-2 rounded-full bg-primary-100 px-4 py-1.5 text-xs font-semibold text-primary-800 ring-1 ring-inset ring-primary-200 dark:bg-primary-900 dark:text-primary-300 dark:ring-primary-700">
+        <div class="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 md:grid-cols-[1.05fr_0.95fr] md:gap-7 lg:gap-10 lg:px-8 lg:py-24">
+            <div>
+                <div class="inline-flex items-center gap-2 rounded-full bg-primary-100 px-4 py-1.5 text-xs font-semibold text-primary-800 ring-1 ring-inset ring-primary-200 dark:bg-primary-900 dark:text-primary-300 dark:ring-primary-700" data-hero-item style="--hero-delay: 0ms">
                     <span class="relative flex size-2">
                         <span class="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
                         <span class="relative inline-flex size-2 rounded-full bg-emerald-500"></span>
@@ -16,50 +16,79 @@
                     PPDB {{ $ppdbState->period?->academic_year ?? '' }} {{ $ppdbState->publicLabel() }}
                 </div>
 
-                <p class="mt-6 text-xs font-bold uppercase tracking-[0.25em] text-energy-600 dark:text-energy-500">SMK Tahfizh Al-Fatih</p>
+                <p class="mt-6 text-xs font-bold uppercase tracking-[0.25em] text-energy-600 dark:text-energy-500" data-hero-item style="--hero-delay: 90ms">SMK Tahfizh Al-Fatih</p>
                 <h1 class="mt-3 font-display text-4xl font-extrabold leading-[1.05] tracking-tight text-slate-900 dark:text-white sm:text-5xl lg:text-6xl">
-                    Membangun Generasi
-                    <br />
-                    <span class="text-primary-600 dark:text-tech-400">Teknologi.</span>
-                    <span class="word-swap text-gold-600 dark:text-gold-400" data-word-swap data-words='["Karakter.", "Kreativitas.", "Masa Depan."]'><span>Karakter.</span></span>
+                    <span data-mask-line style="--reveal-delay: 140ms"><span>Membangun Generasi</span></span>
+                    <span data-mask-line style="--reveal-delay: 230ms"><span class="text-primary-600 dark:text-tech-400">Teknologi.</span></span>
+                    <span data-mask-line style="--reveal-delay: 320ms"><span><span class="word-swap text-gold-600 dark:text-gold-400" data-word-swap data-words='["Karakter.", "Kreativitas.", "Masa Depan."]'><span>Karakter.</span></span></span></span>
                 </h1>
 
-                <p class="mt-5 max-w-xl text-lg leading-relaxed text-slate-600 dark:text-slate-400">
-                    Sekolah menengah kejuruan berbasis tahfizh Al-Qur'an. Mencetak generasi unggul, berakhlak mulia, dan siap bersaing di dunia kerja.
+                <p class="mt-5 max-w-xl text-lg leading-relaxed text-slate-600 dark:text-slate-400" data-hero-item style="--hero-delay: 320ms">
+                    {{ $schoolTagline ?: 'Sekolah menengah kejuruan berbasis tahfizh Al-Qur’an untuk belajar, berkarya, dan bertumbuh.' }}
                 </p>
 
-                <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+                <div class="mt-8 flex flex-col gap-3 sm:flex-row" data-hero-item style="--hero-delay: 410ms">
                     @if($ppdbState->canRegister())
-                    <x-ui.button size="lg" href="{{ route('ppdb.index') }}" class="clip-corner-sm" shine>
+                    <x-ui.button size="lg" href="{{ route('ppdb.index') }}" class="clip-corner-sm" shine data-magnetic>
                         <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM3 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 019.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
                         </svg>
                         Daftar PPDB
                     </x-ui.button>
                     @else
-                    <x-ui.button size="lg" variant="outline" href="{{ route('ppdb.index') }}" class="clip-corner-sm">Lihat Informasi PPDB</x-ui.button>
+                    <x-ui.button size="lg" variant="outline" href="{{ route('ppdb.index') }}" class="clip-corner-sm" data-magnetic>Lihat Informasi PPDB</x-ui.button>
                     @endif
-                    <x-ui.button size="lg" variant="outline" href="{{ route('pages.show', 'profil') }}">Lihat Profil Sekolah</x-ui.button>
+                    <x-ui.button size="lg" variant="outline" href="{{ route('pages.show', 'profil') }}" data-magnetic>Lihat Profil Sekolah</x-ui.button>
                 </div>
 
                 <x-digital-pulse :steps="['Learn', 'Build', 'Impact']" class="mt-10 max-w-md text-primary-700 dark:text-tech-400" />
             </div>
 
-            <div class="reveal relative" style="--reveal-delay: 120ms">
-                <x-rpl-panel />
-                <div class="absolute -bottom-5 -left-3 flex items-center gap-3 rounded-xl border border-slate-200 bg-white/95 px-4 py-3 shadow-soft backdrop-blur dark:border-slate-700 dark:bg-slate-900/95 sm:-left-6">
-                    <span class="flex size-10 items-center justify-center rounded-lg bg-gold-500/15 text-gold-600 dark:text-gold-400" aria-hidden="true">
-                        <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </span>
-                    <span class="leading-tight">
-                        <span class="block text-sm font-extrabold text-slate-900 dark:text-white">Tahfizh Terstruktur</span>
-                        <span class="block text-xs text-slate-500 dark:text-slate-400">Bimbingan guru bersanad</span>
-                    </span>
+            <div class="relative" data-hero-item style="--hero-delay: 300ms">
+                <div data-depth-scene class="relative mx-auto aspect-[4/5] w-full max-w-md select-none sm:aspect-square md:aspect-[4/5] lg:aspect-square lg:max-w-none" aria-hidden="false" aria-label="Visual interaktif: dokumentasi dan informasi sekolah">
+                    {{-- Layer 1 — aset identitas sekolah, bukan foto stok --}}
+                    <div class="absolute inset-x-6 top-0 bottom-16 overflow-hidden rounded-2xl shadow-soft" data-depth="0.03" data-media>
+                        <img src="{{ asset('img/beranda.png') }}" alt="Visual gedung SMK Tahfizh Al-Fatih" class="h-full w-full object-cover" fetchpriority="high" width="1366" height="768" />
+                        <span class="absolute left-4 top-4 rounded-full bg-navy-950/70 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-white backdrop-blur">Wajah Sekolah</span>
+                    </div>
+                    {{-- Layer 2 — mockup UI program asli --}}
+                    @if($programs->isNotEmpty())
+                    <div class="absolute -left-1 bottom-24 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-pop dark:border-slate-700 dark:bg-slate-900 sm:w-64" data-depth="0.06">
+                        <div class="flex items-center gap-1.5 border-b border-slate-100 px-3 py-2 dark:border-slate-800" aria-hidden="true">
+                            <span class="size-2 rounded-full bg-energy-500"></span>
+                            <span class="size-2 rounded-full bg-gold-500"></span>
+                            <span class="size-2 rounded-full bg-tech-500"></span>
+                        </div>
+                        <div class="p-3">
+                            <p class="truncate text-xs font-extrabold text-slate-900 dark:text-white">{{ $programs->first()->name }}</p>
+                            <p class="mt-1 line-clamp-2 text-[11px] leading-snug text-slate-500 dark:text-slate-400">{{ $programs->first()->short_description }}</p>
+                            <span class="mt-2 inline-block rounded-md bg-primary-600 px-2 py-1 text-[10px] font-bold text-white">Lihat Program</span>
+                        </div>
+                    </div>
+                    @endif
+                    {{-- Layer 3 — fakta dari sistem, bukan klaim dekoratif --}}
+                    <div class="absolute -right-1 top-16 hidden rounded-xl border border-slate-200 bg-white/95 px-4 py-3 shadow-soft backdrop-blur dark:border-slate-700 dark:bg-slate-900/95 sm:block" data-depth="0.09">
+                        <span class="block text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">Program aktif</span>
+                        <span class="mt-1 block font-display text-2xl font-extrabold text-primary-700 dark:text-tech-400">{{ $programs->count() }}</span>
+                    </div>
+                    {{-- Layer 4 — konteks periode yang kanonis --}}
+                    <div class="absolute -bottom-2 right-2 flex items-center gap-3 rounded-xl border border-slate-200 bg-white/95 px-4 py-3 shadow-soft backdrop-blur dark:border-slate-700 dark:bg-slate-900/95" data-depth="0.11">
+                        <span class="flex size-10 items-center justify-center rounded-lg bg-gold-500/15 text-gold-600 dark:text-gold-400" aria-hidden="true">
+                            <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3.75 9.75h16.5M5.25 5.25h13.5A1.5 1.5 0 0120.25 6.75v12a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-12a1.5 1.5 0 011.5-1.5z" /></svg>
+                        </span>
+                        <span class="leading-tight">
+                            <span class="block text-sm font-extrabold text-slate-900 dark:text-white">PPDB {{ $ppdbState->period?->academic_year ?? 'Sekolah' }}</span>
+                            <span class="block text-xs text-slate-500 dark:text-slate-400">{{ $ppdbState->publicLabel() }}</span>
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <a href="#tentang" class="scroll-cue absolute bottom-14 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-slate-400 transition-colors hover:text-primary-600 dark:text-slate-500 dark:hover:text-primary-400 lg:flex" aria-label="Gulir ke bawah">
+            <span class="text-[11px] font-semibold uppercase tracking-[0.2em]">Gulir</span>
+            <span class="scroll-cue-line block h-8 w-px bg-current" aria-hidden="true"></span>
+        </a>
 
         <div class="relative border-t border-slate-200/70 bg-white/70 py-3 backdrop-blur dark:border-slate-800/70 dark:bg-slate-950/70">
             <x-marquee-strip :items="['Rekayasa Perangkat Lunak', 'Project-Based Learning', 'Tahfizh & Karakter', 'Future Skills']" class="text-slate-600 dark:text-slate-300" />
@@ -69,28 +98,28 @@
     {{-- Statistik --}}
     <section class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-16">
         <x-stat-ribbon :stats="[
-            ['label' => 'Program Keahlian', 'value' => $stats['programs'] ?? '4'],
-            ['label' => 'Tahun Berdiri', 'value' => $stats['founded'] ?? '2016'],
-            ['label' => 'Siswa Aktif', 'value' => $stats['students'] ?? '850+'],
-            ['label' => 'Alumni Tersebar', 'value' => $stats['alumni'] ?? '1200+'],
+            ['label' => 'Program Keahlian', 'value' => $stats['programs']],
+            ['label' => 'Tahun Berdiri', 'value' => $stats['founded']],
+            ['label' => 'Siswa Aktif', 'value' => $stats['students']],
+            ['label' => 'Alumni', 'value' => $stats['alumni']],
         ]" />
     </section>
 
     {{-- Tentang --}}
-    <section class="bg-white py-16 dark:bg-slate-950 lg:py-20">
+    <section id="tentang" class="scroll-mt-20 bg-white py-16 dark:bg-slate-950 lg:py-20">
         <div class="mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">
             <div class="reveal">
                 <x-section-heading align="left" subtitle="Tentang Kami" title="Sekolah Vokasi Berbasis Tahfizh Al-Qur'an">
                     SMK Tahfizh Al-Fatih memadukan pendidikan kejuruan modern dengan pembinaan hafalan Al-Qur'an. Kami percaya lulusan terbaik adalah mereka yang tidak hanya unggul dalam kompetensi, tetapi juga kokoh dalam iman dan akhlak.
                 </x-section-heading>
 
-                <ul class="mt-8 space-y-4">
+                <ul class="mt-8 space-y-4" data-stagger>
                     @foreach ([
-                        ['title' => 'Kurikulum Vokasi Modern', 'desc' => 'Pembelajaran berbasis proyek dan relevan dengan kebutuhan industri.'],
-                        ['title' => 'Program Tahfizh Terstruktur', 'desc' => 'Target hafalan jelas dengan bimbingan guru bersanad.'],
-                        ['title' => 'Lingkungan Islami & Nyaman', 'desc' => 'Budaya sekolah yang islami, disiplin, dan menyenangkan.'],
+                        ['title' => 'Pendidikan Kejuruan', 'desc' => 'Program keahlian menjadi ruang siswa mengembangkan kompetensi dan karya.'],
+                        ['title' => 'Tahfizh Al-Qur’an', 'desc' => 'Pembinaan Al-Qur’an hadir sebagai bagian dari identitas pendidikan sekolah.'],
+                        ['title' => 'Karakter dan Kebersamaan', 'desc' => 'Lingkungan belajar diarahkan untuk menumbuhkan disiplin dan tanggung jawab.'],
                     ] as $feature)
-                        <li class="flex items-start gap-3.5">
+                        <li data-stagger-item class="flex items-start gap-3.5">
                             <span class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-600 dark:bg-primary-950 dark:text-primary-400" aria-hidden="true">
                                 <svg class="size-4" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
@@ -109,14 +138,49 @@
                 </div>
             </div>
 
-            <div class="reveal grid grid-cols-2 gap-4" style="--reveal-delay: 100ms">
-                <x-thumb ratio="aspect-[3/4]" class="rounded-xl" alt="Kegiatan sekolah" icon="camera" />
-                <x-thumb ratio="aspect-[3/4]" class="mt-8 rounded-xl" alt="Fasilitas sekolah" icon="camera" />
-                <x-thumb ratio="aspect-[3/4]" class="-mt-8 rounded-xl" alt="Prestasi siswa" icon="camera" />
-                <x-thumb ratio="aspect-[3/4]" class="rounded-xl" alt="Pembelajaran" icon="camera" />
+            <div class="grid grid-cols-2 gap-4" data-stagger data-parallax="0.03">
+                @foreach($galleries->take(4) as $gallery)
+                    <div data-stagger-item @class(['mt-8' => $loop->index === 1, '-mt-8' => $loop->index === 2])>
+                        <x-thumb :src="$gallery->image" ratio="aspect-[3/4]" class="rounded-xl" :alt="$gallery->title" />
+                    </div>
+                @endforeach
+                @if($galleries->isEmpty())
+                    <div class="col-span-2 flex aspect-[4/3] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900">Dokumentasi sekolah akan hadir di sini.</div>
+                @endif
             </div>
         </div>
     </section>
+
+    @if($sambutan)
+    {{-- Sambutan — institutional warmth with ALFATIH//FUTURE composition --}}
+    <section class="relative overflow-hidden border-y border-slate-200/70 bg-[#f7f5ef] py-16 dark:border-slate-800 dark:bg-slate-900/50 lg:py-24" aria-labelledby="headmaster-welcome">
+        <div class="pointer-events-none absolute right-0 top-0 font-display text-[18vw] font-extrabold leading-none text-forest-900/[0.035] dark:text-white/[0.025]" aria-hidden="true">AF</div>
+        <div class="relative mx-auto grid max-w-7xl items-center gap-10 px-4 sm:px-6 md:grid-cols-[0.78fr_1.22fr] lg:gap-16 lg:px-8">
+            <div class="relative mx-auto w-full max-w-sm" data-reveal="scale">
+                <div class="absolute -left-4 -top-4 h-24 w-24 border-l-2 border-t-2 border-gold-500" aria-hidden="true"></div>
+                <div class="aspect-[4/5] overflow-hidden rounded-[1.5rem_1.5rem_4rem_1.5rem] bg-forest-900 shadow-[0_24px_70px_rgba(6,62,50,0.22)]" data-media>
+                    @if($sambutan->image)
+                        <img src="{{ $sambutan->image }}" alt="{{ $sambutan->title }}" loading="lazy" class="h-full w-full object-cover">
+                    @else
+                        <div class="tech-grid flex h-full items-center justify-center"><span class="font-display text-7xl font-extrabold text-white/15">AF</span></div>
+                    @endif
+                </div>
+                <div class="absolute -bottom-4 -right-3 max-w-[85%] rounded-xl border border-white/70 bg-white/95 px-4 py-3 shadow-soft backdrop-blur dark:border-slate-700 dark:bg-slate-900/95">
+                    <p class="truncate text-sm font-extrabold text-slate-900 dark:text-white">{{ $headmasterName ?: 'Kepala Sekolah' }}</p>
+                    <p class="mt-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-primary-700 dark:text-tech-400">SMK Tahfizh Al-Fatih</p>
+                </div>
+            </div>
+
+            <div data-stagger>
+                <p data-stagger-item class="future-kicker">Suara dari sekolah</p>
+                <h2 data-stagger-item id="headmaster-welcome" class="mt-4 max-w-2xl font-display text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-4xl lg:text-5xl">Menyambut setiap langkah menuju masa depan.</h2>
+                <svg data-stagger-item class="mt-6 size-8 text-gold-500" viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><path d="M13.5 7C8 9.4 5 13.3 5 18.8 5 23.5 7.5 26 11 26c3.2 0 5.5-2.3 5.5-5.3 0-2.8-2-4.8-4.7-4.8-.8 0-1.5.1-2 .4.8-2.6 2.7-4.7 5.7-6.3L13.5 7zm13 0C21 9.4 18 13.3 18 18.8c0 4.7 2.5 7.2 6 7.2 3.2 0 5.5-2.3 5.5-5.3 0-2.8-2-4.8-4.7-4.8-.8 0-1.5.1-2 .4.8-2.6 2.7-4.7 5.7-6.3L26.5 7z" /></svg>
+                <p data-stagger-item class="mt-3 max-w-2xl text-base leading-8 text-slate-600 dark:text-slate-300 sm:text-lg">{{ \Illuminate\Support\Str::limit(trim(strip_tags($sambutan->content)), 330) }}</p>
+                <div data-stagger-item class="mt-7"><x-ui.button variant="outline" href="{{ route('pages.show', 'sambutan-kepala-sekolah') }}">Baca sambutan lengkap <span aria-hidden="true">→</span></x-ui.button></div>
+            </div>
+        </div>
+    </section>
+    @endif
 
     {{-- Program Keahlian --}}
     <section class="relative py-16 lg:py-20">
@@ -124,21 +188,168 @@
         <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="reveal">
                 <x-section-heading subtitle="Program Keahlian" title="Pilih Kompetensi Sesuai Bakatmu">
-                    Empat program keahlian yang membekali siswa dengan keterampilan siap kerja di era digital.
+                    Jelajahi program yang tersedia dan temukan ruang belajar yang sesuai dengan minatmu.
                 </x-section-heading>
             </div>
 
-            <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:hidden" data-stagger>
                 @forelse ($programs as $program)
-                    <div class="reveal" style="--reveal-delay: {{ $loop->index * 80 }}ms">
+                    <div data-stagger-item>
                         <x-program-card :program="$program" :tone="['emerald', 'orange', 'gold', 'navy'][$loop->index % 4]" />
                     </div>
                 @empty
-                    <div class="sm:col-span-2 lg:col-span-4">
+                    <div class="sm:col-span-2">
                         <x-ui.empty-state title="Belum ada program keahlian" />
                     </div>
                 @endforelse
             </div>
+            @if($programs->isNotEmpty())
+            <div class="mt-12 hidden gap-8 lg:grid lg:grid-cols-2" data-program-index>
+                <div class="flex flex-col gap-2" role="tablist" aria-label="Daftar program keahlian">
+                    @foreach ($programs as $program)
+                        <button
+                            type="button"
+                            role="tab"
+                            id="program-tab-{{ $program->id }}"
+                            aria-controls="program-pane-{{ $program->id }}"
+                            aria-selected="{{ $loop->first ? 'true' : 'false' }}"
+                            tabindex="{{ $loop->first ? '0' : '-1' }}"
+                            data-program-tab="{{ $program->id }}"
+                            class="group flex items-center gap-5 rounded-2xl border border-transparent p-5 text-left transition-all duration-200 hover:border-slate-200 hover:bg-white hover:shadow-card data-[active=true]:border-slate-200 data-[active=true]:bg-white data-[active=true]:shadow-card dark:hover:border-slate-800 dark:hover:bg-slate-900 dark:data-[active=true]:border-slate-800 dark:data-[active=true]:bg-slate-900"
+                            data-active="{{ $loop->first ? 'true' : 'false' }}"
+                        >
+                            <span class="font-display text-sm font-extrabold text-slate-300 transition-colors group-hover:text-primary-500 dark:text-slate-600" aria-hidden="true">{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</span>
+                            <span class="min-w-0">
+                                <span class="block truncate font-display text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">{{ $program->name }}</span>
+                                <span class="mt-1 block truncate text-sm text-slate-500 dark:text-slate-400">{{ $program->short_description }}</span>
+                            </span>
+                            <svg class="ml-auto size-5 shrink-0 text-slate-300 transition-all group-hover:translate-x-1 group-hover:text-primary-500 dark:text-slate-600" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    @endforeach
+                </div>
+                <div class="relative">
+                    <div class="sticky top-24 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-soft dark:border-slate-800 dark:bg-slate-900" data-program-panel>
+                        @foreach ($programs as $program)
+                            <div id="program-pane-{{ $program->id }}" data-program-pane="{{ $program->id }}" class="{{ $loop->first ? '' : 'hidden' }}" role="tabpanel" aria-labelledby="program-tab-{{ $program->id }}">
+                                <x-thumb :src="$program->image" ratio="aspect-[16/10]" :alt="$program->name" />
+                                <div class="p-6">
+                                    <p class="text-xs font-bold uppercase tracking-[0.2em] text-energy-600 dark:text-energy-500">Program {{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</p>
+                                    <h3 class="mt-2 font-display text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">{{ $program->name }}</h3>
+                                    <p class="mt-2 line-clamp-3 text-sm leading-relaxed text-slate-500 dark:text-slate-400">{{ $program->short_description }}</p>
+                                    <x-ui.button size="sm" href="{{ route('programs.show', $program) }}" class="btn-arrow mt-5">
+                                        Pelajari Program
+                                        <svg class="size-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clip-rule="evenodd" />
+                                        </svg>
+                                    </x-ui.button>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+            @push('scripts')
+            <script>
+            (function () {
+                const root = document.querySelector('[data-program-index]');
+                if (!root) return;
+                const tabs = Array.from(root.querySelectorAll('[data-program-tab]'));
+                const panes = Array.from(root.querySelectorAll('[data-program-pane]'));
+                function activate(id, focusPane) {
+                    tabs.forEach((t) => {
+                        const on = t.getAttribute('data-program-tab') === id;
+                        t.setAttribute('data-active', on ? 'true' : 'false');
+                        t.setAttribute('aria-selected', on ? 'true' : 'false');
+                        t.setAttribute('tabindex', on ? '0' : '-1');
+                    });
+                    panes.forEach((p) => p.classList.toggle('hidden', p.getAttribute('data-program-pane') !== id));
+                    if (focusPane === true) {
+                        const pane = panes.find((p) => p.getAttribute('data-program-pane') === id);
+                        if (pane && window.matchMedia('(prefers-reduced-motion: reduce)').matches === false) {
+                            pane.animate(
+                                [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }],
+                                { duration: 320, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }
+                            );
+                        }
+                    }
+                }
+                tabs.forEach((t) => {
+                    const id = t.getAttribute('data-program-tab');
+                    t.addEventListener('pointerenter', () => activate(id, true));
+                    t.addEventListener('focus', () => activate(id, false));
+                    t.addEventListener('click', () => activate(id, true));
+                    t.addEventListener('keydown', (event) => {
+                        const index = tabs.indexOf(t);
+                        let target = null;
+                        if (event.key === 'ArrowDown' || event.key === 'ArrowRight') target = tabs[(index + 1) % tabs.length];
+                        if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') target = tabs[(index - 1 + tabs.length) % tabs.length];
+                        if (event.key === 'Home') target = tabs[0];
+                        if (event.key === 'End') target = tabs[tabs.length - 1];
+                        if (!target) return;
+                        event.preventDefault();
+                        target.focus();
+                        activate(target.getAttribute('data-program-tab'), true);
+                    });
+                });
+            })();
+            </script>
+            @endpush
+            @endif
+        </div>
+    </section>
+
+    {{-- Dari ruang belajar menjadi karya — signature story --}}
+    <section class="relative overflow-hidden bg-navy-900 py-16 lg:py-24" aria-labelledby="build-story-title">
+        <div class="tech-grid pointer-events-none absolute inset-0" aria-hidden="true"></div>
+        <div class="pointer-events-none absolute -left-24 top-1/3 size-72 rounded-full bg-tech-500/10 blur-3xl" aria-hidden="true"></div>
+        <div class="pointer-events-none absolute -right-24 bottom-0 size-72 rounded-full bg-gold-500/10 blur-3xl" aria-hidden="true"></div>
+        <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="max-w-2xl" data-stagger>
+                <p data-stagger-item class="text-xs font-bold uppercase tracking-[0.25em] text-tech-400">Pelajari • Praktikkan • Tumbuhkan</p>
+                <h2 data-stagger-item id="build-story-title" class="mt-3 font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Dari Ruang Belajar,<br />Menjadi Karya.</h2>
+                <p data-stagger-item class="mt-4 max-w-xl leading-relaxed text-slate-300">Setiap program membuka kesempatan untuk memahami dasar, berlatih, dan menunjukkan perkembangan melalui pengalaman belajar yang terarah.</p>
+            </div>
+            <ol class="relative mt-12 grid gap-6 lg:grid-cols-3" data-journey="x">
+                <span data-journey-fill class="absolute left-0 right-0 top-5 hidden h-0.5 origin-left rounded-full bg-gradient-to-r from-tech-400 via-gold-400 to-energy-500 lg:block" style="transform: scaleX(0); transform-origin: 0 50%;" aria-hidden="true"></span>
+                @foreach ([
+                    ['no' => '01', 'title' => 'Pahami Dasarnya', 'desc' => 'Mulai dari fondasi sesuai bidang dan program keahlian yang dipilih.'],
+                    ['no' => '02', 'title' => 'Praktikkan', 'desc' => 'Ubah pemahaman menjadi latihan, eksplorasi, dan pengalaman belajar.'],
+                    ['no' => '03', 'title' => 'Tunjukkan Perkembangan', 'desc' => 'Dokumentasikan proses dan hasil sebagai bagian dari perjalanan belajar.'],
+                ] as $stage)
+                    <li data-journey-step class="relative rounded-2xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-sm">
+                        <span class="journey-dot flex size-10 items-center justify-center rounded-full border border-white/15 bg-white/5 font-display text-sm font-extrabold text-tech-300" aria-hidden="true">{{ $stage['no'] }}</span>
+                        <h3 class="mt-4 font-display text-lg font-bold text-white">{{ $stage['title'] }}</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-slate-300">{{ $stage['desc'] }}</p>
+                    </li>
+                @endforeach
+            </ol>
+        </div>
+    </section>
+
+    {{-- Budaya sekolah --}}
+    <section class="wash-offwhite py-16 lg:py-20" aria-label="Budaya sekolah">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="max-w-2xl" data-stagger>
+                <p data-stagger-item class="text-xs font-bold uppercase tracking-[0.25em] text-energy-600 dark:text-energy-500">Budaya Kami</p>
+                <h2 data-stagger-item class="mt-3 font-display text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl">Belajar Sambil Membangun.</h2>
+            </div>
+            <ol class="relative mt-10 grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-4" data-journey="x">
+                <span data-journey-fill class="absolute left-0 right-0 top-5 hidden h-0.5 origin-left rounded-full bg-gradient-to-r from-primary-500 via-gold-500 to-energy-500 lg:block" style="transform: scaleX(0); transform-origin: 0 50%;" aria-hidden="true"></span>
+                @foreach ([
+                    ['no' => '01', 'title' => 'Belajar', 'desc' => 'Memahami dasar dengan benar.'],
+                    ['no' => '02', 'title' => 'Berkolaborasi', 'desc' => 'Mengerjakan proyek bersama tim.'],
+                    ['no' => '03', 'title' => 'Membangun', 'desc' => 'Mengubah ide menjadi karya.'],
+                    ['no' => '04', 'title' => 'Berkarakter', 'desc' => 'Tumbuh dengan akhlak mulia.'],
+                ] as $value)
+                    <li data-journey-step class="relative">
+                        <span class="journey-dot journey-ghost font-display text-4xl font-extrabold tracking-tight text-slate-200 dark:text-slate-700" aria-hidden="true">{{ $value['no'] }}</span>
+                        <h3 class="mt-2 font-display text-lg font-bold uppercase tracking-wide text-slate-900 dark:text-white">{{ $value['title'] }}</h3>
+                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ $value['desc'] }}</p>
+                    </li>
+                @endforeach
+            </ol>
         </div>
     </section>
 
@@ -151,23 +362,44 @@
                 </x-section-heading>
             </div>
 
-            <div class="mt-12 grid gap-6 md:grid-cols-3">
-                @forelse ($news as $item)
-                    <a href="{{ route('news.show', $item) }}" class="group reveal" style="--reveal-delay: {{ $loop->index * 80 }}ms">
-                        <x-ui.card padding="false" hover="true" class="lift h-full overflow-hidden">
-                            <x-thumb :src="$item->thumbnail" ratio="aspect-video" alt="{{ $item->title }}" />
-                            <div class="p-5">
-                                <p class="text-xs font-medium uppercase tracking-wider text-gold-600 dark:text-gold-400">{{ $item->published_at?->format('d M Y') }}</p>
-                                <h3 class="mt-2 line-clamp-2 font-bold text-slate-900 transition-colors group-hover:text-primary-700 dark:text-white dark:group-hover:text-primary-400">{{ $item->title }}</h3>
-                                <p class="mt-2 line-clamp-3 text-sm leading-relaxed text-slate-500 dark:text-slate-400">{{ $item->excerpt }}</p>
-                            </div>
-                        </x-ui.card>
+            @if ($news->isNotEmpty())
+            @php $headline = $news->first(); @endphp
+            <a href="{{ route('news.show', $headline) }}" class="group mt-12 grid overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card dark:border-slate-800 dark:bg-slate-900 md:grid-cols-2" data-reveal="scale">
+                <span class="block min-h-60 overflow-hidden">
+                    <x-thumb :src="$headline->thumbnail" ratio="aspect-video md:aspect-auto md:h-full" :alt="$headline->title" class="h-full transition-transform duration-500 group-hover:scale-[1.03]" />
+                </span>
+                <span class="flex flex-col justify-center p-6 sm:p-10">
+                    <span class="flex items-center gap-3 text-xs font-semibold uppercase tracking-wider">
+                        <span class="text-gold-600 dark:text-gold-400">Sorotan</span>
+                        <span class="text-slate-400">{{ $headline->published_at?->format('d M Y') }}</span>
+                    </span>
+                    <span class="mt-3 font-display text-2xl font-extrabold tracking-tight text-slate-900 transition-colors group-hover:text-primary-700 dark:text-white dark:group-hover:text-primary-400 sm:text-3xl">{{ $headline->title }}</span>
+                    <span class="mt-3 line-clamp-3 leading-relaxed text-slate-500 dark:text-slate-400">{{ $headline->excerpt }}</span>
+                    <span class="link-underline mt-4 w-fit text-sm font-bold text-primary-700 dark:text-primary-400">Baca Selengkapnya →</span>
+                </span>
+            </a>
+            @endif
+
+            <div class="mt-6 grid gap-4 md:grid-cols-2" data-stagger>
+                @foreach ($news->skip(1) as $item)
+                    <a href="{{ route('news.show', $item) }}" class="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-3 shadow-card transition-colors hover:border-primary-200 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-primary-800" data-stagger-item>
+                        <span class="block w-28 shrink-0 overflow-hidden rounded-xl">
+                            <x-thumb :src="$item->thumbnail" ratio="aspect-[4/3]" :alt="$item->title" class="transition-transform duration-300 group-hover:scale-105" />
+                        </span>
+                        <span class="min-w-0 flex-1 py-1">
+                            <span class="text-xs font-medium uppercase tracking-wider text-gold-600 dark:text-gold-400">{{ $item->published_at?->format('d M Y') }}</span>
+                            <span class="mt-1 line-clamp-2 block font-bold text-slate-900 transition-colors group-hover:text-primary-700 dark:text-white dark:group-hover:text-primary-400">{{ $item->title }}</span>
+                        </span>
+                        <svg class="mr-1 size-5 shrink-0 text-slate-300 transition-all group-hover:translate-x-1 group-hover:text-primary-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clip-rule="evenodd" />
+                        </svg>
                     </a>
-                @empty
-                    <div class="md:col-span-3">
+                @endforeach
+                @if ($news->isEmpty())
+                    <div class="md:col-span-2">
                         <x-ui.empty-state title="Belum ada berita" />
                     </div>
-                @endforelse
+                @endif
             </div>
 
             @if ($news->isNotEmpty())
@@ -187,9 +419,9 @@
                 </x-section-heading>
             </div>
 
-            <div class="mx-auto mt-12 max-w-3xl space-y-4">
+            <div class="mx-auto mt-12 max-w-3xl space-y-4" data-stagger>
                 @forelse ($announcements as $announcement)
-                    <div class="reveal flex items-start gap-4 rounded-xl border border-slate-200 border-l-4 border-l-gold-500 bg-white p-5 shadow-card dark:border-slate-800 dark:border-l-gold-500 dark:bg-slate-900">
+                    <div data-stagger-item class="flex items-start gap-4 rounded-xl border border-slate-200 border-l-4 border-l-gold-500 bg-white p-5 shadow-card dark:border-slate-800 dark:border-l-gold-500 dark:bg-slate-900">
                         <span class="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full bg-accent-50 text-accent-600 dark:bg-accent-950 dark:text-accent-400" aria-hidden="true">
                             <svg class="size-5" viewBox="0 0 24 24" fill="currentColor">
                                 <path fill-rule="evenodd" d="M5.25 4.5a2.25 2.25 0 012.25-2.25h9a2.25 2.25 0 012.25 2.25v13.5a.75.75 0 01-.75.75H6a.75.75 0 01-.75-.75V4.5zM6 18.75h12v2.25a.75.75 0 01-.75.75h-9a.75.75 0 01-.75-.75v-2.25z" clip-rule="evenodd" />
@@ -229,18 +461,33 @@
         </div>
     </section>
 
-    {{-- CTA Pendaftaran --}}
+    {{-- CTA Pendaftaran — state story --}}
     <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div class="reveal relative overflow-hidden rounded-2xl bg-navy-900 px-6 py-8 shadow-soft sm:px-10 lg:py-10">
+        <div class="relative overflow-hidden rounded-2xl bg-navy-900 shadow-soft" data-reveal="scale" data-spotlight>
             <div class="tech-grid pointer-events-none absolute inset-0" aria-hidden="true"></div>
             <div class="pointer-events-none absolute -right-16 -top-16 size-48 rounded-full bg-energy-500/25 blur-3xl" aria-hidden="true"></div>
             <div class="pointer-events-none absolute -bottom-16 -left-16 size-48 rounded-full bg-gold-500/20 blur-3xl" aria-hidden="true"></div>
 
-            <div class="relative flex flex-col items-center justify-between gap-6 lg:flex-row">
-                <div class="text-center lg:text-left">
-                    <p class="text-xs font-bold uppercase tracking-[0.25em] text-gold-400">PPDB {{ $ppdbState->period?->academic_year ?? '' }}</p>
-                    <h2 class="mt-2 font-display text-2xl font-extrabold text-white sm:text-3xl">Your Next Chapter Starts Here.</h2>
-                    <p class="mt-2 max-w-xl text-sm leading-relaxed text-slate-300 sm:text-base">
+            <div class="relative grid gap-10 p-6 sm:p-10 lg:grid-cols-5 lg:py-12">
+                <div class="text-center lg:col-span-3 lg:text-left" data-mask-group>
+                    <p class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.2em] text-gold-400 ring-1 ring-inset ring-white/20">
+                        <span class="relative flex size-2" aria-hidden="true">
+                            <span class="absolute inline-flex size-full animate-ping rounded-full {{ $ppdbState->status === 'open' ? 'bg-emerald-400' : 'bg-slate-400' }} opacity-75"></span>
+                            <span class="relative inline-flex size-2 rounded-full {{ $ppdbState->status === 'open' ? 'bg-emerald-500' : 'bg-slate-400' }}"></span>
+                        </span>
+                        PPDB {{ $ppdbState->period?->academic_year ?? '' }} — {{ $ppdbState->publicLabel() }}
+                    </p>
+                    <h2 class="mt-4 font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+                        <span data-mask-line><span>
+                        @if($ppdbState->status === 'open') Pendaftaran Dibuka.
+                        @elseif($ppdbState->status === 'completed') Telah Selesai.
+                        @elseif($ppdbState->status === 'full') Kuota Terpenuhi.
+                        @elseif($ppdbState->status === 'upcoming') Segera Dibuka.
+                        @elseif($ppdbState->status === 'closed') Telah Ditutup.
+                        @else Informasi PPDB. @endif
+                        </span></span>
+                    </h2>
+                    <p class="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-slate-300 sm:text-base lg:mx-0">
                         @if($ppdbState->status === 'open')
                             Pendaftaran Peserta Didik Baru sedang dibuka.@if($ppdbState->quota) Kuota tersisa: {{ $ppdbState->remainingQuota() }} dari {{ $ppdbState->quota }}.@endif
                         @elseif($ppdbState->status === 'upcoming')
@@ -249,20 +496,64 @@
                             Kuota PPDB telah terpenuhi. Pendaftaran online tidak menerima calon siswa baru.
                         @elseif($ppdbState->status === 'closed')
                             Periode PPDB telah berakhir. Pendaftaran berikutnya belum dibuka kembali.
+                        @elseif($ppdbState->status === 'completed')
+                            Seluruh rangkaian PPDB periode ini telah selesai.
                         @else
                             Informasi pembukaan pendaftaran akan diumumkan melalui website resmi sekolah.
                         @endif
                     </p>
                     <x-digital-pulse :steps="['Daftar', 'Verifikasi', 'Diterima']" class="mx-auto mt-5 max-w-md text-tech-400 lg:mx-0" />
+                    <div class="mt-7 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
+                        @if($ppdbState->canRegister())
+                        <x-ui.button variant="accent" size="lg" href="{{ route('ppdb.index') }}" class="clip-corner-sm btn-arrow" shine data-magnetic>Daftar Sekarang
+                            <svg class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clip-rule="evenodd" />
+                            </svg>
+                        </x-ui.button>
+                        @elseif($ppdbState->portalEntryVisible())
+                        <x-ui.button variant="accent" size="lg" href="{{ route('ppdb.index') }}" class="clip-corner-sm" data-magnetic>Informasi PPDB</x-ui.button>
+                        @endif
+                        @if($ppdbState->portalEntryVisible())
+                        <x-ui.button variant="outline" size="lg" href="{{ route('portal.login') }}" class="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:border-white/40 focus-visible:outline-white" data-magnetic>Masuk Portal</x-ui.button>
+                        @endif
+                    </div>
                 </div>
-                <div class="flex shrink-0 flex-col gap-3 sm:flex-row">
-                    @if($ppdbState->canRegister())
-                    <x-ui.button variant="accent" size="lg" href="{{ route('ppdb.index') }}" class="clip-corner-sm">Daftar Sekarang</x-ui.button>
-                    @else
-                    <x-ui.button variant="accent" size="lg" href="{{ route('ppdb.index') }}" class="clip-corner-sm">Informasi PPDB</x-ui.button>
+                <div class="flex flex-col justify-center gap-3 lg:col-span-2">
+                    <div class="rounded-xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
+                        <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Tahun Ajaran</p>
+                        <p class="mt-1 font-display text-xl font-extrabold text-white">{{ $ppdbState->period?->academic_year ?? '—' }}</p>
+                    </div>
+                    <div class="rounded-xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
+                        <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Status</p>
+                        <p class="mt-1 font-display text-xl font-extrabold text-gold-400">{{ $ppdbState->publicLabel() }}</p>
+                    </div>
+                    @if($ppdbState->quota !== null)
+                    <div class="rounded-xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
+                        <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Kuota Tersisa</p>
+                        <p class="mt-1 font-display text-xl font-extrabold text-white">{{ $ppdbState->remainingQuota() }} <span class="text-sm font-semibold text-slate-400">dari {{ $ppdbState->quota }}</span></p>
+                    </div>
                     @endif
-                    <x-ui.button variant="outline" size="lg" href="{{ route('portal.login') }}" class="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:border-white/40 focus-visible:outline-white">Masuk Portal</x-ui.button>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    {{-- Kontak CTA --}}
+    <section class="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8 lg:pb-20">
+        <div class="flex flex-col items-center justify-between gap-6 overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-card dark:border-slate-800 dark:bg-slate-900 sm:flex-row sm:p-8" data-reveal>
+            <div class="text-center sm:text-left">
+                <p class="text-xs font-bold uppercase tracking-[0.25em] text-primary-600 dark:text-primary-400">Hubungi Kami</p>
+                <h2 class="mt-2 font-display text-xl font-extrabold text-slate-900 dark:text-white sm:text-2xl">Ada pertanyaan? Kami siap membantu.</h2>
+                @php($homeContacts = array_values(array_filter([\App\Models\SiteSetting::get('school_phone'), \App\Models\SiteSetting::get('school_email')])))
+                @if($homeContacts !== [])<p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ implode(' • ', $homeContacts) }}</p>@endif
+            </div>
+            <div class="flex shrink-0 gap-3">
+                <x-ui.button href="{{ route('contact.index') }}" class="btn-arrow" data-magnetic>Kirim Pesan
+                    <svg class="size-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clip-rule="evenodd" />
+                    </svg>
+                </x-ui.button>
+                <x-ui.button variant="outline" href="{{ route('pages.show', 'profil') }}">Profil Sekolah</x-ui.button>
             </div>
         </div>
     </section>

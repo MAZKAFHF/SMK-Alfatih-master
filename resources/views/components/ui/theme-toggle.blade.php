@@ -1,9 +1,15 @@
+@props(['context' => null])
+@php
+    $surface = $context ?? (request()->routeIs('admin.*') ? 'control' : (request()->routeIs('portal.*') ? 'portal' : 'future'));
+    $toggleClass = $surface === 'control'
+        ? 'ctl-btn ctl-btn-ghost !p-2'
+        : 'inline-flex size-10 items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-emerald-50 hover:text-primary-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white';
+@endphp
 <button
     type="button"
     data-theme-toggle
-    data-ctl-tooltip="Ganti tema terang/gelap"
-    class="ctl-btn ctl-btn-ghost !p-2"
-    aria-label="Ganti tema"
+    class="{{ $toggleClass }}"
+    aria-label="Ganti tema terang/gelap"
 >
     <svg data-theme-icon-sun class="size-5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
