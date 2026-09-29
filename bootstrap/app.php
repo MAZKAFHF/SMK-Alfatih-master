@@ -80,12 +80,13 @@ return Application::configure(basePath: dirname(__DIR__))
                 ], 500);
             }
 
+            if ($request->isMethod('get')) {
+                return response()->view('errors.500', [], 500);
+            }
+
             return back()
                 ->withInput()
-                ->with(
-                    'error',
-                    'Terjadi kesalahan tak terduga. Silakan coba lagi atau hubungi admin.'
-                );
+                ->with('error', 'Terjadi kesalahan tak terduga. Silakan coba lagi atau hubungi admin.');
         });
     })
     ->create();

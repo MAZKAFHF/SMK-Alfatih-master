@@ -25,8 +25,6 @@ use App\Http\Controllers\Public\PageController;
 use App\Http\Controllers\Public\PPDBController;
 use App\Http\Controllers\Public\ProgramController;
 use App\Http\Controllers\Public\SitemapController;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -104,38 +102,6 @@ Route::get('/robots.txt', function () {
 
     return response($content, 200)->header('Content-Type', 'text/plain');
 })->name('robots');
-
-// Temporary, token-protected production bootstrap endpoint. Remove this route
-// immediately after the first successful initialization because migrate:fresh
-// permanently deletes every table before recreating and seeding the database.
-Route::get('/init-db', function (Request $request) {
-    $expectedToken = (string) config('app.init_db_token');
-    $providedToken = (string) $request->query('token');
-
-    abort_if($expectedToken === '', 503, 'INIT_DB_TOKEN belum dikonfigurasi.');
-    abort_unless(hash_equals($expectedToken, $providedToken), 403, 'Token init database tidak valid.');
-
-    Artisan::call('config:clear');
-    // The production default is a database cache. During first boot its table
-    // may not exist yet, so clear through an in-memory store before rebuilding.
-    config(['cache.default' => 'array']);
-    Artisan::call('cache:clear');
-    Artisan::call('route:clear');
-    Artisan::call('view:clear');
-    Artisan::call('migrate:fresh', [
-        '--seed' => true,
-        '--force' => true,
-    ]);
-
-    return response(
-        "SUKSES: cache Laravel telah dibersihkan dan database berhasil dibuat ulang beserta data seed.\n",
-        200,
-        ['Content-Type' => 'text/plain; charset=UTF-8'],
-    );
-})->withoutMiddleware([
-    \Illuminate\Session\Middleware\StartSession::class,
-    \Illuminate\View\Middleware\ShareErrorsFromSession::class,
-])->name('system.init-db');
 
 Route::get('/{slug}', [PageController::class, 'show'])
     ->where('slug', '(?!admin)[a-z0-9-]+')

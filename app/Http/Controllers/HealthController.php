@@ -17,8 +17,8 @@ class HealthController extends Controller
             DB::connection()->getPdo();
             DB::table('users')->limit(1)->count();
             $checks['database'] = 'ok';
-        } catch (\Throwable $e) {
-            $checks['database'] = 'fail: '.$e->getMessage();
+        } catch (\Throwable) {
+            $checks['database'] = 'fail';
             $ok = false;
         }
 
@@ -30,7 +30,8 @@ class HealthController extends Controller
             $ok = false;
         }
 
-        $checks['storage'] = is_writable(storage_path()) ? 'ok' : 'fail';
+        $writablePath = env('VERCEL') ? sys_get_temp_dir() : storage_path();
+        $checks['storage'] = is_writable($writablePath) ? 'ok' : 'fail';
         if ($checks['storage'] !== 'ok') {
             $ok = false;
         }

@@ -102,8 +102,6 @@ return [
 
     'key' => env('APP_KEY'),
 
-    'init_db_token' => env('INIT_DB_TOKEN'),
-
     'initial_admin_password' => env('ADMIN_INITIAL_PASSWORD'),
 
     'previous_keys' => [
