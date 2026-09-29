@@ -30,8 +30,7 @@ class HealthController extends Controller
             $ok = false;
         }
 
-        $writablePath = env('VERCEL') ? sys_get_temp_dir() : storage_path();
-        $checks['storage'] = is_writable($writablePath) ? 'ok' : 'fail';
+        $checks['storage'] = is_writable(storage_path()) ? 'ok' : 'fail';
         if ($checks['storage'] !== 'ok') {
             $ok = false;
         }

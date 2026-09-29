@@ -71,12 +71,14 @@ class MediaService
         if (! $path) {
             return null;
         }
-        // path might already be url due to accessor; handle
+        // The path may already be an absolute/external URL.
         if (str_starts_with($path, 'http') || str_starts_with($path, '/storage')) {
             return $path;
         }
 
-        return Storage::disk('public')->url($path);
+        return Storage::disk('public')->exists($path)
+            ? Storage::disk('public')->url($path)
+            : null;
     }
 
     public static function isImage(UploadedFile $file): bool

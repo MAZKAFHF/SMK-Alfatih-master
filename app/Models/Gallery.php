@@ -3,10 +3,10 @@
 namespace App\Models;
 
 use App\Enums\ContentStatus;
+use App\Services\MediaService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Storage;
 
 class Gallery extends Model
 {
@@ -37,9 +37,6 @@ class Gallery extends Model
         if (! $value) {
             return null;
         }
-        if (! Storage::disk('public')->exists($value)) {
-            return null;
-        }
-        return Storage::disk('public')->url($value);
+        return MediaService::url($value);
     }
 }
