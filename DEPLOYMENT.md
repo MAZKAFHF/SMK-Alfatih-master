@@ -114,3 +114,21 @@ php artisan config:cache && php artisan route:cache && php artisan view:cache
 - [ ] Contact inbox menerima pesan
 - [ ] Sitemap & robots sesuai env
 - [ ] Security headers terlihat (curl -I)
+
+## Hostinger VPS — Docker + Traefik
+
+Repository menyediakan `Dockerfile.production` dan `docker-compose.production.yml`
+untuk VPS yang port 80/443-nya sudah dikelola Traefik.
+
+```bash
+docker compose --env-file .env.production -f docker-compose.production.yml build
+docker compose --env-file .env.production -f docker-compose.production.yml up -d database
+docker compose --env-file .env.production -f docker-compose.production.yml run --rm app php artisan migrate --force
+docker compose --env-file .env.production -f docker-compose.production.yml up -d
+```
+
+- Tidak ada database atau port aplikasi yang dipublikasikan langsung ke internet.
+- Traefik meneruskan `otaniverse.org` dan `www.otaniverse.org` ke container `app`.
+- Queue dan scheduler berjalan sebagai container terpisah.
+- `storage/` dan `backups/` merupakan bind mount persisten di VPS.
+- File `.env.production` hanya dibuat di server dan tidak boleh di-commit.
