@@ -80,4 +80,13 @@ class SettingsPagesTest extends TestCase
         $response->assertSee('Hanya profil.');
         $response->assertDontSee('Sambutan Kepala Sekolah');
     }
+
+    public function test_profile_and_history_use_dark_hero_backgrounds(): void
+    {
+        Page::factory()->create(['slug' => 'profil', 'title' => 'Profil Sekolah', 'status' => 'published', 'content' => '<p>Profil.</p>']);
+        Page::factory()->create(['slug' => 'sejarah', 'title' => 'Sejarah Sekolah', 'status' => 'published', 'content' => '<p>Sejarah.</p>']);
+
+        $this->get('/profil')->assertOk()->assertSee('wash-navy', false)->assertSee('tech-grid', false);
+        $this->get('/sejarah')->assertOk()->assertSee('wash-navy', false)->assertSee('tech-grid', false);
+    }
 }

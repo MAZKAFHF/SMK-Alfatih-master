@@ -12,7 +12,13 @@
                     <td class="px-4 py-3 text-xs">{{ $r->deleted_at->translatedFormat('d M Y H:i') }}</td>
                     <td class="px-4 py-3 text-right space-x-1">
                         <form method="POST" novalidate action="{{ route('admin.registrations.restore',$r->id) }}" class="inline">@csrf <x-ui.button size="sm" type="submit">Restore</x-ui.button></form>
-                        <x-ui.button size="sm" variant="danger" onclick="confirmDialog({title:'Hapus permanen?', message:'{{ $r->registration_number }}', formAction:'{{ route('admin.registrations.force-delete',$r->id) }}', method:'DELETE'})">Hapus Permanen</x-ui.button>
+                        @if(auth()->user()->is_superadmin)
+                        <form method="POST" action="{{ route('admin.registrations.force-delete',$r->id) }}" class="mt-2 flex items-center justify-end gap-2">
+                            @csrf @method('DELETE')
+                            <x-ui.input name="admin_code" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" placeholder="Kode 4 digit" required />
+                            <x-ui.button size="sm" variant="danger" type="submit">Hapus Permanen</x-ui.button>
+                        </form>
+                        @endif
                     </td>
                 </tr>
             @endforeach

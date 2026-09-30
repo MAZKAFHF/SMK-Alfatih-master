@@ -8,6 +8,7 @@
         'fasilitas' => 'media',
         default => 'info',
     };
+    $heroVariant = $page->slug === 'sejarah' ? 'tech' : $variant;
 @endphp
 
 <x-layouts.app :title="$page->title" :description="$page->meta_description">
@@ -16,7 +17,7 @@
     @endif
 
     <x-page-hero
-        :variant="$variant"
+        :variant="$heroVariant"
         :eyebrow="$variant === 'manifesto' ? 'Identitas Kami' : 'Profil Sekolah'"
         :title="$page->title"
         :description="$variant === 'manifesto' ? null : $page->meta_description"

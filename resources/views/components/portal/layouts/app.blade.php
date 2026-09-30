@@ -30,7 +30,7 @@
         <title>{{ $pageTitle }}</title>
         <meta name="robots" content="noindex, nofollow">
         <meta name="theme-color" content="#075e47">
-        <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
+        <x-site-favicon />
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700,800|sora:600,700,800" rel="stylesheet">
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -42,7 +42,7 @@
         <header class="sticky top-0 z-40 border-b border-emerald-950/10 bg-white/88 backdrop-blur-xl dark:border-white/10 dark:bg-[#07120e]/88">
             <div class="mx-auto flex h-[4.5rem] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
                 <a href="{{ route('portal.dashboard') }}" class="flex min-w-0 items-center gap-3" aria-label="Beranda Portal PPDB">
-                    <img src="{{ asset('img/logo.png') }}" alt="" width="42" height="42" class="size-10 shrink-0 rounded-xl bg-white object-contain p-0.5 shadow-sm">
+                    <x-brand-logo :decorative="true" />
                     <span class="min-w-0 leading-none">
                         <span class="block truncate font-display text-sm font-extrabold tracking-tight text-slate-950 dark:text-white">ALFATIH<span class="text-primary-700 dark:text-tech-400">//PORTAL</span></span>
                         <span class="mt-1 block truncate text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Ruang Calon Siswa</span>

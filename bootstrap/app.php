@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureUserIsAdmin;
+use App\Http\Middleware\EnsureUserIsApplicant;
 use App\Http\Middleware\EnsureUserIsSuperAdmin;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -21,7 +22,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
 
-        $trustedProxies = env('TRUSTED_PROXIES', '*');
+        $middleware->validateCsrfTokens(except: [
+            'webhooks/resend',
+        ]);
+
+        $trustedProxies = env('TRUSTED_PROXIES');
         if ($trustedProxies === '*') {
             $middleware->trustProxies(at: '*');
         } elseif (blank($trustedProxies)) {
@@ -54,7 +59,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
             'superadmin' => EnsureUserIsSuperAdmin::class,
-            'applicant' => \App\Http\Middleware\EnsureUserIsApplicant::class,
+            'applicant' => EnsureUserIsApplicant::class,
         ]);
 
         $middleware->append(SecurityHeaders::class);

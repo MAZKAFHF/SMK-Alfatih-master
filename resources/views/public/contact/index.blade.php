@@ -1,6 +1,6 @@
 <x-layouts.app :title="'Kontak'">
     <x-page-hero
-        variant="minimal"
+        variant="tech"
         eyebrow="Hubungi Kami"
         title="Mari Terhubung."
         description="Kami siap membantu. Sampaikan pertanyaan atau keperluan Anda melalui form di bawah ini."

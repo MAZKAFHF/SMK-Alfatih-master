@@ -9,8 +9,10 @@
 
     onReady(() => {
         initThemeToggle();
+        initPasswordToggles();
         initDropdowns();
         initModals();
+        initUserEditor();
         initTabs();
         initAlertDismiss();
         initConfirmDialog();
@@ -50,6 +52,29 @@
                 localStorage.setItem('theme', isDark ? 'dark' : 'light');
                 updateIcons();
             });
+        });
+    }
+
+    /* ---------------- Password visibility ---------------- */
+    function initPasswordToggles() {
+        document.addEventListener('click', (event) => {
+            const toggle = event.target.closest('[data-password-toggle]');
+            if (!toggle) return;
+
+            const inputId = toggle.getAttribute('aria-controls');
+            const input = inputId ? document.getElementById(inputId) : null;
+            if (!input || !['password', 'text'].includes(input.type)) return;
+
+            const willShow = input.type === 'password';
+            input.type = willShow ? 'text' : 'password';
+            toggle.setAttribute('aria-pressed', String(willShow));
+            toggle.setAttribute('aria-label', willShow ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi');
+            toggle.querySelector('[data-password-icon-show]')?.classList.toggle('hidden', willShow);
+            toggle.querySelector('[data-password-icon-hide]')?.classList.toggle('hidden', !willShow);
+
+            input.focus({ preventScroll: true });
+            const cursor = input.value.length;
+            input.setSelectionRange?.(cursor, cursor);
         });
     }
 
@@ -127,6 +152,37 @@
 
     /* ---------------- Dropdown ---------------- */
     function initDropdowns() {
+        const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+
+        document.querySelectorAll('[data-dropdown]').forEach((dropdown) => {
+            const menu = dropdown.querySelector('[data-dropdown-menu]');
+            const trigger = dropdown.querySelector('[data-dropdown-toggle] button, [data-dropdown-toggle] a');
+            if (!menu || !trigger) return;
+
+            let closeTimer = null;
+            const open = () => {
+                window.clearTimeout(closeTimer);
+                closeAllDropdowns(dropdown);
+                menu.classList.remove('hidden');
+                trigger.setAttribute('aria-expanded', 'true');
+            };
+            const scheduleClose = () => {
+                window.clearTimeout(closeTimer);
+                closeTimer = window.setTimeout(() => closeDropdown(dropdown), 140);
+            };
+
+            dropdown.addEventListener('pointerenter', () => {
+                if (finePointer.matches) open();
+            });
+            dropdown.addEventListener('pointerleave', () => {
+                if (finePointer.matches) scheduleClose();
+            });
+            dropdown.addEventListener('focusin', open);
+            dropdown.addEventListener('focusout', (event) => {
+                if (!dropdown.contains(event.relatedTarget)) scheduleClose();
+            });
+        });
+
         document.addEventListener('click', (e) => {
             const toggle = e.target.closest('[data-dropdown-toggle]');
             const menu = toggle?.closest('[data-dropdown]')?.querySelector('[data-dropdown-menu]');
@@ -136,6 +192,7 @@
                 closeAllDropdowns();
                 if (!isOpen) {
                     menu.classList.remove('hidden');
+                    toggle.querySelector('button, a')?.setAttribute('aria-expanded', 'true');
                 }
                 return;
             }
@@ -151,8 +208,16 @@
         });
     }
 
-    function closeAllDropdowns() {
-        document.querySelectorAll('[data-dropdown-menu]').forEach((m) => m.classList.add('hidden'));
+    function closeDropdown(dropdown) {
+        if (!dropdown) return;
+        dropdown.querySelector('[data-dropdown-menu]')?.classList.add('hidden');
+        dropdown.querySelector('[data-dropdown-toggle] button, [data-dropdown-toggle] a')?.setAttribute('aria-expanded', 'false');
+    }
+
+    function closeAllDropdowns(except = null) {
+        document.querySelectorAll('[data-dropdown]').forEach((dropdown) => {
+            if (dropdown !== except) closeDropdown(dropdown);
+        });
     }
 
     /* ---------------- Modal ---------------- */
@@ -190,6 +255,53 @@
         const modal = typeof id === 'string' ? document.getElementById(id) : id;
         closeModal(modal);
     };
+
+    /* ---------------- Admin user editor ---------------- */
+    function initUserEditor() {
+        const form = document.getElementById('edit-user-form');
+        const deleteForm = document.getElementById('delete-user-form');
+        if (!form) return;
+
+        document.addEventListener('click', (event) => {
+            const button = event.target.closest('[data-edit-user]');
+            if (!button) return;
+
+            const name = document.getElementById('edit-user-name');
+            const email = document.getElementById('edit-user-email');
+            const password = document.getElementById('edit-user-password');
+            const role = document.getElementById('edit-user-role');
+            const selfNote = document.getElementById('edit-user-self-note');
+            if (!name || !email || !password || !role || !selfNote) return;
+
+            const isSelf = button.dataset.self === '1';
+            form.action = button.dataset.url || '';
+            if (deleteForm) {
+                deleteForm.action = button.dataset.deleteUrl || '';
+                deleteForm.classList.toggle('hidden', isSelf || !button.dataset.deleteUrl);
+                const code = deleteForm.querySelector('input[name="admin_code"]');
+                if (code) code.value = '';
+            }
+            name.value = button.dataset.name || '';
+            email.value = button.dataset.email || '';
+            password.value = '';
+            const roleValue = button.dataset.role || 'admin';
+            role.value = roleValue;
+            role.disabled = isSelf;
+            const roleRoot = role.closest('[data-ctl-select]');
+            const roleTrigger = roleRoot?.querySelector('[data-ctl-trigger]');
+            const roleLabel = roleRoot?.querySelector('[data-ctl-select-label]');
+            roleRoot?.querySelectorAll('[role="option"]').forEach((option) => {
+                const selected = option.dataset.value === roleValue;
+                option.setAttribute('aria-selected', selected ? 'true' : 'false');
+                const check = option.querySelector('svg');
+                if (check) check.style.display = selected ? '' : 'none';
+                if (selected && roleLabel) roleLabel.textContent = option.dataset.label;
+            });
+            if (roleTrigger) roleTrigger.disabled = isSelf;
+            selfNote.classList.toggle('hidden', !isSelf);
+            window.openModal('edit-user-modal');
+        });
+    }
 
     function closeModal(modal) {
         if (!modal) return;
@@ -667,14 +779,26 @@
         });
     }
 
-    /* ---------------- ALFATIH//FUTURE: navbar solid on scroll ---------------- */
+    /* ---------------- Fixed public navbar ---------------- */
     function initNavbarScroll() {
         const header = document.querySelector('[data-navbar]');
         if (!header) return;
+        const spacer = document.querySelector('[data-navbar-spacer]');
+        const mobileMenu = header.querySelector('[data-nav-menu]');
+        const syncHeight = () => {
+            if (!spacer) return;
+            const openMenuHeight = mobileMenu && !mobileMenu.classList.contains('hidden')
+                ? mobileMenu.offsetHeight
+                : 0;
+            spacer.style.height = `${header.offsetHeight - openMenuHeight}px`;
+        };
         const onScroll = () => {
             header.classList.toggle('navbar-solid', window.scrollY > 24);
         };
+        syncHeight();
         onScroll();
         document.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', syncHeight);
+        if ('ResizeObserver' in window) new ResizeObserver(syncHeight).observe(header);
     }
 })();

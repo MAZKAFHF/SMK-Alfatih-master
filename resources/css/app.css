@@ -236,6 +236,22 @@
 @layer components {
     /* ---------- ALFATIH//FUTURE foundation ---------- */
 
+    /* Hero flag framing: logo stays away from the copy while video still covers the viewport. */
+    .hero-flag-video {
+        /* Mobile memakai titik fokus tengah agar footage tidak berat/crop ke kanan. */
+        object-position: center center;
+        transform: none;
+        transform-origin: center;
+    }
+    @media (min-width: 768px) {
+        .hero-flag-video {
+            /* Jangan perbesar video di laptop: logo beserta tulisan sekolah
+               pada footage harus tetap masuk ke dalam frame hero. */
+            object-position: center center;
+            transform: none;
+        }
+    }
+
     /* Navbar states: transparan di atas hero, solid setelah scroll */
     #site-header {
         transition: background-color 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
@@ -415,6 +431,7 @@
     html.js [data-stagger-item].is-in {
         opacity: 1;
         transform: none;
+        will-change: auto;
     }
     /* stagger children */
     html.js [data-stagger-item] {
@@ -476,7 +493,6 @@
     }
 
     /* ---------- scroll + reading progress ---------- */
-    [data-scroll-progress],
     [data-reading-progress] {
         transform: scaleX(0);
         transform-origin: 0 50%;
@@ -516,7 +532,7 @@
     /* ---------- journey progress (vertical line + steps) ---------- */
     [data-journey-fill] { transform: scaleY(0); transform-origin: 50% 0; transition: transform 900ms var(--ease-future); }
     [data-journey-step] { transition: opacity var(--motion-section) var(--ease-future), transform var(--motion-section) var(--ease-future); }
-    html.js [data-journey]:not(.is-active) [data-journey-step] { opacity: 0.45; }
+    html.js [data-journey]:not(.is-active) [data-journey-step] { opacity: 0.75; }
     [data-journey-step].is-on { opacity: 1; }
     [data-journey-step] .journey-dot { transition: background-color 300ms ease, border-color 300ms ease, box-shadow 300ms ease, transform 300ms var(--ease-future), color 300ms ease; }
     [data-journey-step].is-on .journey-dot { transform: scale(1.12); background-color: var(--color-primary-600); border-color: var(--color-primary-600); color: #fff; box-shadow: 0 0 0 4px rgb(16 185 129 / 0.18); }
@@ -552,9 +568,8 @@
     }
     .link-underline:hover { background-size: 100% 1.5px; }
 
-    /* ---------- navbar: hide-on-scroll + active track + progress ---------- */
-    #site-header { transition: transform 280ms var(--ease-future), background-color 200ms ease, border-color 200ms ease, box-shadow 200ms ease; }
-    #site-header.navbar-hidden { transform: translateY(-100%); }
+    /* ---------- navbar: fixed track + active state ---------- */
+    #site-header { transition: background-color 200ms ease, border-color 200ms ease, box-shadow 200ms ease; }
     .nav-link { position: relative; }
     .nav-link::after {
         content: '';
@@ -739,7 +754,6 @@
         .word-swap > span {
             animation: none !important;
         }
-        #site-header.navbar-hidden { transform: none; }
         [data-tilt], [data-magnetic], [data-depth] { transform: none !important; }
     }
 
@@ -1123,11 +1137,10 @@
     .future-card {
         border: 1px solid rgb(15 23 42 / 0.09);
         border-radius: 1rem;
-        background: rgb(255 255 255 / 0.88);
+        background: #fff;
         box-shadow: 0 18px 60px rgb(15 23 42 / 0.07);
-        backdrop-filter: blur(16px);
     }
-    .dark .future-card { border-color: rgb(148 163 184 / 0.16); background: rgb(15 23 42 / 0.82); box-shadow: 0 18px 60px rgb(0 0 0 / 0.22); }
+    .dark .future-card { border-color: rgb(148 163 184 / 0.16); background: #0f172a; box-shadow: 0 18px 60px rgb(0 0 0 / 0.22); }
     .card-interactive { transition: border-color 220ms ease, box-shadow 220ms var(--ease-future), transform 220ms var(--ease-future); }
     .card-interactive:hover { transform: translateY(-3px); border-color: rgb(16 185 129 / 0.3); box-shadow: 0 22px 64px rgb(15 23 42 / 0.11); }
 

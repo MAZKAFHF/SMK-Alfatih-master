@@ -29,6 +29,8 @@ class UserFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
+            'admin_code' => Hash::make('1234'),
+            'admin_code_set_at' => now(),
             'remember_token' => Str::random(10),
             'is_admin' => false,
             'is_superadmin' => false,

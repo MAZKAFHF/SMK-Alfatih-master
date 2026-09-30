@@ -3,7 +3,7 @@
 @endphp
 <x-layouts.app :title="$page->title" :description="$page->meta_description">
     <x-page-hero
-        variant="editorial"
+        variant="tech"
         eyebrow="Profil Sekolah"
         :title="$page->title"
         :description="\Illuminate\Support\Str::limit(strip_tags($page->meta_description ?? $page->content), 180)"

@@ -1,14 +1,24 @@
 <x-layouts.app>
-    {{-- HERO — Living Campus --}}
-    <section class="relative overflow-hidden bg-gradient-to-b from-primary-50 via-white to-white dark:from-night-900 dark:via-slate-950 dark:to-slate-950" data-hero data-spotlight>
-        <div class="tech-grid-light pointer-events-none absolute inset-0 dark:hidden" aria-hidden="true"></div>
-        <div class="tech-grid pointer-events-none absolute inset-0 hidden dark:block" aria-hidden="true"></div>
-        <x-motif-geometric class="absolute -left-10 top-16 size-44 text-primary-600/10 dark:text-tech-500/10" data-parallax="0.05" />
-        <x-motif-geometric class="absolute -right-12 bottom-10 size-56 text-gold-500/15" data-parallax="0.09" />
+    {{-- HERO — video identitas sekolah dengan zona logo yang tetap bersih --}}
+    <section class="relative overflow-hidden bg-navy-950 text-white" data-hero>
+        <div class="absolute inset-0 overflow-hidden bg-navy-950" aria-hidden="true">
+            <video
+                data-ambient-video
+                class="hero-flag-video absolute inset-0 size-full object-cover"
+                src="{{ asset('video/smk-motion.mp4') }}"
+                muted
+                loop
+                autoplay
+                playsinline
+                preload="auto"
+            ></video>
+            <div class="pointer-events-none absolute inset-0 bg-navy-950/35"></div>
+            <div class="pointer-events-none absolute inset-0 bg-gradient-to-r from-navy-950/95 via-navy-950/65 to-navy-950/10"></div>
+        </div>
 
-        <div class="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 md:grid-cols-[1.05fr_0.95fr] md:gap-7 lg:gap-10 lg:px-8 lg:py-24">
-            <div>
-                <div class="inline-flex items-center gap-2 rounded-full bg-primary-100 px-4 py-1.5 text-xs font-semibold text-primary-800 ring-1 ring-inset ring-primary-200 dark:bg-primary-900 dark:text-primary-300 dark:ring-primary-700" data-hero-item style="--hero-delay: 0ms">
+        <div class="relative mx-auto flex min-h-[calc(100svh-4.5rem)] max-w-7xl items-center px-4 py-12 sm:px-6 md:min-h-[calc(100svh-6.5rem)] md:py-16 lg:px-8">
+            <div class="w-full max-w-xl">
+                <div class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold text-emerald-50 ring-1 ring-inset ring-white/20 backdrop-blur-sm" data-hero-item style="--hero-delay: 0ms">
                     <span class="relative flex size-2">
                         <span class="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
                         <span class="relative inline-flex size-2 rounded-full bg-emerald-500"></span>
@@ -16,14 +26,14 @@
                     PPDB {{ $ppdbState->period?->academic_year ?? '' }} {{ $ppdbState->publicLabel() }}
                 </div>
 
-                <p class="mt-6 text-xs font-bold uppercase tracking-[0.25em] text-energy-600 dark:text-energy-500" data-hero-item style="--hero-delay: 90ms">SMK Tahfizh Al-Fatih</p>
-                <h1 class="mt-3 font-display text-4xl font-extrabold leading-[1.05] tracking-tight text-slate-900 dark:text-white sm:text-5xl lg:text-6xl">
+                <p class="mt-6 text-xs font-bold uppercase tracking-[0.25em] text-gold-400" data-hero-item style="--hero-delay: 90ms">SMK Tahfizh Al-Fatih</p>
+                <h1 class="mt-3 font-display text-[2rem] font-extrabold leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-[2.65rem] xl:text-5xl">
                     <span data-mask-line style="--reveal-delay: 140ms"><span>Membangun Generasi</span></span>
-                    <span data-mask-line style="--reveal-delay: 230ms"><span class="text-primary-600 dark:text-tech-400">Teknologi.</span></span>
-                    <span data-mask-line style="--reveal-delay: 320ms"><span><span class="word-swap text-gold-600 dark:text-gold-400" data-word-swap data-words='["Karakter.", "Kreativitas.", "Masa Depan."]'><span>Karakter.</span></span></span></span>
+                    <span data-mask-line style="--reveal-delay: 230ms"><span class="text-tech-300">Berilmu.</span></span>
+                    <span data-mask-line style="--reveal-delay: 320ms"><span><span class="word-swap text-gold-400" data-word-swap data-words='["Berkarakter.", "Terampil.", "Siap Berkarya."]'><span>Berkarakter.</span></span></span></span>
                 </h1>
 
-                <p class="mt-5 max-w-xl text-lg leading-relaxed text-slate-600 dark:text-slate-400" data-hero-item style="--hero-delay: 320ms">
+                <p class="mt-5 max-w-xl text-base leading-relaxed text-slate-200 lg:text-lg" data-hero-item style="--hero-delay: 320ms">
                     {{ $schoolTagline ?: 'Sekolah menengah kejuruan berbasis tahfizh Al-Qur’an untuk belajar, berkarya, dan bertumbuh.' }}
                 </p>
 
@@ -36,62 +46,22 @@
                         Daftar PPDB
                     </x-ui.button>
                     @else
-                    <x-ui.button size="lg" variant="outline" href="{{ route('ppdb.index') }}" class="clip-corner-sm" data-magnetic>Lihat Informasi PPDB</x-ui.button>
+                    <x-ui.button size="lg" variant="outline" href="{{ route('ppdb.index') }}" class="clip-corner-sm border-white/30 bg-white/10 text-white hover:border-white/40 hover:bg-white/20" data-magnetic>Lihat Informasi PPDB</x-ui.button>
                     @endif
-                    <x-ui.button size="lg" variant="outline" href="{{ route('pages.show', 'profil') }}" data-magnetic>Lihat Profil Sekolah</x-ui.button>
+                    <x-ui.button size="lg" variant="outline" href="{{ route('pages.show', 'profil') }}" class="border-white/30 bg-white/10 text-white hover:border-white/40 hover:bg-white/20" data-magnetic>Lihat Profil Sekolah</x-ui.button>
                 </div>
 
-                <x-digital-pulse :steps="['Learn', 'Build', 'Impact']" class="mt-10 max-w-md text-primary-700 dark:text-tech-400" />
-            </div>
-
-            <div class="relative" data-hero-item style="--hero-delay: 300ms">
-                <div data-depth-scene class="relative mx-auto aspect-[4/5] w-full max-w-md select-none sm:aspect-square md:aspect-[4/5] lg:aspect-square lg:max-w-none" aria-hidden="false" aria-label="Visual interaktif: dokumentasi dan informasi sekolah">
-                    {{-- Layer 1 — aset identitas sekolah, bukan foto stok --}}
-                    <div class="absolute inset-x-6 top-0 bottom-16 overflow-hidden rounded-2xl shadow-soft" data-depth="0.03" data-media>
-                        <img src="{{ asset('img/beranda.png') }}" alt="Visual gedung SMK Tahfizh Al-Fatih" class="h-full w-full object-cover" fetchpriority="high" width="1366" height="768" />
-                        <span class="absolute left-4 top-4 rounded-full bg-navy-950/70 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-white backdrop-blur">Wajah Sekolah</span>
-                    </div>
-                    {{-- Layer 2 — mockup UI program asli --}}
-                    @if($programs->isNotEmpty())
-                    <div class="absolute -left-1 bottom-24 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-pop dark:border-slate-700 dark:bg-slate-900 sm:w-64" data-depth="0.06">
-                        <div class="flex items-center gap-1.5 border-b border-slate-100 px-3 py-2 dark:border-slate-800" aria-hidden="true">
-                            <span class="size-2 rounded-full bg-energy-500"></span>
-                            <span class="size-2 rounded-full bg-gold-500"></span>
-                            <span class="size-2 rounded-full bg-tech-500"></span>
-                        </div>
-                        <div class="p-3">
-                            <p class="truncate text-xs font-extrabold text-slate-900 dark:text-white">{{ $programs->first()->name }}</p>
-                            <p class="mt-1 line-clamp-2 text-[11px] leading-snug text-slate-500 dark:text-slate-400">{{ $programs->first()->short_description }}</p>
-                            <span class="mt-2 inline-block rounded-md bg-primary-600 px-2 py-1 text-[10px] font-bold text-white">Lihat Program</span>
-                        </div>
-                    </div>
-                    @endif
-                    {{-- Layer 3 — fakta dari sistem, bukan klaim dekoratif --}}
-                    <div class="absolute -right-1 top-16 hidden rounded-xl border border-slate-200 bg-white/95 px-4 py-3 shadow-soft backdrop-blur dark:border-slate-700 dark:bg-slate-900/95 sm:block" data-depth="0.09">
-                        <span class="block text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">Program aktif</span>
-                        <span class="mt-1 block font-display text-2xl font-extrabold text-primary-700 dark:text-tech-400">{{ $programs->count() }}</span>
-                    </div>
-                    {{-- Layer 4 — konteks periode yang kanonis --}}
-                    <div class="absolute -bottom-2 right-2 flex items-center gap-3 rounded-xl border border-slate-200 bg-white/95 px-4 py-3 shadow-soft backdrop-blur dark:border-slate-700 dark:bg-slate-900/95" data-depth="0.11">
-                        <span class="flex size-10 items-center justify-center rounded-lg bg-gold-500/15 text-gold-600 dark:text-gold-400" aria-hidden="true">
-                            <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3.75 9.75h16.5M5.25 5.25h13.5A1.5 1.5 0 0120.25 6.75v12a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-12a1.5 1.5 0 011.5-1.5z" /></svg>
-                        </span>
-                        <span class="leading-tight">
-                            <span class="block text-sm font-extrabold text-slate-900 dark:text-white">PPDB {{ $ppdbState->period?->academic_year ?? 'Sekolah' }}</span>
-                            <span class="block text-xs text-slate-500 dark:text-slate-400">{{ $ppdbState->publicLabel() }}</span>
-                        </span>
-                    </div>
-                </div>
+                <x-digital-pulse :steps="['Learn', 'Build', 'Impact']" class="mt-10 max-w-md text-tech-300" />
             </div>
         </div>
 
-        <a href="#tentang" class="scroll-cue absolute bottom-14 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-slate-400 transition-colors hover:text-primary-600 dark:text-slate-500 dark:hover:text-primary-400 lg:flex" aria-label="Gulir ke bawah">
+        <a href="#tentang" class="scroll-cue absolute bottom-14 right-8 hidden flex-col items-center gap-2 text-white/70 transition-colors hover:text-gold-400 lg:flex" aria-label="Gulir ke bawah">
             <span class="text-[11px] font-semibold uppercase tracking-[0.2em]">Gulir</span>
             <span class="scroll-cue-line block h-8 w-px bg-current" aria-hidden="true"></span>
         </a>
 
-        <div class="relative border-t border-slate-200/70 bg-white/70 py-3 backdrop-blur dark:border-slate-800/70 dark:bg-slate-950/70">
-            <x-marquee-strip :items="['Rekayasa Perangkat Lunak', 'Project-Based Learning', 'Tahfizh & Karakter', 'Future Skills']" class="text-slate-600 dark:text-slate-300" />
+        <div class="relative border-t border-white/10 bg-navy-950/85 py-3 backdrop-blur">
+            <x-marquee-strip :items="['Kompetensi Keahlian', 'Project-Based Learning', 'Tahfizh & Karakter', 'Siap Berkarya']" class="text-slate-200" />
         </div>
     </section>
 
@@ -344,7 +314,7 @@
                     ['no' => '04', 'title' => 'Berkarakter', 'desc' => 'Tumbuh dengan akhlak mulia.'],
                 ] as $value)
                     <li data-journey-step class="relative">
-                        <span class="journey-dot journey-ghost font-display text-4xl font-extrabold tracking-tight text-slate-200 dark:text-slate-700" aria-hidden="true">{{ $value['no'] }}</span>
+                        <span class="journey-dot journey-ghost font-display text-4xl font-extrabold tracking-tight text-slate-400 dark:text-slate-500" aria-hidden="true">{{ $value['no'] }}</span>
                         <h3 class="mt-2 font-display text-lg font-bold uppercase tracking-wide text-slate-900 dark:text-white">{{ $value['title'] }}</h3>
                         <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ $value['desc'] }}</p>
                     </li>

@@ -23,17 +23,14 @@ class HomeController extends Controller
         $headmasterName = SiteSetting::get('headmaster_name');
         $schoolTagline = SiteSetting::get('school_tagline');
 
-        $stats = Cache::remember('site:stats:v2', 3600, function () {
-            return [
-                // Program count is derived from live data. The other values are
-                // intentionally blank when the school has not verified them in
-                // Settings; public pages must never invent institutional facts.
-                'programs' => (string) Program::active()->count(),
-                'founded' => SiteSetting::get('stat_founded'),
-                'students' => SiteSetting::get('stat_students'),
-                'alumni' => SiteSetting::get('stat_alumni'),
-            ];
-        });
+        // SiteSetting already caches each key. A second aggregate cache here
+        // made freshly saved values from the admin page appear stale.
+        $stats = [
+            'programs' => SiteSetting::get('stat_programs'),
+            'founded' => SiteSetting::get('stat_founded'),
+            'students' => SiteSetting::get('stat_students'),
+            'alumni' => SiteSetting::get('stat_alumni'),
+        ];
 
         // Status PPDB kanonis — SATU kebenaran dengan /ppdb, portal, dashboard.
         $ppdbState = \App\Services\PpdbAvailability::resolvePublic();

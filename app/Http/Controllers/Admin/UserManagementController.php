@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
+use App\Services\AdminCodeService;
 use App\Services\AuditService;
+use Illuminate\Http\Request;
 
 class UserManagementController extends Controller
 {
@@ -85,8 +87,10 @@ class UserManagementController extends Controller
         return back()->with('success', $user->is_active ? "Akun {$user->name} diaktifkan." : "Akun {$user->name} dinonaktifkan.");
     }
 
-    public function destroy(User $user)
+    public function destroy(Request $request, User $user)
     {
+        AdminCodeService::verify($request);
+
         if ($user->is(auth()->user())) {
             return back()->with('error', 'Tidak dapat menghapus akun sendiri.');
         }
@@ -102,5 +106,4 @@ class UserManagementController extends Controller
 
         return back()->with('success', "Akun {$label} dihapus.");
     }
-
 }

@@ -1,5 +1,7 @@
 <x-admin.layouts.app :title="'Audit Logs'">
-    <x-admin.page-head title="Audit Log" context="Riwayat aksi administratif — hanya baca, tidak dapat diubah." />
+    <x-admin.page-head title="Audit Log" context="Riwayat aksi administratif dan sistem.">
+        <x-ui.button variant="danger" size="sm" type="button" onclick="openModal('clear-audit-logs-modal')">Bersihkan Audit Log</x-ui.button>
+    </x-admin.page-head>
     <x-ui.card class="mb-6 p-4">
         <form method="GET" action="{{ route('admin.audit-logs.index') }}" class="flex flex-col gap-3 sm:flex-row">
             <div class="flex-1"><x-ui.input name="search" placeholder="Cari label atau user..." value="{{ request('search') }}" /></div>
@@ -54,6 +56,9 @@
                         'user_activate' => 'Aktifkan user',
                         'user_deactivate' => 'Nonaktifkan user',
                         'user_delete' => 'Hapus user',
+                        'login_logs_cleared' => 'Bersihkan log login',
+                        'audit_logs_cleared' => 'Bersihkan audit log',
+                        'admin_code_created' => 'Buat kode admin',
                         default => str_replace('_', ' ', $log->action),
                     };
                 @endphp
@@ -68,4 +73,13 @@
         </x-ui.table>
         <div class="mt-6">{{ $logs->links() }}</div>
     @endif
+
+    <x-ui.modal id="clear-audit-logs-modal" title="Bersihkan Audit Log">
+        <p class="ctl-muted text-sm">Riwayat lama akan dihapus. Satu catatan pembersihan baru tetap disimpan agar tindakan ini dapat dipertanggungjawabkan.</p>
+        <form method="POST" action="{{ route('admin.audit-logs.clear') }}" class="mt-4 space-y-4">
+            @csrf @method('DELETE')
+            <x-ui.input label="Kode admin" name="admin_code" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" required />
+            <div class="flex justify-end gap-2"><x-ui.button type="button" variant="ghost" data-modal-close>Batal</x-ui.button><x-ui.button type="submit" variant="danger">Bersihkan</x-ui.button></div>
+        </form>
+    </x-ui.modal>
 </x-admin.layouts.app>

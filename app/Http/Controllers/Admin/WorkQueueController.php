@@ -18,7 +18,7 @@ class WorkQueueController extends Controller
         $interviews = InterviewAppointment::with(['application', 'slot'])->where('status', 'scheduled')
             ->whereHas('slot', fn ($q) => $q->whereDate('date', '<=', today('Asia/Jakarta')))->limit(25)->get();
         $messages = ContactMessage::where('handling_status', '!=', 'resolved')->where('is_archived', false)->oldest()->limit(25)->get();
-        $failedEmails = EmailLog::with('application')->where('status', 'failed')->latest()->limit(25)->get();
+        $failedEmails = EmailLog::with('application')->whereIn('status', ['failed', 'bounced', 'complained'])->latest()->limit(25)->get();
 
         return view('admin.work-queue.index', compact('applications', 'reschedules', 'interviews', 'messages', 'failedEmails'));
     }

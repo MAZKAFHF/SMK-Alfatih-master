@@ -44,6 +44,22 @@ class UserManagementTest extends TestCase
             ->assertSee($superadmin->name);
     }
 
+    public function test_user_edit_controls_are_wired_to_the_application_script(): void
+    {
+        $superadmin = $this->superadmin();
+
+        $this->actingAs($superadmin)
+            ->get(route('admin.users.index'))
+            ->assertOk()
+            ->assertSee('data-edit-user', false)
+            ->assertSee('id="edit-user-role"', false)
+            ->assertDontSee('onclick="fillEditModal', false);
+
+        $script = file_get_contents(resource_path('js/app.interactions.js'));
+        $this->assertStringContainsString('function initUserEditor()', $script);
+        $this->assertStringContainsString("closest('[data-edit-user]')", $script);
+    }
+
     public function test_superadmin_can_create_new_admin(): void
     {
         $this->actingAs($this->superadmin())

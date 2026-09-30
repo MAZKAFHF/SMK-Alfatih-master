@@ -14,7 +14,9 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'email', 'max:150'],
+            // Sengaja menerima string mentah agar semua percobaan autentikasi,
+            // termasuk payload otomatis/berbahaya, dapat dicatat dengan aman.
+            'email' => ['required', 'string', 'max:255'],
             'password' => ['required', 'string'],
         ];
     }

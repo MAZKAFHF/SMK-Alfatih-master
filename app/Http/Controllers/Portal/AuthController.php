@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
+use App\Models\LoginLog;
 use App\Models\User;
 use App\Services\AuditService;
 use App\Services\MailService;
+use App\Services\PpdbAvailability;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,6 +15,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password as PasswordRule;
 use Illuminate\Validation\ValidationException;
 
@@ -26,7 +29,7 @@ class AuthController extends Controller
         if (auth()->check() && ! auth()->user()->is_admin) {
             return redirect()->route('portal.dashboard');
         }
-        if (\App\Services\PpdbAvailability::resolvePublic()->status === \App\Services\PpdbAvailability::COMPLETED) {
+        if (PpdbAvailability::resolvePublic()->status === PpdbAvailability::COMPLETED) {
             return redirect()->route('ppdb.index')->with('info', 'PPDB telah selesai. Akun baru akan tersedia pada periode berikutnya.');
         }
 
@@ -41,7 +44,7 @@ class AuthController extends Controller
         }
         RateLimiter::hit($key, 60);
 
-        if (\App\Services\PpdbAvailability::resolvePublic()->status === \App\Services\PpdbAvailability::COMPLETED) {
+        if (PpdbAvailability::resolvePublic()->status === PpdbAvailability::COMPLETED) {
             throw ValidationException::withMessages(['email' => 'PPDB telah selesai. Akun baru akan tersedia pada periode berikutnya.']);
         }
 
@@ -97,7 +100,7 @@ class AuthController extends Controller
         if (auth()->check() && ! auth()->user()->is_admin) {
             return redirect()->route('portal.dashboard');
         }
-        if (\App\Services\PpdbAvailability::resolvePublic()->status === \App\Services\PpdbAvailability::COMPLETED) {
+        if (PpdbAvailability::resolvePublic()->status === PpdbAvailability::COMPLETED) {
             return redirect()->route('ppdb.index')->with('info', 'PPDB telah selesai. Masuk portal tersedia kembali pada periode berikutnya.');
         }
 
@@ -108,25 +111,30 @@ class AuthController extends Controller
     {
         $key = 'portal-login|'.$request->ip();
         if (RateLimiter::tooManyAttempts($key, 6)) {
+            $this->recordLoginAttempt($request, LoginLog::EVENT_LOGIN_FAILED, 'rate_limited');
             throw ValidationException::withMessages(['email' => 'Terlalu banyak percobaan login. Coba lagi nanti.']);
         }
 
         $data = $request->validate([
-            'email' => ['required', 'email'],
+            'email' => ['required', 'string', 'max:255'],
             'password' => ['required', 'string'],
             'remember' => ['nullable', 'boolean'],
         ]);
 
-        $user = User::where('email', strtolower(trim($data['email'])))->first();
+        $rawAttemptedEmail = trim($data['email']);
+        $user = User::where('email', strtolower($rawAttemptedEmail))->first();
         if (! $user || ! Hash::check($data['password'], $user->password)) {
             RateLimiter::hit($key, 60);
+            $this->recordLoginAttempt($request, LoginLog::EVENT_LOGIN_FAILED, 'invalid_credentials', $user, $rawAttemptedEmail);
 
             throw ValidationException::withMessages(['email' => 'Email atau password salah.']);
         }
         if (! $user->is_active) {
+            $this->recordLoginAttempt($request, LoginLog::EVENT_LOGIN_FAILED, 'inactive_account', $user, $rawAttemptedEmail);
             throw ValidationException::withMessages(['email' => 'Akun Anda dinonaktifkan. Hubungi admin.']);
         }
         if ($user->is_admin) {
+            $this->recordLoginAttempt($request, LoginLog::EVENT_LOGIN_FAILED, 'invalid_credentials', $user, $rawAttemptedEmail);
             throw ValidationException::withMessages(['email' => 'Akun admin — silakan masuk via /admin/login.']);
         }
 
@@ -134,12 +142,16 @@ class AuthController extends Controller
         Auth::login($user, (bool) ($data['remember'] ?? false));
         $user->forceFill(['last_activity_at' => now()])->save();
         $request->session()->regenerate();
+        $this->recordLoginAttempt($request, LoginLog::EVENT_LOGIN, null, $user, $rawAttemptedEmail);
 
         return redirect()->intended(route('portal.dashboard'));
     }
 
     public function logout(Request $request)
     {
+        if ($request->user()) {
+            $this->recordLoginAttempt($request, LoginLog::EVENT_LOGOUT, null, $request->user(), $request->user()->email);
+        }
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
@@ -223,5 +235,25 @@ class AuthController extends Controller
         return $status === Password::PASSWORD_RESET
             ? redirect()->route('portal.login')->with('success', 'Password berhasil direset. Silakan masuk.')
             : back()->with('error', 'Token reset tidak valid atau kedaluwarsa.');
+    }
+
+    private function recordLoginAttempt(Request $request, string $event, ?string $reason = null, ?User $user = null, ?string $attemptedEmail = null): void
+    {
+        $attemptedEmail ??= trim((string) $request->input('email'));
+        $normalizedEmail = strtolower($attemptedEmail);
+        $user ??= filter_var($normalizedEmail, FILTER_VALIDATE_EMAIL)
+            ? User::where('email', $normalizedEmail)->first()
+            : null;
+
+        LoginLog::create([
+            'user_id' => $user?->id,
+            'event' => $event,
+            'channel' => 'portal',
+            'attempted_email' => Str::limit($attemptedEmail, 255, ''),
+            'failure_reason' => $reason,
+            'ip_address' => $request->ip(),
+            'user_agent' => Str::limit((string) $request->userAgent(), 1000, ''),
+            'created_at' => now(),
+        ]);
     }
 }

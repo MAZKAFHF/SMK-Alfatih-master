@@ -33,4 +33,25 @@ class SettingsTest extends TestCase
         $r3->assertRedirect();
         $this->assertEquals('Valid Name', SiteSetting::get('school_name'));
     }
+
+    public function test_homepage_statistics_update_immediately_from_admin_settings(): void
+    {
+        $admin = \App\Models\User::factory()->create(['is_admin' => true]);
+
+        $this->get(route('home'))->assertOk();
+
+        $this->actingAs($admin)->put(route('admin.settings.update'), [
+            'stat_programs' => '7',
+            'stat_founded' => '2020',
+            'stat_students' => '432',
+            'stat_alumni' => '987+',
+        ])->assertRedirect()->assertSessionHas('success');
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('data-target="7"', false)
+            ->assertSee('data-target="2020"', false)
+            ->assertSee('data-target="432"', false)
+            ->assertSee('data-target="987" data-suffix="+"', false);
+    }
 }

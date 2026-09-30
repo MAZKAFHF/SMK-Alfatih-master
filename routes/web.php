@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminCodeController;
 use App\Http\Controllers\Admin\AnnouncementController as AdminAnnouncementController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\AuthController;
@@ -7,15 +8,22 @@ use App\Http\Controllers\Admin\ContactMessageController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ForgotPasswordController;
 use App\Http\Controllers\Admin\GalleryController as AdminGalleryController;
+use App\Http\Controllers\Admin\InterviewSlotController;
 use App\Http\Controllers\Admin\LoginLogController;
 use App\Http\Controllers\Admin\NewsController as AdminNewsController;
 use App\Http\Controllers\Admin\PageController as AdminPageController;
+use App\Http\Controllers\Admin\PeriodController;
+use App\Http\Controllers\Admin\PpdbWorkflowController;
 use App\Http\Controllers\Admin\ProgramController as AdminProgramController;
 use App\Http\Controllers\Admin\RegistrationController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\TrashController;
 use App\Http\Controllers\Admin\UserManagementController;
+use App\Http\Controllers\Admin\WorkQueueController;
 use App\Http\Controllers\HealthController;
+use App\Http\Controllers\Portal\ApplicationController;
+use App\Http\Controllers\Portal\DocumentController;
+use App\Http\Controllers\Portal\InterviewController;
 use App\Http\Controllers\Public\AnnouncementController;
 use App\Http\Controllers\Public\ContactController;
 use App\Http\Controllers\Public\GalleryController;
@@ -25,7 +33,11 @@ use App\Http\Controllers\Public\PageController;
 use App\Http\Controllers\Public\PPDBController;
 use App\Http\Controllers\Public\ProgramController;
 use App\Http\Controllers\Public\SitemapController;
+use App\Http\Controllers\ResendWebhookController;
 use Illuminate\Support\Facades\Route;
+
+Route::post('/webhooks/resend', ResendWebhookController::class)
+    ->name('webhooks.resend');
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -56,36 +68,36 @@ Route::prefix('portal')->name('portal.')->group(function () {
     // sehingga admin yang klik "Buat Akun" tidak pernah sampai ke portal.
     // Penanganan "sudah login" dilakukan di controller (pemohon -> dashboard,
     // admin -> tetap lihat form + notifikasi).
-    Route::get('/daftar', [\App\Http\Controllers\Portal\AuthController::class, 'showRegister'])->name('register');
-    Route::post('/daftar', [\App\Http\Controllers\Portal\AuthController::class, 'register'])->middleware('throttle:5,1')->name('register.store');
-    Route::get('/masuk', [\App\Http\Controllers\Portal\AuthController::class, 'showLogin'])->name('login');
-    Route::post('/masuk', [\App\Http\Controllers\Portal\AuthController::class, 'login'])->middleware('throttle:6,1')->name('login.store');
-    Route::get('/lupa-password', [\App\Http\Controllers\Portal\AuthController::class, 'showForgot'])->name('password.request');
-    Route::post('/lupa-password', [\App\Http\Controllers\Portal\AuthController::class, 'sendReset'])->middleware('throttle:5,1')->name('password.email');
-    Route::get('/reset-password/{token}', [\App\Http\Controllers\Portal\AuthController::class, 'showReset'])->name('password.reset');
-    Route::post('/reset-password', [\App\Http\Controllers\Portal\AuthController::class, 'reset'])->name('password.update');
-    Route::get('/verifikasi/{id}/{hash}', [\App\Http\Controllers\Portal\AuthController::class, 'verifyEmail'])->name('verification.verify');
+    Route::get('/daftar', [App\Http\Controllers\Portal\AuthController::class, 'showRegister'])->name('register');
+    Route::post('/daftar', [App\Http\Controllers\Portal\AuthController::class, 'register'])->middleware('throttle:5,1')->name('register.store');
+    Route::get('/masuk', [App\Http\Controllers\Portal\AuthController::class, 'showLogin'])->name('login');
+    Route::post('/masuk', [App\Http\Controllers\Portal\AuthController::class, 'login'])->middleware('throttle:6,1')->name('login.store');
+    Route::get('/lupa-password', [App\Http\Controllers\Portal\AuthController::class, 'showForgot'])->name('password.request');
+    Route::post('/lupa-password', [App\Http\Controllers\Portal\AuthController::class, 'sendReset'])->middleware('throttle:5,1')->name('password.email');
+    Route::get('/reset-password/{token}', [App\Http\Controllers\Portal\AuthController::class, 'showReset'])->name('password.reset');
+    Route::post('/reset-password', [App\Http\Controllers\Portal\AuthController::class, 'reset'])->name('password.update');
+    Route::get('/verifikasi/{id}/{hash}', [App\Http\Controllers\Portal\AuthController::class, 'verifyEmail'])->name('verification.verify');
 
     Route::middleware(['auth', 'applicant'])->group(function () {
-        Route::post('/keluar', [\App\Http\Controllers\Portal\AuthController::class, 'logout'])->name('logout');
-        Route::post('/verifikasi/kirim-ulang', [\App\Http\Controllers\Portal\AuthController::class, 'resendVerification'])->middleware('throttle:3,1')->name('verification.resend');
-        Route::get('/', [\App\Http\Controllers\Portal\DashboardController::class, 'index'])->name('dashboard');
-        Route::get('/notifikasi', [\App\Http\Controllers\Portal\DashboardController::class, 'notifications'])->name('notifications');
-        Route::post('/notifikasi/{id}/baca', [\App\Http\Controllers\Portal\DashboardController::class, 'readNotification'])->name('notifications.read');
+        Route::post('/keluar', [App\Http\Controllers\Portal\AuthController::class, 'logout'])->name('logout');
+        Route::post('/verifikasi/kirim-ulang', [App\Http\Controllers\Portal\AuthController::class, 'resendVerification'])->middleware('throttle:3,1')->name('verification.resend');
+        Route::get('/', [App\Http\Controllers\Portal\DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/notifikasi', [App\Http\Controllers\Portal\DashboardController::class, 'notifications'])->name('notifications');
+        Route::post('/notifikasi/{id}/baca', [App\Http\Controllers\Portal\DashboardController::class, 'readNotification'])->name('notifications.read');
 
-        Route::get('/aplikasi/baru', [\App\Http\Controllers\Portal\ApplicationController::class, 'create'])->name('applications.create');
-        Route::post('/aplikasi', [\App\Http\Controllers\Portal\ApplicationController::class, 'store'])->middleware('throttle:10,1')->name('applications.store');
-        Route::get('/aplikasi/{application}', [\App\Http\Controllers\Portal\ApplicationController::class, 'show'])->name('applications.show');
-        Route::get('/aplikasi/{application}/ubah', [\App\Http\Controllers\Portal\ApplicationController::class, 'edit'])->name('applications.edit');
-        Route::put('/aplikasi/{application}', [\App\Http\Controllers\Portal\ApplicationController::class, 'update'])->name('applications.update');
-        Route::get('/aplikasi/{application}/review', [\App\Http\Controllers\Portal\ApplicationController::class, 'review'])->name('applications.review');
-        Route::post('/aplikasi/{application}/kirim', [\App\Http\Controllers\Portal\ApplicationController::class, 'submit'])->name('applications.submit');
-        Route::post('/aplikasi/{application}/dokumen/{type}', [\App\Http\Controllers\Portal\DocumentController::class, 'upload'])->name('documents.upload');
-        Route::get('/dokumen/{document}/pratinjau', [\App\Http\Controllers\Portal\DocumentController::class, 'preview'])->name('documents.preview');
+        Route::get('/aplikasi/baru', [ApplicationController::class, 'create'])->name('applications.create');
+        Route::post('/aplikasi', [ApplicationController::class, 'store'])->middleware('throttle:10,1')->name('applications.store');
+        Route::get('/aplikasi/{application}', [ApplicationController::class, 'show'])->name('applications.show');
+        Route::get('/aplikasi/{application}/ubah', [ApplicationController::class, 'edit'])->name('applications.edit');
+        Route::put('/aplikasi/{application}', [ApplicationController::class, 'update'])->name('applications.update');
+        Route::get('/aplikasi/{application}/review', [ApplicationController::class, 'review'])->name('applications.review');
+        Route::post('/aplikasi/{application}/kirim', [ApplicationController::class, 'submit'])->name('applications.submit');
+        Route::post('/aplikasi/{application}/dokumen/{type}', [DocumentController::class, 'upload'])->name('documents.upload');
+        Route::get('/dokumen/{document}/pratinjau', [DocumentController::class, 'preview'])->name('documents.preview');
 
-        Route::get('/aplikasi/{application}/slot', [\App\Http\Controllers\Portal\InterviewController::class, 'slots'])->name('slots.index');
-        Route::post('/aplikasi/{application}/slot', [\App\Http\Controllers\Portal\InterviewController::class, 'book'])->name('slots.book');
-        Route::post('/aplikasi/{application}/reschedule', [\App\Http\Controllers\Portal\InterviewController::class, 'requestReschedule'])->name('reschedule.store');
+        Route::get('/aplikasi/{application}/slot', [InterviewController::class, 'slots'])->name('slots.index');
+        Route::post('/aplikasi/{application}/slot', [InterviewController::class, 'book'])->name('slots.book');
+        Route::post('/aplikasi/{application}/reschedule', [InterviewController::class, 'requestReschedule'])->name('reschedule.store');
     });
 });
 
@@ -119,8 +131,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     Route::middleware(['auth', 'admin'])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+        Route::get('/setup-code', [AdminCodeController::class, 'create'])->name('code.create');
+        Route::post('/setup-code', [AdminCodeController::class, 'store'])->middleware('throttle:5,1')->name('code.store');
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-        Route::get('/work-queue', [\App\Http\Controllers\Admin\WorkQueueController::class, 'index'])->name('work-queue.index');
+        Route::get('/work-queue', [WorkQueueController::class, 'index'])->name('work-queue.index');
 
         // Registrations with trash
         Route::get('/registrations/trash', [RegistrationController::class, 'trash'])->name('registrations.trash');
@@ -136,34 +150,34 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/registrations/{registration}/cetak', [RegistrationController::class, 'print'])->name('registrations.print');
 
         // ALFATIH//CONTROL — PPDB workflow (verifikasi, dokumen, keputusan, slot)
-        Route::post('/registrations/{registration}/verify', [\App\Http\Controllers\Admin\PpdbWorkflowController::class, 'verify'])->name('registrations.verify');
-        Route::post('/registrations/{registration}/request-revision', [\App\Http\Controllers\Admin\PpdbWorkflowController::class, 'requestRevision'])->name('registrations.revise');
-        Route::post('/registrations/{registration}/decide', [\App\Http\Controllers\Admin\PpdbWorkflowController::class, 'decide'])->name('registrations.decide');
-        Route::post('/registrations/{registration}/release', [\App\Http\Controllers\Admin\PpdbWorkflowController::class, 'release'])->name('registrations.release');
-        Route::post('/registrations/{registration}/notes', [\App\Http\Controllers\Admin\PpdbWorkflowController::class, 'addNote'])->name('registrations.note');
-        Route::post('/registrations/{registration}/resend-email', [\App\Http\Controllers\Admin\PpdbWorkflowController::class, 'resendEmail'])->name('registrations.resend');
-        Route::post('/documents/{document}/review', [\App\Http\Controllers\Admin\PpdbWorkflowController::class, 'reviewDocument'])->name('documents.review');
-        Route::get('/documents/{document}/preview', [\App\Http\Controllers\Portal\DocumentController::class, 'preview'])->name('documents.preview');
+        Route::post('/registrations/{registration}/verify', [PpdbWorkflowController::class, 'verify'])->name('registrations.verify');
+        Route::post('/registrations/{registration}/request-revision', [PpdbWorkflowController::class, 'requestRevision'])->name('registrations.revise');
+        Route::post('/registrations/{registration}/decide', [PpdbWorkflowController::class, 'decide'])->name('registrations.decide');
+        Route::post('/registrations/{registration}/release', [PpdbWorkflowController::class, 'release'])->name('registrations.release');
+        Route::post('/registrations/{registration}/notes', [PpdbWorkflowController::class, 'addNote'])->name('registrations.note');
+        Route::post('/registrations/{registration}/resend-email', [PpdbWorkflowController::class, 'resendEmail'])->name('registrations.resend');
+        Route::post('/documents/{document}/review', [PpdbWorkflowController::class, 'reviewDocument'])->name('documents.review');
+        Route::get('/documents/{document}/preview', [DocumentController::class, 'preview'])->name('documents.preview');
 
-        Route::get('/interview-slots', [\App\Http\Controllers\Admin\InterviewSlotController::class, 'index'])->name('slots.index');
-        Route::post('/interview-slots', [\App\Http\Controllers\Admin\InterviewSlotController::class, 'store'])->name('slots.store');
-        Route::post('/interview-slots/{slot}/toggle', [\App\Http\Controllers\Admin\InterviewSlotController::class, 'toggle'])->name('slots.toggle');
-        Route::delete('/interview-slots/{slot}', [\App\Http\Controllers\Admin\InterviewSlotController::class, 'destroy'])->name('slots.destroy');
-        Route::post('/appointments/{appointment}/complete', [\App\Http\Controllers\Admin\InterviewSlotController::class, 'complete'])->name('appointments.complete');
-        Route::post('/reschedules/{reschedule}/decide', [\App\Http\Controllers\Admin\InterviewSlotController::class, 'decideReschedule'])->name('reschedules.decide');
+        Route::get('/interview-slots', [InterviewSlotController::class, 'index'])->name('slots.index');
+        Route::post('/interview-slots', [InterviewSlotController::class, 'store'])->name('slots.store');
+        Route::post('/interview-slots/{slot}/toggle', [InterviewSlotController::class, 'toggle'])->name('slots.toggle');
+        Route::delete('/interview-slots/{slot}', [InterviewSlotController::class, 'destroy'])->name('slots.destroy');
+        Route::post('/appointments/{appointment}/complete', [InterviewSlotController::class, 'complete'])->name('appointments.complete');
+        Route::post('/reschedules/{reschedule}/decide', [InterviewSlotController::class, 'decideReschedule'])->name('reschedules.decide');
 
         // Periode PPDB (manajemen + histori)
-        Route::get('/periods', [\App\Http\Controllers\Admin\PeriodController::class, 'index'])->name('periods.index');
-        Route::get('/periods/create', [\App\Http\Controllers\Admin\PeriodController::class, 'create'])->name('periods.create');
-        Route::post('/periods', [\App\Http\Controllers\Admin\PeriodController::class, 'store'])->name('periods.store');
-        Route::get('/periods/{period}/edit', [\App\Http\Controllers\Admin\PeriodController::class, 'edit'])->name('periods.edit');
-        Route::put('/periods/{period}', [\App\Http\Controllers\Admin\PeriodController::class, 'update'])->name('periods.update');
-        Route::post('/periods/{period}/open', [\App\Http\Controllers\Admin\PeriodController::class, 'open'])->name('periods.open');
-        Route::post('/periods/{period}/close', [\App\Http\Controllers\Admin\PeriodController::class, 'close'])->name('periods.close');
-        Route::post('/periods/{period}/reopen', [\App\Http\Controllers\Admin\PeriodController::class, 'reopen'])->middleware('superadmin')->name('periods.reopen');
-        Route::post('/periods/{period}/archive', [\App\Http\Controllers\Admin\PeriodController::class, 'archive'])->name('periods.archive');
-        Route::post('/periods/{period}/complete', [\App\Http\Controllers\Admin\PeriodController::class, 'complete'])->middleware('superadmin')->name('periods.complete');
-        Route::delete('/periods/{period}', [\App\Http\Controllers\Admin\PeriodController::class, 'destroy'])->middleware('superadmin')->name('periods.destroy');
+        Route::get('/periods', [PeriodController::class, 'index'])->name('periods.index');
+        Route::get('/periods/create', [PeriodController::class, 'create'])->name('periods.create');
+        Route::post('/periods', [PeriodController::class, 'store'])->name('periods.store');
+        Route::get('/periods/{period}/edit', [PeriodController::class, 'edit'])->name('periods.edit');
+        Route::put('/periods/{period}', [PeriodController::class, 'update'])->name('periods.update');
+        Route::post('/periods/{period}/open', [PeriodController::class, 'open'])->name('periods.open');
+        Route::post('/periods/{period}/close', [PeriodController::class, 'close'])->name('periods.close');
+        Route::post('/periods/{period}/reopen', [PeriodController::class, 'reopen'])->middleware('superadmin')->name('periods.reopen');
+        Route::post('/periods/{period}/archive', [PeriodController::class, 'archive'])->name('periods.archive');
+        Route::post('/periods/{period}/complete', [PeriodController::class, 'complete'])->middleware('superadmin')->name('periods.complete');
+        Route::delete('/periods/{period}', [PeriodController::class, 'destroy'])->middleware('superadmin')->name('periods.destroy');
 
         // CMS
         Route::resource('programs', AdminProgramController::class)->except(['show']);
@@ -211,9 +225,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Trash overview + Audit
         Route::get('trash', [TrashController::class, 'index'])->name('trash.index');
         Route::get('audit-logs', [AuditLogController::class, 'index'])->middleware('superadmin')->name('audit-logs.index');
+        Route::delete('audit-logs', [AuditLogController::class, 'clear'])->middleware('superadmin')->name('audit-logs.clear');
 
         Route::middleware('superadmin')->group(function () {
             Route::get('/login-logs', [LoginLogController::class, 'index'])->name('login-logs.index');
+            Route::delete('/login-logs', [LoginLogController::class, 'clear'])->name('login-logs.clear');
 
             Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
             Route::post('/users', [UserManagementController::class, 'store'])->name('users.store');

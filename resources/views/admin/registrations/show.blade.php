@@ -105,6 +105,17 @@
                 <ul class="mt-2 space-y-2 text-xs">@foreach($registration->history as $h)<li>{{ $h->created_at->format('d M Y H:i') }} — {{ $h->from_status ?? 'baru' }} → <strong>{{ $h->to_status }}</strong> ({{ $h->actor?->name ?? 'sistem' }})<br><span class="ctl-muted">{{ $h->note }}</span></li>@endforeach</ul>
             </x-ui.card>
 
+            <x-ui.card class="border-red-200 p-6 dark:border-red-900/60">
+                <h3 class="text-sm font-bold text-red-700 dark:text-red-400">Hapus Data Pendaftar</h3>
+                <p class="ctl-muted mt-2 text-xs">Data akan dipindahkan ke Trash dan dapat dipulihkan. Masukkan kode admin 4 digit untuk melanjutkan.</p>
+                <form method="POST" action="{{ route('admin.registrations.destroy', $registration) }}" class="mt-3 space-y-3">
+                    @csrf
+                    @method('DELETE')
+                    <x-ui.input name="admin_code" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" placeholder="Kode admin 4 digit" required />
+                    <x-ui.button type="submit" variant="danger" size="sm" full="true">Pindahkan ke Trash</x-ui.button>
+                </form>
+            </x-ui.card>
+
         </div>
     </div>
 @push('scripts')

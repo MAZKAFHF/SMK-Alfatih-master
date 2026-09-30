@@ -6,6 +6,7 @@ use App\Models\PPDBRegistration;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -23,7 +24,12 @@ class PpdbMail extends Mailable implements ShouldQueue
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: $this->subjectLine);
+        $replyTo = config('mail.reply_to.address');
+
+        return new Envelope(
+            replyTo: filled($replyTo) ? [new Address($replyTo, config('mail.reply_to.name'))] : [],
+            subject: $this->subjectLine,
+        );
     }
 
     public function content(): Content

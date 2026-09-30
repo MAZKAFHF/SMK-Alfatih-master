@@ -31,7 +31,7 @@
     @endif
 
     <div class="relative" data-ctl-select>
-        <input type="hidden" name="{{ $name }}" value="{{ $value }}" @disabled($disabled) />
+        <input type="hidden" id="{{ $id }}" name="{{ $name }}" value="{{ $value }}" @disabled($disabled) />
         <button
             type="button"
             id="{{ $id }}-trigger"

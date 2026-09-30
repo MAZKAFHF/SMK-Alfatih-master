@@ -20,8 +20,7 @@
     $navPpdb = \App\Services\PpdbAvailability::resolvePublic();
 @endphp
 
-<header id="site-header" data-navbar class="sticky top-0 z-40 bg-transparent">
-    <div data-scroll-progress class="absolute inset-x-0 top-0 h-0.5 origin-left bg-gradient-to-r from-primary-600 via-gold-500 to-energy-500" aria-hidden="true"></div>
+<header id="site-header" data-navbar class="fixed inset-x-0 top-0 z-50 bg-transparent">
     @if(filled($navPhone) || filled($navEmail) || $navPpdb->portalEntryVisible())
     <div class="hidden bg-forest-900 text-emerald-50 md:block dark:bg-black/30">
         <div class="mx-auto flex h-8 max-w-7xl items-center justify-between px-6 text-[11px] font-semibold lg:px-8">
@@ -38,9 +37,7 @@
     @endif
     <nav class="mx-auto flex h-[4.5rem] max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8" aria-label="Navigasi utama">
         <a href="{{ route('home') }}" class="flex items-center gap-2.5">
-            <span data-navbar-logo class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white p-1 shadow-sm ring-1 ring-slate-200/80 dark:ring-white/15">
-                <img src="{{ asset('img/logo.png') }}" alt="Logo SMK Tahfizh Al-Fatih" width="40" height="40" class="h-full w-full object-contain" />
-            </span>
+            <x-brand-logo data-navbar-logo />
             <span class="leading-tight">
                 <span class="block font-display text-sm font-extrabold tracking-tight text-slate-900 dark:text-white">SMK TAHFIZH</span>
                 <span class="block text-[11px] font-semibold uppercase tracking-widest text-primary-700 dark:text-primary-400">Al-Fatih</span>
@@ -113,7 +110,7 @@
         </div>
     </nav>
 
-    <div data-nav-menu class="hidden max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-slate-200 bg-white/95 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/95 lg:hidden">
+    <div data-nav-menu class="hidden max-h-[calc(100dvh-4.5rem)] overflow-y-auto border-t border-slate-200 bg-white/95 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/95 lg:hidden">
         <div class="space-y-1 px-4 py-4 sm:px-6">
             <p class="px-3 pb-1 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Menu Utama</p>
             @foreach ($navigation as $item)
@@ -141,3 +138,4 @@
         </div>
     </div>
 </header>
+<div data-navbar-spacer class="h-[4.5rem] md:h-[6.5rem]" aria-hidden="true"></div>

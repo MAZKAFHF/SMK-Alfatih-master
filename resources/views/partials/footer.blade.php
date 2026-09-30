@@ -10,9 +10,7 @@
         <div class="grid gap-10 pt-3 md:grid-cols-2 lg:grid-cols-4">
             <div class="lg:col-span-1">
                 <a href="{{ route('home') }}" class="flex items-center gap-2.5">
-                    <span data-footer-logo class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white p-1 shadow-sm ring-1 ring-white/20">
-                        <img src="{{ asset('img/logo.png') }}" alt="Logo SMK Tahfizh Al-Fatih" width="40" height="40" class="h-full w-full object-contain" />
-                    </span>
+                    <x-brand-logo data-footer-logo class="ring-white/20" />
                     <span class="leading-tight">
                         <span class="block font-display text-sm font-extrabold tracking-tight text-white">SMK TAHFIZH</span>
                         <span class="block text-[11px] font-semibold uppercase tracking-widest text-gold-400">Al-Fatih</span>

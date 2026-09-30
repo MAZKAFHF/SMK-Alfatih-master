@@ -2,8 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Models\Gallery;
+use App\Models\News;
 use App\Models\PpdbPeriod;
+use App\Models\Program;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Blade;
 use Tests\TestCase;
 
 /**
@@ -21,11 +25,20 @@ class PublicMotionTest extends TestCase
     {
         $page = $this->get(route('home'))->assertOk();
         $page->assertSee('data-hero', false);
+        $page->assertSee('data-ambient-video', false);
+        $page->assertSee('/video/smk-motion.mp4', false);
+        $page->assertSee('hero-flag-video', false);
+        $page->assertSee('autoplay', false);
+        $page->assertSee('loop', false);
+        $page->assertSee('preload="auto"', false);
+        $page->assertSee('playsinline', false);
         $page->assertSee('data-navbar-logo', false);
-        $page->assertSee('rounded-xl bg-white p-1', false);
+        $page->assertSee('rounded-xl p-1.5', false);
         $page->assertSee('data-footer-logo', false);
         $page->assertSee('data-mask-line', false);
         $page->assertSee('data-word-swap', false);
+        $page->assertSee('text-[2rem]', false);
+        $page->assertDontSee('whitespace-nowrap">Membangun Generasi', false);
         $page->assertSee('data-magnetic', false);
         $page->assertSee('data-journey="x"', false);
         $page->assertSee('scroll-cue', false);
@@ -60,7 +73,7 @@ class PublicMotionTest extends TestCase
 
     public function test_news_detail_has_reading_progress_and_article(): void
     {
-        $news = \App\Models\News::factory()->create(['status' => 'published', 'published_at' => now()]);
+        $news = News::factory()->create(['status' => 'published', 'published_at' => now()]);
         $page = $this->get(route('news.show', $news))->assertOk();
         $page->assertSee('data-reading-progress', false);
         $page->assertSee('data-reading-article', false);
@@ -68,7 +81,7 @@ class PublicMotionTest extends TestCase
 
     public function test_gallery_touch_captions_and_stagger(): void
     {
-        \App\Models\Gallery::factory()->create();
+        Gallery::factory()->create();
         $page = $this->get(route('gallery.index'))->assertOk();
         $html = $page->getContent();
         // Captions visible by default (touch), hover-only on md+.
@@ -93,7 +106,7 @@ class PublicMotionTest extends TestCase
         $css = file_get_contents(base_path('resources/css/app.css'));
         $block = strstr($css, '@media (prefers-reduced-motion: reduce)');
         $this->assertNotFalse($block);
-        foreach (['data-reveal', 'data-stagger-item', 'data-hero-item', 'data-mask-line', 'data-media-reveal', 'data-build-stage', '.marquee', '.reveal', 'navbar-hidden', 'data-tilt', 'data-magnetic', 'footer-glow'] as $hook) {
+        foreach (['data-reveal', 'data-stagger-item', 'data-hero-item', 'data-mask-line', 'data-media-reveal', 'data-build-stage', '.marquee', '.reveal', 'data-tilt', 'data-magnetic', 'footer-glow'] as $hook) {
             $this->assertStringContainsString($hook, $block, "reduced-motion must neutralize {$hook}");
         }
 
@@ -101,6 +114,22 @@ class PublicMotionTest extends TestCase
         $this->assertStringContainsString('prefers-reduced-motion', $js);
         $this->assertStringContainsString('pointer: fine', $js);
 
+    }
+
+    public function test_public_navbar_is_fixed_without_scroll_progress_or_hide_behavior(): void
+    {
+        $page = $this->get(route('home'))->assertOk();
+        $page->assertSee('fixed inset-x-0 top-0', false);
+        $page->assertSee('data-navbar-spacer', false);
+        $page->assertDontSee('data-scroll-progress', false);
+
+        $motion = file_get_contents(base_path('resources/js/motion.js'));
+        $this->assertStringNotContainsString('navbar-hidden', $motion);
+        $this->assertStringNotContainsString('initNavbarHide', $motion);
+
+        $interactions = file_get_contents(base_path('resources/js/app.interactions.js'));
+        $this->assertStringContainsString("dropdown.addEventListener('pointerenter'", $interactions);
+        $this->assertStringContainsString("dropdown.addEventListener('pointerleave'", $interactions);
     }
 
     public function test_motion_hub_imported_and_single_system(): void
@@ -120,7 +149,7 @@ class PublicMotionTest extends TestCase
     public function test_page_hero_renders_all_variants_with_video_contract(): void
     {
         foreach (['cinematic', 'editorial', 'manifesto', 'portrait', 'media', 'tech', 'visual', 'info', 'minimal', 'story'] as $variant) {
-            $html = \Illuminate\Support\Facades\Blade::render(
+            $html = Blade::render(
                 '<x-page-hero variant="'.$variant.'" eyebrow="Eyebrow" title="Judul Hero" description="Deskripsi." />'
             );
             $this->assertStringContainsString('Judul Hero', $html);
@@ -128,7 +157,7 @@ class PublicMotionTest extends TestCase
             $this->assertStringContainsString('data-mask-line', $html);
         }
         // Video drop-in contract: same frame, no structural change.
-        $video = \Illuminate\Support\Facades\Blade::render(
+        $video = Blade::render(
             '<x-page-hero variant="cinematic" title="T" :video="[\'src\' => \'/v.mp4\', \'poster\' => \'/p.jpg\']" />'
         );
         $this->assertStringContainsString('<video', $video);
@@ -150,11 +179,15 @@ class PublicMotionTest extends TestCase
 
     public function test_programs_gallery_contact_hooks(): void
     {
-        \App\Models\Program::factory()->create(['status' => 'active']);
+        Program::factory()->create(['status' => 'active']);
         $this->get(route('programs.index'))->assertOk()->assertSee('data-tilt', false);
-        $program = \App\Models\Program::factory()->create(['status' => 'active']);
+        $program = Program::factory()->create(['status' => 'active']);
         $this->get(route('programs.show', $program))->assertOk()->assertSee('data-media', false);
-        $this->get(route('contact.index'))->assertOk()->assertSee('data-stagger', false);
+        $this->get(route('contact.index'))
+            ->assertOk()
+            ->assertSee('data-stagger', false)
+            ->assertSee('wash-navy', false)
+            ->assertSee('tech-grid', false);
         $this->get(route('announcements.index'))->assertOk()->assertSee('data-stagger', false);
         $this->get(route('news.index'))->assertOk()->assertSee('data-stagger', false);
     }

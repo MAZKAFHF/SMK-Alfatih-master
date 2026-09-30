@@ -4,7 +4,7 @@
    - Progressive enhancement: content is readable without JS
      (initial-hidden styles apply only under `html.js`).
    - One IntersectionObserver for reveals/staggers/counters/journeys.
-   - One rAF-throttled scroll listener for progress + parallax.
+   - One rAF-throttled scroll listener for reading progress + parallax.
    - Pointer effects run only on fine pointers + no reduced motion.
    ============================================================ */
 (function () {
@@ -79,23 +79,19 @@
         });
     }
 
-    /* ---------------- single rAF scroll: progress bars + parallax ---------------- */
+    /* ---------------- single rAF scroll: reading progress + parallax ---------------- */
     function initScrollLoop() {
-        const progressBars = Array.from(document.querySelectorAll('[data-scroll-progress]'));
         const readingBars = Array.from(document.querySelectorAll('[data-reading-progress]'));
         const parallaxEls = calmMotion()
             ? []
             : Array.from(document.querySelectorAll('[data-parallax]'));
-        if (!progressBars.length && !readingBars.length && !parallaxEls.length) return;
+        if (!readingBars.length && !parallaxEls.length) return;
 
         let ticking = false;
         const update = () => {
             ticking = false;
             const max = document.documentElement.scrollHeight - window.innerHeight;
             const ratio = max > 0 ? Math.min(Math.max(window.scrollY / max, 0), 1) : 0;
-            progressBars.forEach((bar) => {
-                bar.style.transform = `scaleX(${ratio})`;
-            });
             readingBars.forEach((bar) => {
                 const article = document.querySelector('[data-reading-article]');
                 let r = ratio;
@@ -126,31 +122,6 @@
         document.addEventListener('scroll', requestUpdate, { passive: true });
         window.addEventListener('resize', requestUpdate);
         update();
-    }
-
-    /* ---------------- navbar hide-on-scroll (subtle) ---------------- */
-    function initNavbarHide() {
-        const header = document.querySelector('[data-navbar]');
-        if (!header || calmMotion()) return;
-        let lastY = window.scrollY;
-        let ticking = false;
-        const update = () => {
-            ticking = false;
-            const y = window.scrollY;
-            const scrollingDown = y > lastY && y > 320;
-            header.classList.toggle('navbar-hidden', scrollingDown);
-            lastY = y;
-        };
-        document.addEventListener(
-            'scroll',
-            () => {
-                if (!ticking) {
-                    ticking = true;
-                    requestAnimationFrame(update);
-                }
-            },
-            { passive: true }
-        );
     }
 
     /* ---------------- depth scenes: layered pointer parallax ----------------
@@ -259,6 +230,36 @@
         });
     }
 
+    /* ---------------- ambient hero video ---------------- */
+    function initAmbientVideos() {
+        const videos = document.querySelectorAll('[data-ambient-video]');
+        if (!videos.length) return;
+
+        const keepPlaying = (video) => {
+            video.loop = true;
+            video.muted = true;
+            video.playsInline = true;
+            if (document.visibilityState === 'visible' && video.paused) {
+                video.play().catch(() => {
+                    // Browser tertentu baru mengizinkan autoplay setelah interaksi.
+                });
+            }
+        };
+
+        videos.forEach((video) => {
+            keepPlaying(video);
+            video.addEventListener('canplay', () => keepPlaying(video));
+            video.addEventListener('ended', () => {
+                video.currentTime = 0;
+                keepPlaying(video);
+            });
+            video.addEventListener('pause', () => requestAnimationFrame(() => keepPlaying(video)));
+        });
+
+        document.addEventListener('visibilitychange', () => videos.forEach(keepPlaying));
+        window.addEventListener('pageshow', () => videos.forEach(keepPlaying));
+    }
+
     /* ---------------- mobile drawer stagger ---------------- */
     function initDrawerStagger() {
         const toggle = document.querySelector('[data-nav-toggle]');
@@ -336,10 +337,10 @@
         safe(indexStaggerGroups);
         safe(indexMaskGroups);
         safe(initPageEnter);
+        safe(initAmbientVideos);
         safe(initHeroEnter);
         safe(initObserverHub);
         safe(initScrollLoop);
-        safe(initNavbarHide);
         safe(initPointerFX);
         safe(initDepthScenes);
         safe(initDrawerStagger);

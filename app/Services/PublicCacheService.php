@@ -10,7 +10,6 @@ class PublicCacheService
     public const HOME_NEWS = 'home:news';
     public const HOME_ANNOUNCEMENTS = 'home:announcements';
     public const HOME_GALLERIES = 'home:galleries';
-    public const HOME_STATS = 'site:stats';
     public const NAV_PAGES = 'nav_pages';
     public const SITE_SETTINGS_ALL = 'site_settings:all';
 
@@ -53,7 +52,6 @@ class PublicCacheService
         Cache::forget(self::HOME_NEWS);
         Cache::forget(self::HOME_ANNOUNCEMENTS);
         Cache::forget(self::HOME_GALLERIES);
-        Cache::forget(self::HOME_STATS);
     }
 
     public static function forgetAllPublicContent(): void
@@ -62,7 +60,6 @@ class PublicCacheService
         Cache::forget(self::HOME_NEWS);
         Cache::forget(self::HOME_ANNOUNCEMENTS);
         Cache::forget(self::HOME_GALLERIES);
-        Cache::forget(self::HOME_STATS);
         Cache::forget(self::NAV_PAGES);
     }
 

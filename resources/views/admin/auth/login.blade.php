@@ -3,7 +3,7 @@
         <div class="w-full max-w-md">
             <x-ui.card class="p-6 sm:p-8">
                 <div class="mb-8 flex flex-col items-center text-center">
-                    <img src="{{ asset('img/logo.png') }}" alt="Logo SMK Tahfizh Al-Fatih" width="72" height="72" class="size-18 rounded-2xl object-contain" />
+                    <x-brand-logo size="lg" />
                     <h1 class="mt-4 font-display text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">Masuk Admin</h1>
                     <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Control Center {{ config('app.name') }}</p>
                     <span class="mt-3 block h-1 w-12 rounded-full bg-gradient-to-r from-primary-600 via-gold-500 to-energy-500" aria-hidden="true"></span>

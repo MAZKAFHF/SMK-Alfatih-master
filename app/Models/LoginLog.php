@@ -14,11 +14,16 @@ class LoginLog extends Model
 
     public const EVENT_LOGOUT = 'logout';
 
+    public const EVENT_LOGIN_FAILED = 'login_failed';
+
     public $timestamps = false;
 
     protected $fillable = [
         'user_id',
         'event',
+        'channel',
+        'attempted_email',
+        'failure_reason',
         'ip_address',
         'user_agent',
         'created_at',
@@ -41,7 +46,18 @@ class LoginLog extends Model
         return match ($this->event) {
             self::EVENT_LOGIN => 'Masuk',
             self::EVENT_LOGOUT => 'Keluar',
+            self::EVENT_LOGIN_FAILED => 'Gagal masuk',
             default => ucfirst($this->event),
+        };
+    }
+
+    public function failureReasonLabel(): ?string
+    {
+        return match ($this->failure_reason) {
+            'invalid_credentials' => 'Kredensial tidak cocok',
+            'inactive_account' => 'Akun dinonaktifkan',
+            'rate_limited' => 'Terlalu banyak percobaan',
+            default => $this->failure_reason,
         };
     }
 }

@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\ViewErrorBag;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -60,9 +62,28 @@ class UiPrimitiveGuardTest extends TestCase
             'native datetime' => ['/type="datetime-local"/i', 'pakai <x-ui.datetime-picker>'],
             'native time' => ['/<input[^>]*type="time"/i', 'pakai <x-ui.time-picker>'],
             'raw file' => ['/<input[^>]*type="file"/i', 'pakai <x-ui.file-upload> / <x-ui.image-preview>'],
+            'raw password' => ['/<input[^>]*type="password"/i', 'pakai <x-ui.input type="password"> agar tombol mata selalu tersedia'],
             'datalist' => ['/<datalist/i', 'pakai <x-ui.select searchable>'],
             'native confirm' => ['/(?<![A-Za-z])confirm\(/', 'pakai confirmDialog() branded'],
         ];
+    }
+
+    public function test_password_input_has_an_accessible_visibility_toggle(): void
+    {
+        $this->app['view']->share('errors', new ViewErrorBag);
+        $html = Blade::render(
+            '<x-ui.input label="Password" name="password" type="password" />',
+        );
+
+        $this->assertStringContainsString('data-password-toggle', $html);
+        $this->assertStringContainsString('aria-controls="password"', $html);
+        $this->assertStringContainsString('aria-label="Tampilkan kata sandi"', $html);
+        $this->assertStringContainsString('data-password-icon-show', $html);
+        $this->assertStringContainsString('data-password-icon-hide', $html);
+
+        $js = file_get_contents(base_path('resources/js/app.interactions.js'));
+        $this->assertStringContainsString('initPasswordToggles();', $js);
+        $this->assertStringContainsString("input.type = willShow ? 'text' : 'password';", $js);
     }
 
     public function test_calendar_internal_buttons_are_type_button(): void

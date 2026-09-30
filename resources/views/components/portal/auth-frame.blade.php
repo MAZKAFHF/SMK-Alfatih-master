@@ -4,7 +4,7 @@
     <header class="border-b border-emerald-950/10 bg-white/80 backdrop-blur-xl dark:border-white/10 dark:bg-[#07120e]/80">
         <div class="mx-auto flex h-[4.5rem] max-w-6xl items-center justify-between px-4 sm:px-6">
             <a href="{{ route('home') }}" class="flex items-center gap-3">
-                <img src="{{ asset('img/logo.png') }}" alt="" width="40" height="40" class="size-10 rounded-xl bg-white object-contain shadow-sm">
+                <x-brand-logo :decorative="true" />
                 <span class="leading-none"><span class="block font-display text-sm font-extrabold text-slate-950 dark:text-white">ALFATIH<span class="text-primary-700 dark:text-tech-400">//PORTAL</span></span><span class="mt-1 block text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Akses calon siswa</span></span>
             </a>
             <div class="flex items-center gap-1"><x-ui.theme-toggle /><a href="{{ route('home') }}" class="hidden rounded-xl px-3 py-2 text-xs font-bold text-slate-600 hover:bg-white sm:inline-flex dark:text-slate-300 dark:hover:bg-white/5">Kembali ke website</a></div>

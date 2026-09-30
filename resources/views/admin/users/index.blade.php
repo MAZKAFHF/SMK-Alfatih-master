@@ -37,11 +37,11 @@
                         size="sm"
                         data-edit-user
                         data-url="{{ route('admin.users.update', $user) }}"
+                        data-delete-url="{{ route('admin.users.destroy', $user) }}"
                         data-name="{{ $user->name }}"
                         data-email="{{ $user->email }}"
                         data-role="{{ $user->is_superadmin ? 'superadmin' : 'admin' }}"
                         data-self="{{ $user->is(auth()->user()) ? '1' : '0' }}"
-                        onclick="fillEditModal(this)"
                     >Edit</x-ui.button>
                 </td>
             </tr>
@@ -105,39 +105,32 @@
                 autocomplete="new-password"
             />
 
-            <div>
-                <x-ui.select
-                    label="Role"
-                    name="role"
-                    id="edit-user-role"
-                    :value="'admin'"
-                    :options="['admin' => 'Admin', 'superadmin' => 'Super Admin']"
-                    :placeholder-option="false"
-                />
-                <p id="edit-user-self-note" class="mt-1 hidden text-xs text-slate-400 dark:text-slate-500">Role akun Anda sendiri tidak dapat diubah.</p>
-            </div>
+            <x-ui.select
+                label="Role"
+                name="role"
+                id="edit-user-role"
+                value="admin"
+                :options="['admin' => 'Admin', 'superadmin' => 'Super Admin']"
+                :placeholder-option="false"
+                required
+            />
+            <p id="edit-user-self-note" class="-mt-3 hidden text-xs text-slate-400 dark:text-slate-500">Role akun Anda sendiri tidak dapat diubah.</p>
 
             <div class="flex justify-end gap-3 pt-2">
                 <x-ui.button variant="ghost" type="button" data-modal-close>Batal</x-ui.button>
                 <x-ui.button variant="primary" type="submit">Simpan Perubahan</x-ui.button>
             </div>
         </form>
+
+        <form id="delete-user-form" method="POST" action="" class="mt-6 border-t pt-5" style="border-color: var(--ctl-border);">
+            @csrf
+            @method('DELETE')
+            <p class="text-sm font-bold text-red-700 dark:text-red-400">Hapus akun ini</p>
+            <p class="ctl-muted mt-1 text-xs">Tindakan ini tidak tersedia untuk akun Anda sendiri dan membutuhkan kode admin.</p>
+            <div class="mt-3 flex flex-col gap-2 sm:flex-row">
+                <div class="flex-1"><x-ui.input name="admin_code" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" placeholder="Kode admin 4 digit" required /></div>
+                <x-ui.button variant="danger" type="submit">Hapus Akun</x-ui.button>
+            </div>
+        </form>
     </x-ui.modal>
-    <script>
-        function fillEditModal(button) {
-            const form = document.getElementById('edit-user-form');
-            const isSelf = button.dataset.self === '1';
-            const roleSelect = document.getElementById('edit-user-role');
-
-            form.action = button.dataset.url;
-            document.getElementById('edit-user-name').value = button.dataset.name;
-            document.getElementById('edit-user-email').value = button.dataset.email;
-            document.getElementById('edit-user-password').value = '';
-            roleSelect.value = button.dataset.role;
-            roleSelect.disabled = isSelf;
-            document.getElementById('edit-user-self-note').classList.toggle('hidden', !isSelf);
-
-            openModal('edit-user-modal');
-        }
-    </script>
 </x-admin.layouts.app>

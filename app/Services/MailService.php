@@ -2,11 +2,9 @@
 
 namespace App\Services;
 
-use App\Mail\PpdbMail;
+use App\Jobs\SendPpdbMail;
 use App\Models\EmailLog;
 use App\Models\PPDBRegistration;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 
 /**
  * Bisnis tidak pernah rollback karena email gagal.
@@ -22,14 +20,13 @@ class MailService
             'subject' => $subject,
             'payload' => $data,
             'application_id' => $app?->id,
-            'status' => 'pending',
+            'provider' => config('mail.default'),
+            'status' => 'queued',
         ]);
 
         try {
-            Mail::to($to)->send(new PpdbMail($subject, $template, $data, $app));
-            $log->update(['status' => 'sent', 'sent_at' => now()]);
+            SendPpdbMail::dispatch($log->id);
         } catch (\Throwable $e) {
-            Log::warning('PPDB mail failed', ['template' => $template, 'to' => $to, 'error' => $e->getMessage()]);
             $log->update(['status' => 'failed', 'error' => substr($e->getMessage(), 0, 1000)]);
         }
 
@@ -39,11 +36,19 @@ class MailService
     public static function resend(EmailLog $log): EmailLog
     {
         $log->increment('retries');
+        $log->update([
+            'status' => 'queued',
+            'error' => null,
+            'provider_message_id' => null,
+            'sent_at' => null,
+            'delivered_at' => null,
+            'bounced_at' => null,
+            'complained_at' => null,
+            'last_event_at' => null,
+        ]);
 
         try {
-            $app = $log->application;
-            Mail::to($log->recipient)->send(new PpdbMail($log->subject ?? 'Informasi PPDB', $log->template, $log->payload ?? [], $app));
-            $log->update(['status' => 'sent', 'sent_at' => now(), 'error' => null]);
+            SendPpdbMail::dispatch($log->id);
         } catch (\Throwable $e) {
             $log->update(['status' => 'failed', 'error' => substr($e->getMessage(), 0, 1000)]);
         }

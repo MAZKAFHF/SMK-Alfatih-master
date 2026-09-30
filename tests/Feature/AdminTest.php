@@ -3,10 +3,13 @@
 namespace Tests\Feature;
 
 use App\Enums\ApplicationStatus;
+use App\Models\ApplicationDocument;
+use App\Models\DocumentRevision;
 use App\Models\PPDBRegistration;
 use App\Models\Program;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -120,7 +123,7 @@ class AdminTest extends TestCase
         $registration = $this->registration();
 
         $this->actingAs($this->admin())
-            ->delete(route('admin.registrations.destroy', $registration))
+            ->delete(route('admin.registrations.destroy', $registration), ['admin_code' => '1234'])
             ->assertRedirect(route('admin.registrations.index'))
             ->assertSessionHas('success');
 
@@ -130,7 +133,7 @@ class AdminTest extends TestCase
     public function test_mass_delete_route_and_button_are_removed(): void
     {
         $this->registration();
-        $this->assertFalse(\Illuminate\Support\Facades\Route::has('admin.registrations.destroy-all'));
+        $this->assertFalse(Route::has('admin.registrations.destroy-all'));
         $this->actingAs($this->superadmin())->get(route('admin.registrations.index'))->assertOk()->assertDontSee('Hapus Semua', false);
         $this->assertDatabaseCount('ppdb_registrations', 1);
     }
@@ -139,16 +142,16 @@ class AdminTest extends TestCase
     {
         Storage::fake('ppdb_private');
         $registration = $this->registration();
-        $document = \App\Models\ApplicationDocument::create([
+        $document = ApplicationDocument::create([
             'application_id' => $registration->id, 'type' => 'kk', 'status' => 'uploaded',
             'disk' => 'ppdb_private', 'path' => 'period-test/app-test/current.pdf', 'version' => 2,
         ]);
-        \App\Models\DocumentRevision::create(['document_id' => $document->id, 'path' => 'period-test/app-test/old.pdf', 'version' => 1]);
+        DocumentRevision::create(['document_id' => $document->id, 'path' => 'period-test/app-test/old.pdf', 'version' => 1]);
         Storage::disk('ppdb_private')->put($document->path, 'current');
         Storage::disk('ppdb_private')->put('period-test/app-test/old.pdf', 'old');
         $registration->delete();
 
-        $this->actingAs($this->superadmin())->delete(route('admin.registrations.force-delete', $registration->id))->assertRedirect();
+        $this->actingAs($this->superadmin())->delete(route('admin.registrations.force-delete', $registration->id), ['admin_code' => '1234'])->assertRedirect();
         Storage::disk('ppdb_private')->assertMissing($document->path);
         Storage::disk('ppdb_private')->assertMissing('period-test/app-test/old.pdf');
         $this->assertDatabaseMissing('ppdb_registrations', ['id' => $registration->id]);
@@ -161,5 +164,4 @@ class AdminTest extends TestCase
         $this->actingAs($this->admin())->get(route('admin.work-queue.index'))
             ->assertOk()->assertSee('Antrean Kerja')->assertSee($registration->registration_number);
     }
-
 }

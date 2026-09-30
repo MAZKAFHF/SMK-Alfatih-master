@@ -23,13 +23,16 @@ class AuthController extends Controller
     {
         $this->ensureNotRateLimited($request);
 
-        $credentials = $request->only('email', 'password');
+        $rawAttemptedEmail = trim((string) $request->input('email'));
+        $attemptedEmail = Str::lower($rawAttemptedEmail);
+        $credentials = ['email' => $attemptedEmail, 'password' => (string) $request->input('password')];
 
         // Attempt but also check is_active after retrieval
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             /** @var User $user */
             $user = Auth::user();
             if (! $user->is_active) {
+                $this->recordFailedAttempt($request, 'inactive_account', $rawAttemptedEmail, $user);
                 Auth::logout();
                 $request->session()->invalidate();
                 throw ValidationException::withMessages([
@@ -42,11 +45,14 @@ class AuthController extends Controller
 
             $this->recordActivity(LoginLog::EVENT_LOGIN, $request);
 
-            return redirect()->intended(route('admin.dashboard'))
+            $destination = filled($user->admin_code) ? route('admin.dashboard') : route('admin.code.create');
+
+            return redirect()->intended($destination)
                 ->with('success', 'Selamat datang kembali, '.$user->name.'!');
         }
 
         RateLimiter::hit($this->throttleKey($request), 60);
+        $this->recordFailedAttempt($request, 'invalid_credentials', $rawAttemptedEmail);
 
         throw ValidationException::withMessages([
             'email' => __('auth.failed'),
@@ -73,6 +79,8 @@ class AuthController extends Controller
         $user = Auth::user();
         $user?->loginLogs()->create([
             'event' => $event,
+            'channel' => 'admin',
+            'attempted_email' => $event === LoginLog::EVENT_LOGIN ? $user->email : null,
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
             'created_at' => now(),
@@ -91,6 +99,7 @@ class AuthController extends Controller
         }
 
         $seconds = RateLimiter::availableIn($key);
+        $this->recordFailedAttempt($request, 'rate_limited', trim((string) $request->input('email')));
 
         throw ValidationException::withMessages([
             'email' => trans('auth.throttle', ['seconds' => $seconds, 'minutes' => ceil($seconds / 60)]),
@@ -100,5 +109,24 @@ class AuthController extends Controller
     private function throttleKey(Request $request): string
     {
         return Str::transliterate(Str::lower($request->input('email')).'|'.$request->ip());
+    }
+
+    private function recordFailedAttempt(Request $request, string $reason, string $attemptedEmail, ?User $user = null): void
+    {
+        $normalizedEmail = Str::lower($attemptedEmail);
+        $user ??= filter_var($normalizedEmail, FILTER_VALIDATE_EMAIL)
+            ? User::where('email', $normalizedEmail)->first()
+            : null;
+
+        LoginLog::create([
+            'user_id' => $user?->id,
+            'event' => LoginLog::EVENT_LOGIN_FAILED,
+            'channel' => 'admin',
+            'attempted_email' => Str::limit($attemptedEmail, 255, ''),
+            'failure_reason' => $reason,
+            'ip_address' => $request->ip(),
+            'user_agent' => Str::limit((string) $request->userAgent(), 1000, ''),
+            'created_at' => now(),
+        ]);
     }
 }

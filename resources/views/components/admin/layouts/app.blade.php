@@ -84,7 +84,7 @@
         <title>{{ $pageTitle }}</title>
         <meta name="robots" content="noindex, nofollow">
 
-        <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
+        <x-site-favicon />
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700,800|sora:600,700,800" rel="stylesheet" />
@@ -108,7 +108,7 @@
                 class="fixed inset-y-0 left-0 z-50 flex w-64 -translate-x-full flex-col transition-transform duration-300 ease-in-out lg:z-40 lg:translate-x-0"
             >
                 <div class="flex items-center gap-2.5 px-5 pb-4 pt-5">
-                    <img src="{{ asset('img/logo.png') }}" alt="Logo SMK Tahfizh Al-Fatih" width="40" height="40" class="size-10 rounded-xl bg-white/10 object-contain p-1" />
+                    <x-brand-logo />
                     <div class="leading-tight">
                         <span class="block font-display text-sm font-extrabold tracking-tight text-white">SMK TAHFIZH AL-FATIH</span>
                         <span class="block text-[11px] font-semibold uppercase tracking-widest text-gold-400">Control Center</span>
@@ -166,7 +166,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
                                 </svg>
                             </button>
-                            <img src="{{ asset('img/logo.png') }}" alt="Logo" width="36" height="36" class="size-9 shrink-0 rounded-lg object-contain" />
+                            <x-brand-logo size="sm" />
                             <span class="truncate text-sm font-extrabold tracking-tight" style="color: var(--ctl-text);">ADMIN <span style="color: var(--ctl-primary);">AL-FATIH</span></span>
                         </div>
                         <div class="flex items-center gap-1">
