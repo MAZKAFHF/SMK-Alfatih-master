@@ -18,13 +18,21 @@ class DatabaseSeeder extends Seeder
             throw new \RuntimeException('ADMIN_INITIAL_PASSWORD wajib dikonfigurasi sebelum menjalankan seeder di production.');
         }
 
-        User::factory()->create([
-            'name' => 'Admin Al-Fatih',
+        $admin = User::query()->firstOrNew([
             'email' => 'admin@smkalfatih.sch.id',
-            'password' => $adminPassword !== '' ? $adminPassword : 'admin1234',
-            'is_admin' => true,
-            'is_superadmin' => true,
         ]);
+
+        if (! $admin->exists) {
+            $admin->name = 'Admin Al-Fatih';
+            $admin->password = $adminPassword !== '' ? $adminPassword : 'admin1234';
+            $admin->email_verified_at = now();
+        }
+
+        $admin->is_admin = true;
+        $admin->is_superadmin = true;
+        $admin->is_active = true;
+        $admin->is_applicant = false;
+        $admin->save();
 
         $this->call([
             ProgramSeeder::class,
