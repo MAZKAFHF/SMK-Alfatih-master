@@ -149,25 +149,24 @@
         <meta name="robots" content="{{ $robotsContent }}">
         @unless($isPrivatePage)<link rel="canonical" href="{{ $currentUrl }}">@endunless
 
-        <meta property="og:locale" content="id_ID">
-        <meta property="og:type" content="{{ $type }}">
-        <meta property="og:site_name" content="{{ $siteName }}">
-        <meta property="og:title" content="{{ $pageTitle }}">
-        <meta property="og:description" content="{{ $metaDescription }}">
-        <meta property="og:url" content="{{ $currentUrl }}">
-        <meta property="og:image" content="{{ $socialImage }}">
-        <meta property="og:image:alt" content="{{ $title ?: $siteName }}">
-        @if($publishedTime)<meta property="article:published_time" content="{{ $publishedTime }}">@endif
-        @if($modifiedTime)<meta property="article:modified_time" content="{{ $modifiedTime }}">@endif
-
-        <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:title" content="{{ $pageTitle }}">
-        <meta name="twitter:description" content="{{ $metaDescription }}">
-        <meta name="twitter:image" content="{{ $socialImage }}">
-        <link rel="alternate" hreflang="id-ID" href="{{ $currentUrl }}">
-        <link rel="alternate" hreflang="x-default" href="{{ $currentUrl }}">
-
         @unless($isPrivatePage)
+            <meta property="og:locale" content="id_ID">
+            <meta property="og:type" content="{{ $type }}">
+            <meta property="og:site_name" content="{{ $siteName }}">
+            <meta property="og:title" content="{{ $pageTitle }}">
+            <meta property="og:description" content="{{ $metaDescription }}">
+            <meta property="og:url" content="{{ $currentUrl }}">
+            <meta property="og:image" content="{{ $socialImage }}">
+            <meta property="og:image:alt" content="{{ $title ?: $siteName }}">
+            @if($publishedTime)<meta property="article:published_time" content="{{ $publishedTime }}">@endif
+            @if($modifiedTime)<meta property="article:modified_time" content="{{ $modifiedTime }}">@endif
+
+            <meta name="twitter:card" content="summary_large_image">
+            <meta name="twitter:title" content="{{ $pageTitle }}">
+            <meta name="twitter:description" content="{{ $metaDescription }}">
+            <meta name="twitter:image" content="{{ $socialImage }}">
+            <link rel="alternate" hreflang="id-ID" href="{{ $currentUrl }}">
+            <link rel="alternate" hreflang="x-default" href="{{ $currentUrl }}">
             <script type="application/ld+json">{!! json_encode($schemaPayload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
         @endunless
 

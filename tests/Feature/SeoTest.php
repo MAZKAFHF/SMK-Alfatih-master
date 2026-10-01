@@ -52,7 +52,9 @@ class SeoTest extends TestCase
             ->assertOk()
             ->assertHeader('X-Robots-Tag', 'noindex, nofollow, noarchive, nosnippet')
             ->assertSee('name="robots" content="noindex, nofollow, noarchive, nosnippet"', false)
-            ->assertDontSee('rel="canonical"', false);
+            ->assertDontSee('rel="canonical"', false)
+            ->assertDontSee('property="og:url"', false)
+            ->assertDontSee('application/ld+json', false);
 
         $this->get('/halaman-yang-tidak-ada')
             ->assertNotFound()
