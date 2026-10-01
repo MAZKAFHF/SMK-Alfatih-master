@@ -21,6 +21,7 @@
         initAdminDrawer();
         initGallery();
         initLightbox();
+        initPeriodOpenForms();
         initDoubleSubmitGuard();
         initFormValidationFeedback();
         initReveal();
@@ -661,7 +662,9 @@
 
     function initDoubleSubmitGuard() {
         document.querySelectorAll('form').forEach((form) => {
-            form.addEventListener('submit', () => {
+            if (form.hasAttribute('data-period-open-form')) return;
+
+            form.addEventListener('submit', (event) => {
                 const btn = form.querySelector('button[type="submit"]');
                 if (!btn) return;
                 if (form.dataset.submitting === 'true') {
@@ -679,6 +682,50 @@
                     btn.disabled = false;
                     if (btn.dataset.originalText) btn.textContent = btn.dataset.originalText;
                 }, 4000);
+            });
+        });
+    }
+
+    function initPeriodOpenForms() {
+        document.querySelectorAll('[data-period-open-form]').forEach((form) => {
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                if (form.dataset.submitting === 'true') return;
+
+                const button = form.querySelector('button[type="submit"]');
+                const originalHtml = button?.innerHTML;
+                form.dataset.submitting = 'true';
+                if (button) {
+                    button.disabled = true;
+                    button.innerHTML = '<svg class="size-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.25"/><path d="M12 2a10 10 0 0110 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg> Membuka...';
+                }
+
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        body: new FormData(form),
+                        credentials: 'same-origin',
+                        headers: {
+                            Accept: 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                    });
+                    const payload = await response.json().catch(() => ({}));
+
+                    if (!response.ok) {
+                        const errors = payload.errors ? Object.values(payload.errors).flat() : [];
+                        throw new Error(errors[0] || payload.message || 'Periode gagal dibuka.');
+                    }
+
+                    window.location.assign(payload.redirect || window.location.href);
+                } catch (error) {
+                    form.dataset.submitting = 'false';
+                    if (button) {
+                        button.disabled = false;
+                        button.innerHTML = originalHtml;
+                    }
+                    window.toast?.(error.message || 'Periode gagal dibuka. Silakan coba lagi.', 'error');
+                }
             });
         });
     }

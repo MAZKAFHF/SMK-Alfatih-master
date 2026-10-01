@@ -2,10 +2,14 @@
 
 namespace Tests\Feature;
 
-use App\Models\PPDBRegistration;
+use App\Models\InterviewSlot;
 use App\Models\PpdbPeriod;
+use App\Models\PPDBRegistration;
 use App\Models\Program;
 use App\Models\User;
+use App\Services\DocumentService;
+use App\Services\JakartaDateTime;
+use App\Services\PpdbAvailability;
 use App\Services\PpdbContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -74,12 +78,12 @@ class PpdbPeriodTest extends TestCase
         $period = PpdbPeriod::where('academic_year', '2029/2030')->firstOrFail();
 
         for ($i = 0; $i < 5; $i++) {
-            $this->assertSame('2029-09-25T14:50', \App\Services\JakartaDateTime::forInput($period->fresh()->opens_at));
+            $this->assertSame('2029-09-25T14:50', JakartaDateTime::forInput($period->fresh()->opens_at));
             $this->actingAs($admin)->put(route('admin.periods.update', $period), $payload)->assertRedirect();
         }
 
-        $this->assertSame('2029-09-25T14:50', \App\Services\JakartaDateTime::forInput($period->fresh()->opens_at));
-        $this->assertSame('2029-09-26T12:30', \App\Services\JakartaDateTime::forInput($period->fresh()->closes_at));
+        $this->assertSame('2029-09-25T14:50', JakartaDateTime::forInput($period->fresh()->opens_at));
+        $this->assertSame('2029-09-26T12:30', JakartaDateTime::forInput($period->fresh()->closes_at));
         $this->assertSame('14:50', $period->fresh()->opens_at->format('H:i'));
     }
 
@@ -138,6 +142,26 @@ class PpdbPeriodTest extends TestCase
         $this->assertEquals('draft', $periodB->fresh()->status);
     }
 
+    public function test_open_period_supports_safe_json_response_without_download(): void
+    {
+        $admin = $this->admin();
+        PpdbPeriod::query()->update(['status' => 'closed', 'is_active' => false]);
+        $period = PpdbPeriod::create([
+            'academic_year' => '2030/2031',
+            'status' => 'draft',
+            'is_active' => false,
+            'created_by' => $admin->id,
+        ]);
+
+        $this->actingAs($admin)
+            ->postJson(route('admin.periods.open', $period))
+            ->assertOk()
+            ->assertHeader('content-type', 'application/json')
+            ->assertJsonPath('redirect', route('admin.periods.index'));
+
+        $this->assertSame('open', $period->fresh()->status);
+    }
+
     public function test_period_boundaries_upcoming_open_closed(): void
     {
         $admin = $this->admin();
@@ -160,12 +184,12 @@ class PpdbPeriodTest extends TestCase
         $period->update(['status' => 'upcoming']);
         PpdbContext::flush();
 
-        $this->assertFalse(\App\Services\PpdbAvailability::resolvePublic()->canCreateApplication());
+        $this->assertFalse(PpdbAvailability::resolvePublic()->canCreateApplication());
 
         // Buka (override tanggal ke masa lalu) => publik terbuka.
         $period->update(['status' => 'open', 'opens_at' => now()->subDay(), 'closes_at' => now()->addDay()]);
         PpdbContext::flush();
-        $this->assertTrue(\App\Services\PpdbAvailability::resolvePublic()->canCreateApplication());
+        $this->assertTrue(PpdbAvailability::resolvePublic()->canCreateApplication());
     }
 
     public function test_interview_slot_cross_period_isolation(): void
@@ -173,7 +197,7 @@ class PpdbPeriodTest extends TestCase
         $user = $this->applicant();
         $program = Program::factory()->create(['status' => 'active']);
         $periodA = $this->openPeriod('2026/2027');
-        $slotA = \App\Models\InterviewSlot::create([
+        $slotA = InterviewSlot::create([
             'period_id' => $periodA->id, 'date' => now('Asia/Jakarta')->addDay()->toDateString(),
             'start_time' => '08:00', 'capacity' => 5, 'status' => 'active',
         ]);
@@ -181,7 +205,7 @@ class PpdbPeriodTest extends TestCase
             'period_id' => $periodA->id, 'applicant_account_id' => $user->id,
             'application_status' => 'verified', 'status' => 'pending', 'program_id' => $program->id,
         ]);
-        \App\Services\DocumentService::ensurePlaceholders($app);
+        DocumentService::ensurePlaceholders($app);
 
         $this->openPeriod('2027/2028');
         PpdbContext::flush();
@@ -195,10 +219,10 @@ class PpdbPeriodTest extends TestCase
             'applicant_account_id' => $user->id,
             'application_status' => 'verified', 'status' => 'pending', 'program_id' => $program->id,
         ]);
-        \App\Services\DocumentService::ensurePlaceholders($appB);
+        DocumentService::ensurePlaceholders($appB);
         // Periode B tidak punya slot => pesan kosong.
         $this->actingAs($user)->get(route('portal.slots.index', $appB))->assertSee('Belum ada jadwal', false);
-        $this->assertEquals($slotA->id, \App\Models\InterviewSlot::where('period_id', $periodA->id)->first()->id);
+        $this->assertEquals($slotA->id, InterviewSlot::where('period_id', $periodA->id)->first()->id);
     }
 
     public function test_export_and_list_default_to_dashboard_period(): void

@@ -24,7 +24,7 @@
                             <a href="{{ route('admin.periods.edit', $p) }}" class="ctl-btn ctl-btn-ghost ctl-btn-sm">Ubah</a>
                             @endif
                             @if(in_array($p->status, ['draft', 'upcoming']))
-                            <form method="POST" action="{{ route('admin.periods.open', $p) }}" class="inline">@csrf<button type="submit" class="ctl-btn ctl-btn-ghost ctl-btn-sm">Buka</button></form>
+                            <form method="POST" action="{{ route('admin.periods.open', $p) }}" class="inline" data-period-open-form>@csrf<button type="submit" class="ctl-btn ctl-btn-ghost ctl-btn-sm">Buka</button></form>
                             @endif
                             @if($p->status === 'open')
                             <button type="button" class="ctl-btn ctl-btn-ghost ctl-btn-sm" onclick="confirmDialog({ title: 'Tutup periode {{ $p->academic_year }}?', message: 'Pendaftar tidak dapat mendaftar lagi. Data tersimpan sebagai riwayat dan dashboard beralih ke mode riwayat.', confirmText: 'Ya, Tutup', formAction: '{{ route('admin.periods.close', $p) }}', method: 'POST' })">Tutup</button>

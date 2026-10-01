@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\PpdbPeriod;
+use App\Services\ApplicantAccountLifecycleService;
 use App\Services\AuditService;
+use App\Services\JakartaDateTime;
 use App\Services\PpdbContext;
 use App\Services\PpdbPeriodService;
-use App\Services\JakartaDateTime;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -83,15 +85,28 @@ class PeriodController extends Controller
         return redirect()->route('admin.periods.index')->with('success', 'Periode diperbarui.');
     }
 
-    public function open(PpdbPeriod $period)
+    public function open(Request $request, PpdbPeriod $period)
     {
         try {
             PpdbPeriodService::open($period, auth()->id());
         } catch (ValidationException $e) {
+            if ($request->expectsJson()) {
+                throw $e;
+            }
+
             return back()->withErrors($e->errors());
         }
 
-        return back()->with('success', 'Periode '.$period->academic_year.' dibuka.');
+        $message = 'Periode '.$period->academic_year.' dibuka.';
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'redirect' => route('admin.periods.index'),
+            ]);
+        }
+
+        return back()->with('success', $message);
     }
 
     public function close(Request $request, PpdbPeriod $period)
@@ -140,8 +155,8 @@ class PeriodController extends Controller
             return back()->withErrors($e->errors());
         }
 
-        $summary = app(\App\Services\ApplicantAccountLifecycleService::class)
-            ->cleanupPeriod($period->id, \Carbon\CarbonImmutable::now('UTC'));
+        $summary = app(ApplicantAccountLifecycleService::class)
+            ->cleanupPeriod($period->id, CarbonImmutable::now('UTC'));
         // Jejak completion: jika ada yang gagal, scheduler harian mengulang
         // otomatis karena akun gagal tetap eligible. Tidak ada status setengah.
         AuditService::system('applicant_cleanup_after_completion', $period, $summary);
