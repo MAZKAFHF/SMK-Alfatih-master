@@ -52,6 +52,21 @@ class PublicMotionTest extends TestCase
         $page->assertDontSee('data-ctl-tooltip="Ganti tema terang/gelap"', false);
     }
 
+    public function test_light_is_the_default_theme_on_every_surface(): void
+    {
+        foreach ([
+            resource_path('views/components/layouts/app.blade.php'),
+            resource_path('views/components/admin/layouts/app.blade.php'),
+            resource_path('views/components/portal/layouts/app.blade.php'),
+        ] as $layout) {
+            $source = file_get_contents($layout);
+
+            $this->assertStringContainsString("saved === 'dark'", $source);
+            $this->assertStringNotContainsString('prefers-color-scheme: dark', $source);
+            $this->assertStringNotContainsString('prefersDark', $source);
+        }
+    }
+
     public function test_ppdb_journey_and_completed_calm_state(): void
     {
         $this->get(route('ppdb.index'))->assertOk()->assertSee('data-journey', false);
