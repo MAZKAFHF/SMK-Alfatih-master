@@ -65,10 +65,12 @@ class SeoTest extends TestCase
     {
         $robots = $this->get('/robots.txt');
         $robots->assertOk()->assertHeader('Content-Type', 'text/plain; charset=UTF-8');
+        $robots->assertHeaderMissing('Set-Cookie');
         $this->assertStringContainsString('Disallow: /', $robots->getContent());
 
         $sitemap = $this->get('/sitemap.xml');
         $sitemap->assertOk()->assertHeader('Content-Type', 'application/xml; charset=UTF-8');
+        $sitemap->assertHeaderMissing('Set-Cookie');
         $this->assertNotFalse(simplexml_load_string($sitemap->getContent()));
         $this->assertStringContainsString('xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"', $sitemap->getContent());
         $this->assertStringNotContainsString('/admin', $sitemap->getContent());

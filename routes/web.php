@@ -106,7 +106,9 @@ Route::get('/health', [HealthController::class, 'index'])->name('health');
 Route::get('/up', fn () => response()->json(['status' => 'ok', 'time' => now()->toIso8601String()]))->name('up.simple');
 
 // SEO
-Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])
+    ->withoutMiddleware('web')
+    ->name('sitemap');
 Route::get('/robots.txt', function () {
     $isProduction = app()->environment('production');
     $content = $isProduction
@@ -117,7 +119,7 @@ Route::get('/robots.txt', function () {
         'Content-Type' => 'text/plain; charset=UTF-8',
         'Cache-Control' => 'public, max-age=3600',
     ]);
-})->name('robots');
+})->withoutMiddleware('web')->name('robots');
 
 Route::get('/{slug}', [PageController::class, 'show'])
     ->where('slug', '(?!admin)[a-z0-9-]+')
