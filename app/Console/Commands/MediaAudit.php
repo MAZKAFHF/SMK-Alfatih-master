@@ -6,11 +6,14 @@ use Illuminate\Console\Command;
 
 class MediaAudit extends Command
 {
-    protected $signature = 'app:media-audit {--fix : Delete orphan files that have no database reference}';
+    protected $signature = 'app:media-audit
+        {--json : Output machine-readable JSON}
+        {--fix : Delete orphan files that have no database reference}';
     protected $description = 'Audit public media and private PPDB documents against database references';
 
     public function handle(): int
     {
+        $json = (bool) $this->option('json');
         $checks = [
             'programs' => ['model' => \App\Models\Program::class, 'field' => 'image'],
             'news' => ['model' => \App\Models\News::class, 'field' => 'thumbnail'],
@@ -44,12 +47,16 @@ class MediaAudit extends Command
                 // Use raw DB value, not accessor URL
                 $path = $row->getRawOriginal($field) ?? $row->{$field};
                 if (str_starts_with((string) $path, 'http') || str_starts_with((string) $path, '/storage')) {
-                    $this->warn("[$label] ID {$row->id}: stores URL not relative: $path");
+                    if (! $json) {
+                        $this->warn("[$label] ID {$row->id}: stores URL not relative: $path");
+                    }
                     $missing++;
                     continue;
                 }
                 if (! \Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
-                    $this->warn("[$label] ID {$row->id}: missing file: $path");
+                    if (! $json) {
+                        $this->warn("[$label] ID {$row->id}: missing file: $path");
+                    }
                     $missing++;
                 }
             }
@@ -85,7 +92,9 @@ class MediaAudit extends Command
         foreach ($privateReferences as $reference) {
             $total++;
             if (! \Illuminate\Support\Facades\Storage::disk('ppdb_private')->exists($reference['path'])) {
-                $this->warn("[private {$reference['label']}] ID {$reference['id']}: missing file: {$reference['path']}");
+                if (! $json) {
+                    $this->warn("[private {$reference['label']}] ID {$reference['id']}: missing file: {$reference['path']}");
+                }
                 $missing++;
             }
         }
@@ -94,26 +103,40 @@ class MediaAudit extends Command
         $privateOrphans = array_filter($privateOrphans, fn ($file) => ! str_contains($file, '.gitignore'));
         $orphans = array_merge($orphans, array_map(fn ($file) => 'private/ppdb/'.$file, $privateOrphans));
 
-        $this->info("Checked $total DB references, $missing missing, ".count($orphans)." orphan files");
-        if ($missing > 0) {
+        if (! $json) {
+            $this->info("Checked $total DB references, $missing missing, ".count($orphans)." orphan files");
+        }
+        if (! $json && $missing > 0) {
             $this->warn("Missing files indicate DB points to non-existent storage. Fix by re-uploading or clearing DB field.");
         }
-        if (count($orphans) > 0) {
+        if (! $json && count($orphans) > 0) {
             $this->info("Orphan files (not in DB): ".implode(', ', array_slice($orphans, 0, 10)));
             if (count($orphans) > 10) {
                 $this->info("... and ".(count($orphans) - 10)." more");
             }
         }
 
+        $deleted = 0;
         if ($this->option('fix') && count($orphans) > 0) {
-            $deleted = 0;
             foreach ($publicOrphans as $file) {
                 $deleted += \Illuminate\Support\Facades\Storage::disk('public')->delete($file) ? 1 : 0;
             }
             foreach ($privateOrphans as $file) {
                 $deleted += \Illuminate\Support\Facades\Storage::disk('ppdb_private')->delete($file) ? 1 : 0;
             }
-            $this->info("Deleted {$deleted} orphan files. Database-linked files were not touched.");
+            if (! $json) {
+                $this->info("Deleted {$deleted} orphan files. Database-linked files were not touched.");
+            }
+        }
+
+        if ($json) {
+            $this->line((string) json_encode([
+                'references' => $total,
+                'missing' => $missing,
+                'orphan_public' => count($publicOrphans),
+                'orphan_private' => count($privateOrphans),
+                'deleted' => $deleted,
+            ], JSON_UNESCAPED_SLASHES));
         }
 
         return $missing > 0 ? self::FAILURE : self::SUCCESS;

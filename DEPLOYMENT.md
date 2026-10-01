@@ -155,6 +155,8 @@ Sesudah image baru aktif:
     curl -fsS https://smktahfizhalfatih.otaniverse.org/sitemap.xml
     curl -fsS https://smktahfizhalfatih.otaniverse.org/robots.txt
 
+    php artisan app:media-audit --json
+
 - Volume PostgreSQL, storage, dan backups tidak boleh dihapus atau diganti saat deploy kode.
 - Data localhost tidak otomatis menimpa produksi. Sinkronisasi data lintas lingkungan harus melalui ekspor, backup terverifikasi, impor transaksional, audit jumlah record, dan audit media.
 - Deploy gagal bila migrasi, health check, sitemap, atau audit media gagal.
