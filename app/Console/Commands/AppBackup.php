@@ -47,7 +47,43 @@ class AppBackup extends Command
                     file_put_contents($gz, gzencode($data, 9));
                     $this->info("Compressed copy: {$gz}");
                 }
-            } else {
+            } elseif ($db === 'pgsql') {
+                $host = $connection['host'] ?? '127.0.0.1';
+                $port = $connection['port'] ?? 5432;
+                $database = $connection['database'] ?? '';
+                $username = $connection['username'] ?? '';
+                $password = $connection['password'] ?? '';
+                $plainDest = "{$backupDir}/db-{$timestamp}.sql";
+                $dest = "{$plainDest}.gz";
+                $cmd = sprintf(
+                    'pg_dump --host=%s --port=%s --username=%s --dbname=%s --no-owner --no-privileges --file=%s',
+                    escapeshellarg($host),
+                    escapeshellarg((string) $port),
+                    escapeshellarg($username),
+                    escapeshellarg($database),
+                    escapeshellarg($plainDest)
+                );
+                $this->info('Running pg_dump...');
+                if ($password !== '') {
+                    putenv('PGPASSWORD='.$password);
+                }
+                passthru($cmd, $ret);
+                putenv('PGPASSWORD');
+                if ($ret !== 0 || ! is_file($plainDest) || filesize($plainDest) === 0) {
+                    @unlink($plainDest);
+                    $this->error("pg_dump failed (code {$ret})");
+                    return self::FAILURE;
+                }
+                $sql = file_get_contents($plainDest);
+                if ($sql === false || file_put_contents($dest, gzencode($sql, 9)) === false) {
+                    @unlink($plainDest);
+                    @unlink($dest);
+                    $this->error('PostgreSQL backup compression failed.');
+                    return self::FAILURE;
+                }
+                @unlink($plainDest);
+                $this->info("DB dumped to {$dest}");
+            } elseif ($db === 'mysql') {
                 $host = $connection['host'] ?? '127.0.0.1';
                 $port = $connection['port'] ?? 3306;
                 $database = $connection['database'] ?? '';
@@ -73,6 +109,9 @@ class AppBackup extends Command
                     return self::FAILURE;
                 }
                 $this->info("DB dumped to {$dest}");
+            } else {
+                $this->error("Unsupported database driver: {$db}");
+                return self::FAILURE;
             }
 
             $filesDest = "{$backupDir}/files-{$timestamp}.tar";
