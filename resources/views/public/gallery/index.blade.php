@@ -1,4 +1,8 @@
-<x-layouts.app :title="'Galeri'">
+<x-layouts.app
+    :title="'Galeri Sekolah'"
+    description="Dokumentasi kegiatan, fasilitas, pembelajaran, dan prestasi warga SMK Tahfizh Al-Fatih Pekanbaru."
+    :breadcrumbs="[['label' => 'Beranda', 'url' => route('home')], ['label' => 'Galeri', 'url' => route('gallery.index')]]"
+>
     <x-page-hero
         variant="visual"
         eyebrow="Dokumentasi"

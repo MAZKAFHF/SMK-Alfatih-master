@@ -4,7 +4,7 @@
     'message' => 'Terjadi kesalahan yang tidak terduga. Silakan coba lagi.',
 ])
 
-<x-layouts.app :title="$code" :chrome="false">
+<x-layouts.app :title="$code" :chrome="false" robots="noindex, nofollow, noarchive, nosnippet">
     <div class="relative flex min-h-[70vh] items-center justify-center overflow-hidden px-4 py-16">
         <div class="tech-grid-light pointer-events-none absolute inset-0 dark:hidden" aria-hidden="true"></div>
         <div class="tech-grid pointer-events-none absolute inset-0 hidden dark:block" aria-hidden="true"></div>

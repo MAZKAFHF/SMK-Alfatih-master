@@ -132,3 +132,29 @@ docker compose --env-file .env.production -f docker-compose.production.yml up -d
 - Queue dan scheduler berjalan sebagai container terpisah.
 - `storage/` dan `backups/` merupakan bind mount persisten di VPS.
 - File `.env.production` hanya dibuat di server dan tidak boleh di-commit.
+
+## Kontrak Deploy Tanpa Data Tertinggal
+
+Deploy produksi dianggap selesai hanya jika **kode, migrasi, aset build, database, dan media persisten** sudah diperiksa sebagai satu kesatuan.
+
+Sebelum deploy, jalankan backup terverifikasi dan audit media:
+
+    docker compose --env-file .env.production -f docker-compose.production.yml exec -T app php artisan app:backup
+    docker compose --env-file .env.production -f docker-compose.production.yml exec -T app php artisan app:media-audit
+
+Sesudah image baru aktif:
+
+    docker compose --env-file .env.production -f docker-compose.production.yml run --rm app php artisan migrate --force
+    docker compose --env-file .env.production -f docker-compose.production.yml exec -T app php artisan optimize:clear
+    docker compose --env-file .env.production -f docker-compose.production.yml exec -T app php artisan config:cache
+    docker compose --env-file .env.production -f docker-compose.production.yml exec -T app php artisan route:cache
+    docker compose --env-file .env.production -f docker-compose.production.yml exec -T app php artisan view:cache
+    docker compose --env-file .env.production -f docker-compose.production.yml exec -T app php artisan app:media-audit
+    curl -fsS https://otaniverse.org/health
+    curl -fsS https://otaniverse.org/sitemap.xml
+    curl -fsS https://otaniverse.org/robots.txt
+
+- Volume PostgreSQL, storage, dan backups tidak boleh dihapus atau diganti saat deploy kode.
+- Data localhost tidak otomatis menimpa produksi. Sinkronisasi data lintas lingkungan harus melalui ekspor, backup terverifikasi, impor transaksional, audit jumlah record, dan audit media.
+- Deploy gagal bila migrasi, health check, sitemap, atau audit media gagal.
+- Jangan memakai migrate:fresh, db:wipe, atau seed demo di produksi.

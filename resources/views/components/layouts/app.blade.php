@@ -4,13 +4,121 @@
     'bodyClass' => null,
     'surface' => 'future',
     'chrome' => true,
+    'canonical' => null,
+    'image' => null,
+    'type' => 'website',
+    'robots' => null,
+    'publishedTime' => null,
+    'modifiedTime' => null,
+    'author' => null,
+    'breadcrumbs' => [],
 ])
 
 @php
-    $siteName = config('app.name', 'SMK Tahfizh Al-Fatih');
-    $pageTitle = $title ? "{$title} — {$siteName}" : $siteName;
-    $metaDescription = $description ?? 'Website resmi SMK Tahfizh Al-Fatih. Informasi sekolah, program keahlian, berita, dan pendaftaran peserta didik baru (PPDB).';
-    $currentUrl = url()->current();
+    $siteName = \App\Models\SiteSetting::get('school_name', config('app.name', 'SMK Tahfizh Al-Fatih'));
+    $defaultTitle = \App\Models\SiteSetting::get('seo_title') ?: $siteName.' | Sekolah Kejuruan Berbasis Tahfizh';
+    $pageTitle = $title ? "{$title} — {$siteName}" : $defaultTitle;
+    $metaDescription = \Illuminate\Support\Str::limit(
+        trim(preg_replace('/\s+/', ' ', strip_tags((string) ($description
+            ?: \App\Models\SiteSetting::get('seo_description')
+            ?: 'Website resmi SMK Tahfizh Al-Fatih Pekanbaru. Temukan profil sekolah, program keahlian, berita, kegiatan, dan informasi PPDB.'
+        )))),
+        165,
+        ''
+    );
+    $isPrivatePage = request()->is('admin', 'admin/*', 'portal', 'portal/*', 'health', 'up', 'webhooks/*')
+        || (is_numeric((string) $title) && (int) $title >= 400);
+    $robotsContent = $robots ?: ($isPrivatePage
+        ? 'noindex, nofollow, noarchive, nosnippet'
+        : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1');
+
+    $query = request()->query();
+    foreach (array_keys($query) as $key) {
+        if (preg_match('/^(utm_|fbclid$|gclid$|msclkid$)/i', (string) $key)) {
+            unset($query[$key]);
+        }
+    }
+    $currentUrl = $canonical ?: url()->current().($query ? '?'.http_build_query($query) : '');
+
+    $configuredLogo = \App\Models\SiteSetting::get('logo');
+    $logoImage = ($configuredLogo ? \App\Services\MediaService::url($configuredLogo) : null) ?: asset('img/logo.png');
+    $socialImage = $image ?: asset('img/beranda.png');
+    if ($logoImage && !\Illuminate\Support\Str::startsWith($logoImage, ['http://', 'https://'])) {
+        $logoImage = url($logoImage);
+    }
+    if ($socialImage && !\Illuminate\Support\Str::startsWith($socialImage, ['http://', 'https://'])) {
+        $socialImage = url($socialImage);
+    }
+
+    $websiteId = route('home').'#website';
+    $schoolId = route('home').'#school';
+    $webpageId = $currentUrl.'#webpage';
+    $schemaGraph = [[
+        '@type' => 'WebSite',
+        '@id' => $websiteId,
+        'url' => route('home'),
+        'name' => $siteName,
+        'inLanguage' => 'id-ID',
+        'publisher' => ['@id' => $schoolId],
+    ], [
+        '@type' => $type === 'article' ? 'NewsArticle' : 'WebPage',
+        '@id' => $webpageId,
+        'url' => $currentUrl,
+        'name' => $pageTitle,
+        'description' => $metaDescription,
+        'inLanguage' => 'id-ID',
+        'isPartOf' => ['@id' => $websiteId],
+        'about' => ['@id' => $schoolId],
+        'primaryImageOfPage' => $socialImage ? ['@type' => 'ImageObject', 'url' => $socialImage] : null,
+    ]];
+
+    if ($type === 'article') {
+        $schemaGraph[1]['headline'] = (string) $title;
+        $schemaGraph[1]['image'] = $socialImage ? [$socialImage] : null;
+        $schemaGraph[1]['datePublished'] = $publishedTime;
+        $schemaGraph[1]['dateModified'] = $modifiedTime ?: $publishedTime;
+        $schemaGraph[1]['author'] = ['@type' => 'Person', 'name' => $author ?: $siteName];
+        $schemaGraph[1]['publisher'] = ['@id' => $schoolId];
+    }
+
+    if (request()->routeIs('home') || (request()->routeIs('pages.show') && request()->route('slug') === 'profil')) {
+        $sameAs = array_values(array_filter([
+            \App\Models\SiteSetting::get('social_instagram'),
+            \App\Models\SiteSetting::get('social_facebook'),
+            \App\Models\SiteSetting::get('social_youtube'),
+            \App\Models\SiteSetting::get('social_tiktok'),
+        ]));
+        $schemaGraph[] = array_filter([
+            '@type' => 'HighSchool',
+            '@id' => $schoolId,
+            'name' => $siteName,
+            'url' => route('home'),
+            'logo' => ['@type' => 'ImageObject', 'url' => $logoImage],
+            'description' => $metaDescription,
+            'email' => \App\Models\SiteSetting::get('school_email'),
+            'telephone' => \App\Models\SiteSetting::get('school_phone'),
+            'address' => \App\Models\SiteSetting::get('school_address') ? [
+                '@type' => 'PostalAddress',
+                'streetAddress' => \App\Models\SiteSetting::get('school_address'),
+                'addressCountry' => 'ID',
+            ] : null,
+            'sameAs' => $sameAs ?: null,
+        ]);
+    }
+
+    if (count($breadcrumbs) >= 2) {
+        $schemaGraph[] = [
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => collect($breadcrumbs)->values()->map(fn ($item, $index) => array_filter([
+                '@type' => 'ListItem',
+                'position' => $index + 1,
+                'name' => $item['label'],
+                'item' => $item['url'] ?? null,
+            ]))->all(),
+        ];
+    }
+    $schemaGraph = array_map(fn ($item) => array_filter($item, fn ($value) => $value !== null && $value !== ''), $schemaGraph);
+    $schemaPayload = [''.'@context' => 'https://schema.org', '@graph' => $schemaGraph];
 @endphp
 
 <!DOCTYPE html>
@@ -38,14 +146,30 @@
 
         <title>{{ $pageTitle }}</title>
         <meta name="description" content="{{ $metaDescription }}">
-        <meta name="robots" content="index, follow">
-        <link rel="canonical" href="{{ $currentUrl }}">
+        <meta name="robots" content="{{ $robotsContent }}">
+        @unless($isPrivatePage)<link rel="canonical" href="{{ $currentUrl }}">@endunless
 
-        <meta property="og:type" content="website">
+        <meta property="og:locale" content="id_ID">
+        <meta property="og:type" content="{{ $type }}">
         <meta property="og:site_name" content="{{ $siteName }}">
         <meta property="og:title" content="{{ $pageTitle }}">
         <meta property="og:description" content="{{ $metaDescription }}">
         <meta property="og:url" content="{{ $currentUrl }}">
+        <meta property="og:image" content="{{ $socialImage }}">
+        <meta property="og:image:alt" content="{{ $title ?: $siteName }}">
+        @if($publishedTime)<meta property="article:published_time" content="{{ $publishedTime }}">@endif
+        @if($modifiedTime)<meta property="article:modified_time" content="{{ $modifiedTime }}">@endif
+
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="{{ $pageTitle }}">
+        <meta name="twitter:description" content="{{ $metaDescription }}">
+        <meta name="twitter:image" content="{{ $socialImage }}">
+        <link rel="alternate" hreflang="id-ID" href="{{ $currentUrl }}">
+        <link rel="alternate" hreflang="x-default" href="{{ $currentUrl }}">
+
+        @unless($isPrivatePage)
+            <script type="application/ld+json">{!! json_encode($schemaPayload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
+        @endunless
 
         <meta name="theme-color" content="#047857">
 

@@ -1,4 +1,8 @@
-<x-layouts.app :title="'Kontak'">
+<x-layouts.app
+    :title="'Kontak Sekolah'"
+    description="Hubungi SMK Tahfizh Al-Fatih Pekanbaru untuk informasi sekolah, program keahlian, kerja sama, dan PPDB."
+    :breadcrumbs="[['label' => 'Beranda', 'url' => route('home')], ['label' => 'Kontak', 'url' => route('contact.index')]]"
+>
     <x-page-hero
         variant="tech"
         eyebrow="Hubungi Kami"

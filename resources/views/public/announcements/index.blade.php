@@ -1,4 +1,8 @@
-<x-layouts.app :title="'Pengumuman'">
+<x-layouts.app
+    :title="'Pengumuman Sekolah'"
+    description="Pengumuman resmi dan informasi penting terbaru dari SMK Tahfizh Al-Fatih Pekanbaru."
+    :breadcrumbs="[['label' => 'Beranda', 'url' => route('home')], ['label' => 'Pengumuman', 'url' => route('announcements.index')]]"
+>
     <x-page-hero
         variant="tech"
         eyebrow="Info Resmi"

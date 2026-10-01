@@ -1,4 +1,8 @@
-<x-layouts.app :title="'PPDB Online'">
+<x-layouts.app
+    :title="'PPDB SMK Tahfizh Al-Fatih'"
+    description="Informasi resmi PPDB SMK Tahfizh Al-Fatih Pekanbaru: periode pendaftaran, persyaratan, alur seleksi, dan akses portal calon siswa."
+    :breadcrumbs="[['label' => 'Beranda', 'url' => route('home')], ['label' => 'PPDB', 'url' => route('ppdb.index')]]"
+>
     <x-page-hero
         variant="tech"
         eyebrow="Penerimaan Peserta Didik Baru"

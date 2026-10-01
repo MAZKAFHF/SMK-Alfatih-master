@@ -1,5 +1,14 @@
 @php($programPpdb = \App\Services\PpdbAvailability::resolvePublic())
-<x-layouts.app :title="$program->name" :description="$program->short_description">
+<x-layouts.app
+    :title="$program->name"
+    :description="$program->short_description"
+    :image="$program->image"
+    :breadcrumbs="[
+        ['label' => 'Beranda', 'url' => route('home')],
+        ['label' => 'Program Keahlian', 'url' => route('programs.index')],
+        ['label' => $program->name, 'url' => route('programs.show', $program)],
+    ]"
+>
     @if($program->image)
     <x-page-hero
         variant="tech"

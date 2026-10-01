@@ -1,4 +1,8 @@
-<x-layouts.app :title="'Program Keahlian'">
+<x-layouts.app
+    :title="'Program Keahlian'"
+    description="Jelajahi program keahlian SMK Tahfizh Al-Fatih Pekanbaru yang memadukan kompetensi vokasi, karakter, dan tahfizh Al-Qur'an."
+    :breadcrumbs="[['label' => 'Beranda', 'url' => route('home')], ['label' => 'Program Keahlian', 'url' => route('programs.index')]]"
+>
     <x-page-hero
         variant="tech"
         eyebrow="SMK Teknologi"

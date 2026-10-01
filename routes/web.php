@@ -109,10 +109,13 @@ Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap')
 Route::get('/robots.txt', function () {
     $isProduction = app()->environment('production');
     $content = $isProduction
-        ? "User-agent: *\nAllow: /\nSitemap: ".url('/sitemap.xml')."\n"
+        ? "User-agent: *\nAllow: /\n\nSitemap: ".route('sitemap')."\n"
         : "User-agent: *\nDisallow: /\n";
 
-    return response($content, 200)->header('Content-Type', 'text/plain');
+    return response($content, 200, [
+        'Content-Type' => 'text/plain; charset=UTF-8',
+        'Cache-Control' => 'public, max-age=3600',
+    ]);
 })->name('robots');
 
 Route::get('/{slug}', [PageController::class, 'show'])

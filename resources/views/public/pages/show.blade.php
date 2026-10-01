@@ -11,7 +11,16 @@
     $heroVariant = $page->slug === 'sejarah' ? 'tech' : $variant;
 @endphp
 
-<x-layouts.app :title="$page->title" :description="$page->meta_description">
+<x-layouts.app
+    :title="$page->meta_title ?: $page->title"
+    :description="$page->meta_description ?: \Illuminate\Support\Str::limit(strip_tags($page->content), 165)"
+    :image="$page->image"
+    :breadcrumbs="[
+        ['label' => 'Beranda', 'url' => route('home')],
+        ['label' => 'Profil Sekolah', 'url' => route('pages.show', 'profil')],
+        ['label' => $page->title, 'url' => route('pages.show', $page->slug)],
+    ]"
+>
     @if($variant === 'story')
         <div data-reading-progress class="fixed inset-x-0 top-0 z-50 h-0.5 origin-left bg-gradient-to-r from-primary-600 via-gold-500 to-energy-500" aria-hidden="true"></div>
     @endif

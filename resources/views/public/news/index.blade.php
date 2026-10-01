@@ -1,4 +1,8 @@
-<x-layouts.app :title="'Berita'">
+<x-layouts.app
+    :title="'Berita Sekolah'"
+    description="Berita terbaru tentang kegiatan, prestasi, pembelajaran, dan perkembangan SMK Tahfizh Al-Fatih Pekanbaru."
+    :breadcrumbs="[['label' => 'Beranda', 'url' => route('home')], ['label' => 'Berita', 'url' => route('news.index')]]"
+>
     <x-page-hero
         variant="tech"
         eyebrow="Kabar Sekolah"

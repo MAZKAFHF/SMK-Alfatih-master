@@ -1,4 +1,17 @@
-<x-layouts.app :title="$news->title" :description="$news->excerpt">
+<x-layouts.app
+    :title="$news->title"
+    :description="$news->excerpt"
+    :image="$news->thumbnail"
+    type="article"
+    :published-time="$news->published_at?->toAtomString()"
+    :modified-time="$news->updated_at?->toAtomString()"
+    :author="$news->author?->name"
+    :breadcrumbs="[
+        ['label' => 'Beranda', 'url' => route('home')],
+        ['label' => 'Berita', 'url' => route('news.index')],
+        ['label' => $news->title, 'url' => route('news.show', $news)],
+    ]"
+>
     <div data-reading-progress class="fixed inset-x-0 top-0 z-50 h-0.5 origin-left bg-gradient-to-r from-primary-600 via-gold-500 to-energy-500" aria-hidden="true"></div>
     <x-page-hero
         variant="editorial"

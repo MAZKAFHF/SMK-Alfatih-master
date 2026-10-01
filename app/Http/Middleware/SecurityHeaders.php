@@ -13,6 +13,13 @@ class SecurityHeaders
         /** @var Response $response */
         $response = $next($request);
 
+        $isPrivateOrUtility = $request->is(
+            'admin', 'admin/*', 'portal', 'portal/*', 'health', 'up', 'webhooks/*'
+        );
+        if ($isPrivateOrUtility || $response->getStatusCode() >= 400) {
+            $response->headers->set('X-Robots-Tag', 'noindex, nofollow, noarchive, nosnippet');
+        }
+
         // Basic hardening headers — safe for Laravel Blade + Vite + Bunny Fonts
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');

@@ -1,7 +1,15 @@
 @php
     $profilePpdb = \App\Services\PpdbAvailability::resolvePublic();
 @endphp
-<x-layouts.app :title="$page->title" :description="$page->meta_description">
+<x-layouts.app
+    :title="$page->meta_title ?: $page->title"
+    :description="$page->meta_description ?: \Illuminate\Support\Str::limit(strip_tags($page->content), 165)"
+    :image="$page->image"
+    :breadcrumbs="[
+        ['label' => 'Beranda', 'url' => route('home')],
+        ['label' => $page->title, 'url' => route('pages.show', $page->slug)],
+    ]"
+>
     <x-page-hero
         variant="tech"
         eyebrow="Profil Sekolah"
