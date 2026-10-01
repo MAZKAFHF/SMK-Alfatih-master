@@ -33,7 +33,7 @@ class MediaService
 
         if (class_exists(ImageManager::class)) {
             try {
-                $manager = new ImageManager(new Driver());
+                $manager = new ImageManager(new Driver);
                 $image = $manager->read($file->getRealPath());
                 if ($image->width() > $maxWidth) {
                     $image->scale(width: $maxWidth);
@@ -43,17 +43,40 @@ class MediaService
                     'webp' => $image->toWebp(quality: $quality),
                     default => $image->toJpeg(quality: $quality),
                 };
-                Storage::disk('public')->put($relative, (string) $encoded);
-
-                return $relative;
+                if (Storage::disk('public')->put($relative, (string) $encoded)) {
+                    return self::verifiedPath($relative);
+                }
             } catch (\Throwable) {
                 // fallback to raw store
             }
         }
 
-        $file->storeAs($directory, $filename, 'public');
+        $storedPath = $file->storeAs(trim($directory, '/'), $filename, 'public');
+        if ($storedPath === false) {
+            throw new \RuntimeException('Gambar gagal disimpan. Silakan coba lagi.');
+        }
 
-        return $relative;
+        return self::verifiedPath($relative);
+    }
+
+    /**
+     * Store a replacement before removing the old file. This prevents a failed
+     * upload from leaving existing public content without an image.
+     */
+    public static function replace(
+        UploadedFile $file,
+        string $directory,
+        ?string $oldPath,
+        int $maxWidth = 1600,
+        int $quality = 80,
+    ): string {
+        $newPath = self::store($file, $directory, $maxWidth, $quality);
+
+        if ($oldPath && $oldPath !== $newPath) {
+            self::delete($oldPath);
+        }
+
+        return $newPath;
     }
 
     public static function delete(?string $path): void
@@ -86,5 +109,16 @@ class MediaService
         $allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
         return in_array($file->getMimeType(), $allowed, true);
+    }
+
+    private static function verifiedPath(string $relative): string
+    {
+        $disk = Storage::disk('public');
+
+        if (! $disk->exists($relative)) {
+            throw new \RuntimeException('Gambar gagal disimpan. Silakan coba lagi.');
+        }
+
+        return $relative;
     }
 }

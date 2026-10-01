@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Page;
 use App\Models\SiteSetting;
 use App\Services\AuditService;
 use App\Services\MediaService;
@@ -15,11 +16,11 @@ class SettingController extends Controller
     {
         $settings = SiteSetting::all()->groupBy('group');
 
-        $coreSlugs = ['profil','sejarah','visi-misi','sambutan-kepala-sekolah','fasilitas'];
-        $pages = \App\Models\Page::whereIn('slug', $coreSlugs)->get()->keyBy('slug');
+        $coreSlugs = ['profil', 'sejarah', 'visi-misi', 'sambutan-kepala-sekolah', 'fasilitas'];
+        $pages = Page::whereIn('slug', $coreSlugs)->get()->keyBy('slug');
         // Sort in defined order (SQLite compatible, no FIELD)
-        $pages = collect($coreSlugs)->mapWithKeys(fn($slug) => [$slug => $pages[$slug] ?? null]);
-        $customPages = \App\Models\Page::whereNotIn('slug', $coreSlugs)->orderBy('order')->orderBy('title')->get();
+        $pages = collect($coreSlugs)->mapWithKeys(fn ($slug) => [$slug => $pages[$slug] ?? null]);
+        $customPages = Page::whereNotIn('slug', $coreSlugs)->orderBy('order')->orderBy('title')->get();
 
         return view('admin.settings.index', compact('settings', 'pages', 'customPages'));
     }
@@ -91,18 +92,12 @@ class SettingController extends Controller
 
         if ($request->hasFile('logo')) {
             $old = SiteSetting::where('key', 'logo')->first()?->value;
-            if ($old) {
-                MediaService::delete($old);
-            }
-            $path = MediaService::store($request->file('logo'), 'settings', 400);
+            $path = MediaService::replace($request->file('logo'), 'settings', $old, 400);
             SiteSetting::set('logo', $path, 'string', 'general');
         }
         if ($request->hasFile('favicon')) {
             $old = SiteSetting::where('key', 'favicon')->first()?->value;
-            if ($old) {
-                MediaService::delete($old);
-            }
-            $path = MediaService::store($request->file('favicon'), 'settings', 128);
+            $path = MediaService::replace($request->file('favicon'), 'settings', $old, 128);
             SiteSetting::set('favicon', $path, 'string', 'general');
         }
 
@@ -112,5 +107,4 @@ class SettingController extends Controller
 
         return back()->with('success', 'Pengaturan berhasil disimpan.');
     }
-
 }

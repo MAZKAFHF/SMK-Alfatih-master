@@ -9,8 +9,8 @@ use App\Models\Page;
 use App\Services\AuditService;
 use App\Services\HtmlSanitizer;
 use App\Services\MediaService;
+use App\Services\PublicCacheService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 
 class PageController extends Controller
 {
@@ -38,7 +38,7 @@ class PageController extends Controller
             $data['image'] = MediaService::store($request->file('image'), 'pages', 1400);
         }
         $page = Page::create($data);
-        Cache::forget('nav_pages');
+        PublicCacheService::forgetPages();
         AuditService::log('page_create', $page, null, $data);
 
         return redirect()->route('admin.pages.index')->with('success', 'Halaman berhasil ditambahkan.');
@@ -55,15 +55,17 @@ class PageController extends Controller
         $data = $request->validated();
         $data['content'] = HtmlSanitizer::clean($data['content']);
         if ($request->hasFile('image')) {
-            if ($page->image) {
-                MediaService::delete($page->getRawOriginal('image'));
-            }
-            $data['image'] = MediaService::store($request->file('image'), 'pages', 1400);
+            $data['image'] = MediaService::replace(
+                $request->file('image'),
+                'pages',
+                $page->getRawOriginal('image'),
+                1400,
+            );
         } else {
             unset($data['image']);
         }
         $page->update($data);
-        Cache::forget('nav_pages');
+        PublicCacheService::forgetPages();
         AuditService::log('page_update', $page, $old, $page->toArray());
 
         return redirect()->route('admin.pages.index')->with('success', 'Halaman diperbarui.');
@@ -72,7 +74,7 @@ class PageController extends Controller
     public function destroy(Page $page)
     {
         $page->delete();
-        Cache::forget('nav_pages');
+        PublicCacheService::forgetPages();
         AuditService::log('page_delete', $page);
 
         return back()->with('success', 'Halaman dipindahkan ke Trash.');
@@ -89,6 +91,7 @@ class PageController extends Controller
     {
         $p = Page::onlyTrashed()->findOrFail($id);
         $p->restore();
+        PublicCacheService::forgetPages();
         AuditService::log('page_restore', $p);
 
         return back()->with('success', 'Halaman dipulihkan.');
@@ -102,8 +105,9 @@ class PageController extends Controller
         }
         $label = $p->title;
         $p->forceDelete();
+        PublicCacheService::forgetPages();
         AuditService::log('page_force_delete', null, null, ['title' => $label]);
 
-        return back()->with('success','Halaman dihapus permanen.');
+        return back()->with('success', 'Halaman dihapus permanen.');
     }
 }

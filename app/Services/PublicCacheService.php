@@ -7,10 +7,17 @@ use Illuminate\Support\Facades\Cache;
 class PublicCacheService
 {
     public const HOME_PROGRAMS = 'home:programs';
+
     public const HOME_NEWS = 'home:news';
+
     public const HOME_ANNOUNCEMENTS = 'home:announcements';
+
     public const HOME_GALLERIES = 'home:galleries';
+
+    public const HOME_HEADMASTER = 'home:sambutan';
+
     public const NAV_PAGES = 'nav_pages';
+
     public const SITE_SETTINGS_ALL = 'site_settings:all';
 
     public static function forgetPrograms(): void
@@ -40,6 +47,7 @@ class PublicCacheService
     public static function forgetPages(): void
     {
         Cache::forget(self::NAV_PAGES);
+        Cache::forget(self::HOME_HEADMASTER);
         // sitemap also depends on pages, but sitemap is not cached currently
     }
 
@@ -52,6 +60,7 @@ class PublicCacheService
         Cache::forget(self::HOME_NEWS);
         Cache::forget(self::HOME_ANNOUNCEMENTS);
         Cache::forget(self::HOME_GALLERIES);
+        Cache::forget(self::HOME_HEADMASTER);
     }
 
     public static function forgetAllPublicContent(): void
@@ -60,6 +69,7 @@ class PublicCacheService
         Cache::forget(self::HOME_NEWS);
         Cache::forget(self::HOME_ANNOUNCEMENTS);
         Cache::forget(self::HOME_GALLERIES);
+        Cache::forget(self::HOME_HEADMASTER);
         Cache::forget(self::NAV_PAGES);
     }
 

@@ -36,8 +36,8 @@
                         <x-ui.input label="Google Maps URL" name="maps_url" value="{{ old('maps_url', \App\Models\SiteSetting::get('maps_url')) }}" placeholder="https://maps.google.com/..." class="sm:col-span-2" />
                     </div>
                     <div class="grid gap-5 sm:grid-cols-2">
-                        <x-ui.file-upload label="Logo" name="logo" accept="PNG/JPG/WEBP" max-note="Maks. 2 MB" button-text="Pilih Logo" />
-                        <x-ui.file-upload label="Favicon" name="favicon" accept="PNG/ICO/JPG" max-note="Maks. 1 MB" button-text="Pilih Favicon" />
+                        <x-ui.file-upload label="Logo" name="logo" accept="PNG/JPG/WEBP" accept-attr="image/png,image/jpeg,image/webp" max-note="Maks. 2 MB" button-text="Pilih Logo" />
+                        <x-ui.file-upload label="Favicon" name="favicon" accept="PNG/ICO/JPG" accept-attr="image/png,image/x-icon,image/vnd.microsoft.icon,image/jpeg" max-note="Maks. 1 MB" button-text="Pilih Favicon" />
                     </div>
                     <div class="flex justify-end"><x-ui.button type="submit">Simpan Umum</x-ui.button></div>
                 </form>

@@ -3,11 +3,13 @@
 namespace Tests\Feature;
 
 use App\Models\Announcement;
+use App\Models\AuditLog;
 use App\Models\ContactMessage;
 use App\Models\Gallery;
 use App\Models\News;
 use App\Models\Page;
 use App\Models\Program;
+use App\Models\SiteSetting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -56,6 +58,9 @@ class CmsTest extends TestCase
         $this->assertDatabaseHas('programs', ['slug' => 'test-program']);
         $program = Program::where('slug', 'test-program')->first();
         $this->assertStringNotContainsString('<script>', $program->description);
+        $storedImage = $program->getRawOriginal('image');
+        $this->assertNotEmpty($storedImage);
+        Storage::disk('public')->assertExists($storedImage);
     }
 
     public function test_program_slug_uniqueness(): void
@@ -125,6 +130,10 @@ class CmsTest extends TestCase
             'image' => UploadedFile::fake()->create('new.jpg', 100, 'image/jpeg'),
         ])->assertRedirect();
         Storage::disk('public')->assertMissing('programs/old.jpg');
+        $p->refresh();
+        $newImage = $p->getRawOriginal('image');
+        $this->assertNotSame('programs/old.jpg', $newImage);
+        Storage::disk('public')->assertExists($newImage);
     }
 
     // NEWS
@@ -144,6 +153,7 @@ class CmsTest extends TestCase
         $this->assertNotNull($news);
         $this->assertEquals('draft', $news->status->value);
         $this->assertStringNotContainsString('<script>', $news->content);
+        Storage::disk('public')->assertExists($news->getRawOriginal('thumbnail'));
         // update to published with schedule
         $this->actingAs($admin)->put(route('admin.news.update', $news), [
             'title' => $news->title,
@@ -196,6 +206,14 @@ class CmsTest extends TestCase
             'image' => UploadedFile::fake()->create('photo.jpg', 100, 'image/jpeg'),
         ])->assertRedirect(route('admin.galleries.index'));
         $this->assertDatabaseHas('galleries', ['title' => 'Foto Test']);
+        $gallery = Gallery::where('title', 'Foto Test')->firstOrFail();
+        $storedImage = $gallery->getRawOriginal('image');
+        Storage::disk('public')->assertExists($storedImage);
+
+        $this->get(route('gallery.index'))
+            ->assertOk()
+            ->assertSee('Foto Test')
+            ->assertSee(Storage::disk('public')->url($storedImage), false);
     }
 
     public function test_gallery_rejects_svg_and_executable(): void
@@ -385,14 +403,32 @@ class CmsTest extends TestCase
             'school_email' => 'test@smk.test',
             'stat_programs' => '10',
         ])->assertRedirect();
-        $this->assertEquals('SMK Test', \App\Models\SiteSetting::get('school_name'));
-        $this->assertEquals('10', \App\Models\SiteSetting::get('stat_programs'));
+        $this->assertEquals('SMK Test', SiteSetting::get('school_name'));
+        $this->assertEquals('10', SiteSetting::get('stat_programs'));
+    }
+
+    public function test_admin_logo_upload_is_stored_and_visible_on_public_site(): void
+    {
+        Storage::fake('public');
+
+        $this->actingAs($this->admin())->put(route('admin.settings.update'), [
+            'school_name' => 'SMK Test',
+            'logo' => UploadedFile::fake()->create('logo.png', 100, 'image/png'),
+        ])->assertRedirect()->assertSessionHas('success');
+
+        $storedLogo = SiteSetting::where('key', 'logo')->value('value');
+        $this->assertNotEmpty($storedLogo);
+        Storage::disk('public')->assertExists($storedLogo);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee(Storage::disk('public')->url($storedLogo), false);
     }
 
     public function test_settings_unauthorized_denied(): void
     {
         $this->put(route('admin.settings.update'), [])->assertRedirect(route('admin.login'));
-        $this->actingAs(User::factory()->create(['is_admin'=>false]))->put(route('admin.settings.update'), [])->assertForbidden();
+        $this->actingAs(User::factory()->create(['is_admin' => false]))->put(route('admin.settings.update'), [])->assertForbidden();
     }
 
     // AUDIT LOG
@@ -409,7 +445,7 @@ class CmsTest extends TestCase
             'status' => 'active',
         ]);
         $this->assertDatabaseHas('audit_logs', ['action' => 'program_create']);
-        $log = \App\Models\AuditLog::where('action','program_create')->first();
+        $log = AuditLog::where('action', 'program_create')->first();
         $this->assertEquals($admin->id, $log->user_id);
         $this->assertNotNull($log->auditable_id);
         $this->assertNull($log->old_values); // create has no old
@@ -424,7 +460,7 @@ class CmsTest extends TestCase
             'email' => $target->email,
             'password' => 'newpass123',
         ]);
-        $log = \App\Models\AuditLog::where('action','user_update')->latest()->first();
+        $log = AuditLog::where('action', 'user_update')->latest()->first();
         $this->assertStringNotContainsString('newpass123', json_encode($log->new_values ?? []));
     }
 }

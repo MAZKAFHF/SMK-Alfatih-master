@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateNewsRequest;
 use App\Models\News;
 use App\Services\AuditService;
 use App\Services\HtmlSanitizer;
+use App\Services\JakartaDateTime;
 use App\Services\MediaService;
 use App\Services\PublicCacheService;
 use Illuminate\Http\Request;
@@ -39,7 +40,7 @@ class NewsController extends Controller
         if (empty($data['published_at']) && $data['status'] === 'published') {
             $data['published_at'] = now();
         } elseif (! empty($data['published_at'])) {
-            $data['published_at'] = \App\Services\JakartaDateTime::toStorage($data['published_at'], 'published_at');
+            $data['published_at'] = JakartaDateTime::toStorage($data['published_at'], 'published_at');
         }
         if ($request->hasFile('thumbnail')) {
             $data['thumbnail'] = MediaService::store($request->file('thumbnail'), 'news', 1200);
@@ -62,15 +63,17 @@ class NewsController extends Controller
         $data = $request->validated();
         $data['content'] = HtmlSanitizer::clean($data['content']);
         if ($request->hasFile('thumbnail')) {
-            if ($news->getRawOriginal('thumbnail')) {
-                MediaService::delete($news->getRawOriginal('thumbnail'));
-            }
-            $data['thumbnail'] = MediaService::store($request->file('thumbnail'), 'news', 1200);
+            $data['thumbnail'] = MediaService::replace(
+                $request->file('thumbnail'),
+                'news',
+                $news->getRawOriginal('thumbnail'),
+                1200,
+            );
         } else {
             unset($data['thumbnail']);
         }
         if (! empty($data['published_at'])) {
-            $data['published_at'] = \App\Services\JakartaDateTime::toStorage($data['published_at'], 'published_at');
+            $data['published_at'] = JakartaDateTime::toStorage($data['published_at'], 'published_at');
         } elseif ($data['status'] === 'published' && empty($data['published_at']) && empty($news->published_at)) {
             $data['published_at'] = now();
         }

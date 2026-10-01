@@ -60,10 +60,11 @@ class ProgramController extends Controller
         $data['description'] = HtmlSanitizer::clean($data['description']);
 
         if ($request->hasFile('image')) {
-            if ($program->getRawOriginal('image')) {
-                MediaService::delete($program->getRawOriginal('image'));
-            }
-            $data['image'] = MediaService::store($request->file('image'), 'programs');
+            $data['image'] = MediaService::replace(
+                $request->file('image'),
+                'programs',
+                $program->getRawOriginal('image'),
+            );
         } else {
             unset($data['image']);
         }
@@ -114,7 +115,7 @@ class ProgramController extends Controller
         AuditService::log('program_force_delete', null, null, ['name' => $label]);
         $this->clearCache();
 
-        return back()->with('success','Program dihapus permanen.');
+        return back()->with('success', 'Program dihapus permanen.');
     }
 
     private function clearCache(): void

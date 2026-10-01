@@ -62,10 +62,12 @@ class GalleryController extends Controller
         $old = $gallery->toArray();
         $data = $request->only(['title', 'category', 'status', 'order']);
         if ($request->hasFile('image')) {
-            if ($gallery->getRawOriginal('image')) {
-                MediaService::delete($gallery->getRawOriginal('image'));
-            }
-            $data['image'] = MediaService::store($request->file('image'), 'galleries', 1600);
+            $data['image'] = MediaService::replace(
+                $request->file('image'),
+                'galleries',
+                $gallery->getRawOriginal('image'),
+                1600,
+            );
         }
         $gallery->update($data);
         AuditService::log('gallery_update', $gallery, $old, $gallery->toArray());
@@ -111,6 +113,6 @@ class GalleryController extends Controller
         AuditService::log('gallery_force_delete', null, null, ['title' => $label]);
         PublicCacheService::forgetGalleries();
 
-        return back()->with('success','Galeri dihapus permanen.');
+        return back()->with('success', 'Galeri dihapus permanen.');
     }
 }
