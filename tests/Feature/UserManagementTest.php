@@ -66,7 +66,7 @@ class UserManagementTest extends TestCase
             ->post(route('admin.users.store'), [
                 'name' => 'Admin Baru',
                 'email' => 'adminbaru@smkalfatih.sch.id',
-                'password' => 'password123',
+                'password' => 'StrongPassword123',
                 'role' => 'admin',
             ])->assertRedirect()
             ->assertSessionHas('success');
@@ -76,7 +76,7 @@ class UserManagementTest extends TestCase
         $this->assertNotNull($user);
         $this->assertTrue($user->is_admin);
         $this->assertFalse($user->is_superadmin);
-        $this->assertTrue(Hash::check('password123', $user->password));
+        $this->assertTrue(Hash::check('StrongPassword123', $user->password));
     }
 
     public function test_create_validates_unique_email_and_min_password(): void
@@ -101,11 +101,11 @@ class UserManagementTest extends TestCase
             ->put(route('admin.users.update', $target), [
                 'name' => $target->name,
                 'email' => $target->email,
-                'password' => 'newpassword123',
+                'password' => 'NewStrongPassword123',
             ])->assertRedirect()
             ->assertSessionHas('success');
 
-        $this->assertTrue(Hash::check('newpassword123', $target->fresh()->password));
+        $this->assertTrue(Hash::check('NewStrongPassword123', $target->fresh()->password));
     }
 
     public function test_update_ignores_blank_password(): void

@@ -113,6 +113,7 @@ class AuthController extends Controller
 
     private function recordFailedAttempt(Request $request, string $reason, string $attemptedEmail, ?User $user = null): void
     {
+        $attemptedEmail = preg_replace('/[\x00-\x1F\x7F]/u', '', $attemptedEmail) ?? '';
         $normalizedEmail = Str::lower($attemptedEmail);
         $user ??= filter_var($normalizedEmail, FILTER_VALIDATE_EMAIL)
             ? User::where('email', $normalizedEmail)->first()

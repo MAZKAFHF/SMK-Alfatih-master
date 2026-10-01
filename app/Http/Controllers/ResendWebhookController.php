@@ -27,6 +27,10 @@ class ResendWebhookController extends Controller
 
     public function __invoke(Request $request): JsonResponse
     {
+        if ((int) $request->server('CONTENT_LENGTH', 0) > 1_048_576) {
+            return response()->json(['message' => 'Payload terlalu besar.'], 413);
+        }
+
         $secret = (string) config('services.resend.webhook_secret');
         if ($secret === '') {
             return response()->json(['message' => 'Webhook belum dikonfigurasi.'], 503);
@@ -41,7 +45,7 @@ class ResendWebhookController extends Controller
 
         try {
             WebhookSignature::verify($rawPayload, $headers, $secret);
-            $event = json_decode($rawPayload, true, flags: JSON_THROW_ON_ERROR);
+            $event = json_decode($rawPayload, true, 32, JSON_THROW_ON_ERROR);
         } catch (Throwable $e) {
             Log::warning('Resend webhook rejected', ['reason' => $e->getMessage()]);
 

@@ -24,6 +24,8 @@ services:
       context: .
       dockerfile: Dockerfile.production
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     env_file:
       - .env.production
     environment:
@@ -43,10 +45,18 @@ services:
     labels:
       traefik.enable: "true"
       traefik.http.routers.smk-alfatih.entrypoints: websecure
-      traefik.http.routers.smk-alfatih.rule: Host(`otaniverse.org`) || Host(`www.otaniverse.org`)
+      traefik.http.routers.smk-alfatih.rule: Host(`smktahfizhalfatih.otaniverse.org`)
       traefik.http.routers.smk-alfatih.tls.certresolver: letsencrypt
       traefik.http.routers.smk-alfatih.middlewares: smk-alfatih-security
       traefik.http.services.smk-alfatih.loadbalancer.server.port: "80"
+      traefik.http.routers.smk-alfatih-legacy.entrypoints: websecure
+      traefik.http.routers.smk-alfatih-legacy.rule: Host(`otaniverse.org`) || Host(`www.otaniverse.org`)
+      traefik.http.routers.smk-alfatih-legacy.tls.certresolver: letsencrypt
+      traefik.http.routers.smk-alfatih-legacy.middlewares: smk-alfatih-redirect
+      traefik.http.routers.smk-alfatih-legacy.service: smk-alfatih
+      traefik.http.middlewares.smk-alfatih-redirect.redirectregex.regex: ^https?://(?:www\.)?otaniverse\.org/(.*)
+      traefik.http.middlewares.smk-alfatih-redirect.redirectregex.replacement: https://smktahfizhalfatih.otaniverse.org/$${1}
+      traefik.http.middlewares.smk-alfatih-redirect.redirectregex.permanent: "true"
       traefik.http.middlewares.smk-alfatih-security.headers.contenttypenosniff: "true"
       traefik.http.middlewares.smk-alfatih-security.headers.framedeny: "true"
       traefik.http.middlewares.smk-alfatih-security.headers.referrerpolicy: strict-origin-when-cross-origin
@@ -54,6 +64,8 @@ services:
   queue:
     image: smk-alfatih-app:${APP_IMAGE_TAG:-latest}
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     user: "33:33"
     env_file:
       - .env.production
@@ -78,6 +90,8 @@ services:
   scheduler:
     image: smk-alfatih-app:${APP_IMAGE_TAG:-latest}
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     user: "33:33"
     env_file:
       - .env.production

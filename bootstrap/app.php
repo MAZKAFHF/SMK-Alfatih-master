@@ -22,6 +22,19 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
 
+        $middleware->trustHosts(at: function (): array {
+            $hosts = config('security.trusted_hosts', []);
+            if ($hosts === []) {
+                $hosts = array_filter([
+                    parse_url((string) config('app.url'), PHP_URL_HOST),
+                    'localhost',
+                    '127.0.0.1',
+                ]);
+            }
+
+            return array_map(fn (string $host) => '^'.preg_quote($host, '/').'$', $hosts);
+        }, subdomains: false);
+
         $middleware->validateCsrfTokens(except: [
             'webhooks/resend',
         ]);

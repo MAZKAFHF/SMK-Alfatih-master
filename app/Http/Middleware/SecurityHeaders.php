@@ -23,23 +23,32 @@ class SecurityHeaders
         // Basic hardening headers — safe for Laravel Blade + Vite + Bunny Fonts
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
-        $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
+        $response->headers->set('X-Frame-Options', 'DENY');
+        $response->headers->set('X-Permitted-Cross-Domain-Policies', 'none');
+        $response->headers->set('Cross-Origin-Opener-Policy', 'same-origin');
+        $response->headers->set('Cross-Origin-Resource-Policy', 'same-origin');
+        $response->headers->set('Origin-Agent-Cluster', '?1');
         $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
 
         // CSP — relaxed but blocks unsafe execution; allows self, Vite, Bunny Fonts, inline styles/scripts for Blade
         // Note: 'unsafe-inline' needed for Blade inline scripts (theme, Vite) and style attributes
         $csp = implode('; ', [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' https://fonts.bunny.net https://cdn.jsdelivr.net",
-            "style-src 'self' 'unsafe-inline' https://fonts.bunny.net https://cdn.jsdelivr.net",
+            "script-src 'self' 'unsafe-inline'",
+            "style-src 'self' 'unsafe-inline' https://fonts.bunny.net",
             "font-src 'self' https://fonts.bunny.net data:",
-            "img-src 'self' data: blob: http: https:",
-            "connect-src 'self' ws: wss: http: https:",
-            "frame-ancestors 'self'",
+            "img-src 'self' data: blob: https:",
+            "media-src 'self' blob:",
+            "connect-src 'self'",
+            "object-src 'none'",
+            "frame-src 'none'",
+            "frame-ancestors 'none'",
             "base-uri 'self'",
             "form-action 'self'",
         ]);
-        $response->headers->set('Content-Security-Policy', $csp);
+        if (! $response->headers->has('Content-Security-Policy')) {
+            $response->headers->set('Content-Security-Policy', $csp);
+        }
 
         if ($request->isSecure() || app()->environment('production')) {
             // Only send HSTS over HTTPS; max-age 1 year, preload disabled by default

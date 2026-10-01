@@ -62,6 +62,7 @@ COPY --from=postgres-client /usr/lib/postgresql/16/bin/pg_dump /usr/local/bin/pg
 COPY docker/apache-vhost.conf /etc/apache2/sites-available/000-default.conf
 COPY docker/servername.conf /etc/apache2/conf-enabled/servername.conf
 COPY docker/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
+COPY docker/security.ini /usr/local/etc/php/conf.d/security.ini
 COPY docker/entrypoint.sh /usr/local/bin/smk-entrypoint
 
 RUN chmod +x /usr/local/bin/smk-entrypoint \

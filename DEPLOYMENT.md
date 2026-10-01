@@ -128,7 +128,8 @@ docker compose --env-file .env.production -f docker-compose.production.yml up -d
 ```
 
 - Tidak ada database atau port aplikasi yang dipublikasikan langsung ke internet.
-- Traefik meneruskan `otaniverse.org` dan `www.otaniverse.org` ke container `app`.
+- Traefik meneruskan domain utama `smktahfizhalfatih.otaniverse.org` ke container `app`.
+- Domain lama `otaniverse.org` dan `www.otaniverse.org` diarahkan permanen (301) ke domain utama agar SEO dan tautan lama tetap aman.
 - Queue dan scheduler berjalan sebagai container terpisah.
 - `storage/` dan `backups/` merupakan bind mount persisten di VPS.
 - File `.env.production` hanya dibuat di server dan tidak boleh di-commit.
@@ -150,9 +151,9 @@ Sesudah image baru aktif:
     docker compose --env-file .env.production -f docker-compose.production.yml exec -T app php artisan route:cache
     docker compose --env-file .env.production -f docker-compose.production.yml exec -T app php artisan view:cache
     docker compose --env-file .env.production -f docker-compose.production.yml exec -T app php artisan app:media-audit
-    curl -fsS https://otaniverse.org/health
-    curl -fsS https://otaniverse.org/sitemap.xml
-    curl -fsS https://otaniverse.org/robots.txt
+    curl -fsS https://smktahfizhalfatih.otaniverse.org/health
+    curl -fsS https://smktahfizhalfatih.otaniverse.org/sitemap.xml
+    curl -fsS https://smktahfizhalfatih.otaniverse.org/robots.txt
 
 - Volume PostgreSQL, storage, dan backups tidak boleh dihapus atau diganti saat deploy kode.
 - Data localhost tidak otomatis menimpa produksi. Sinkronisasi data lintas lingkungan harus melalui ekspor, backup terverifikasi, impor transaksional, audit jumlah record, dan audit media.

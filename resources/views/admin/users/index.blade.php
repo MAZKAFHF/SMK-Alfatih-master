@@ -66,7 +66,7 @@
                 label="Password"
                 name="password"
                 type="password"
-                placeholder="Minimal 8 karakter"
+                placeholder="Minimal 12 karakter, huruf dan angka"
                 autocomplete="new-password"
                 required
             />

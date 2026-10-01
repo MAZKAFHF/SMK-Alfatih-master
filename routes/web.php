@@ -37,6 +37,7 @@ use App\Http\Controllers\ResendWebhookController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/webhooks/resend', ResendWebhookController::class)
+    ->middleware('throttle:120,1')
     ->name('webhooks.resend');
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -75,7 +76,7 @@ Route::prefix('portal')->name('portal.')->group(function () {
     Route::get('/lupa-password', [App\Http\Controllers\Portal\AuthController::class, 'showForgot'])->name('password.request');
     Route::post('/lupa-password', [App\Http\Controllers\Portal\AuthController::class, 'sendReset'])->middleware('throttle:5,1')->name('password.email');
     Route::get('/reset-password/{token}', [App\Http\Controllers\Portal\AuthController::class, 'showReset'])->name('password.reset');
-    Route::post('/reset-password', [App\Http\Controllers\Portal\AuthController::class, 'reset'])->name('password.update');
+    Route::post('/reset-password', [App\Http\Controllers\Portal\AuthController::class, 'reset'])->middleware('throttle:5,1')->name('password.update');
     Route::get('/verifikasi/{id}/{hash}', [App\Http\Controllers\Portal\AuthController::class, 'verifyEmail'])->name('verification.verify');
 
     Route::middleware(['auth', 'applicant'])->group(function () {
@@ -125,11 +126,11 @@ Route::get('/{slug}', [PageController::class, 'show'])
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware('guest')->group(function () {
         Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-        Route::post('/login', [AuthController::class, 'login'])->name('login.attempt');
+        Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1')->name('login.attempt');
         Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
-        Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+        Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->middleware('throttle:5,1')->name('password.email');
         Route::get('/reset-password/{token}', [ForgotPasswordController::class, 'showResetForm'])->name('password.reset');
-        Route::post('/reset-password', [ForgotPasswordController::class, 'reset'])->name('password.update');
+        Route::post('/reset-password', [ForgotPasswordController::class, 'reset'])->middleware('throttle:5,1')->name('password.update');
     });
 
     Route::middleware(['auth', 'admin'])->group(function () {

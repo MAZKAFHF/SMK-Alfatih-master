@@ -9,6 +9,7 @@ use App\Services\AuditService;
 use App\Services\MailService;
 use App\Services\PpdbAvailability;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -38,11 +39,17 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
-        $key = 'portal-register|'.$request->ip();
-        if (RateLimiter::tooManyAttempts($key, 5)) {
-            throw ValidationException::withMessages(['email' => 'Terlalu banyak percobaan. Coba lagi dalam '.RateLimiter::availableIn($key).' detik.']);
+        $normalizedEmail = strtolower(trim((string) $request->input('email')));
+        $keys = [
+            'portal-register-ip|'.$request->ip(),
+            'portal-register-account|'.hash('sha256', $normalizedEmail.'|'.$request->ip()),
+        ];
+        if ($limitedKey = collect($keys)->first(fn (string $key) => RateLimiter::tooManyAttempts($key, 5))) {
+            throw ValidationException::withMessages(['email' => 'Terlalu banyak percobaan. Coba lagi dalam '.RateLimiter::availableIn($limitedKey).' detik.']);
         }
-        RateLimiter::hit($key, 60);
+        foreach ($keys as $key) {
+            RateLimiter::hit($key, 60);
+        }
 
         if (PpdbAvailability::resolvePublic()->status === PpdbAvailability::COMPLETED) {
             throw ValidationException::withMessages(['email' => 'PPDB telah selesai. Akun baru akan tersedia pada periode berikutnya.']);
@@ -88,6 +95,7 @@ class AuthController extends Controller
         ]);
 
         Auth::login($user, true);
+        $request->session()->regenerate();
 
         return redirect()->route('portal.dashboard')->with('success', 'Akun berhasil dibuat. Kami mengirim link verifikasi ke email Anda — verifikasi sebelum kirim final.');
     }
@@ -109,10 +117,18 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $key = 'portal-login|'.$request->ip();
-        if (RateLimiter::tooManyAttempts($key, 6)) {
+        $rawAttemptedEmail = trim((string) $request->input('email'));
+        $normalizedEmail = strtolower($rawAttemptedEmail);
+        $ipKey = 'portal-login-ip|'.$request->ip();
+        $accountKey = 'portal-login-account|'.hash('sha256', $normalizedEmail);
+        $limitedKey = collect([$ipKey, $accountKey])->first(
+            fn (string $key) => RateLimiter::tooManyAttempts($key, $key === $ipKey ? 20 : 6)
+        );
+        if ($limitedKey) {
             $this->recordLoginAttempt($request, LoginLog::EVENT_LOGIN_FAILED, 'rate_limited');
-            throw ValidationException::withMessages(['email' => 'Terlalu banyak percobaan login. Coba lagi nanti.']);
+            throw ValidationException::withMessages([
+                'email' => 'Terlalu banyak percobaan login. Coba lagi dalam '.RateLimiter::availableIn($limitedKey).' detik.',
+            ])->status(429);
         }
 
         $data = $request->validate([
@@ -124,7 +140,8 @@ class AuthController extends Controller
         $rawAttemptedEmail = trim($data['email']);
         $user = User::where('email', strtolower($rawAttemptedEmail))->first();
         if (! $user || ! Hash::check($data['password'], $user->password)) {
-            RateLimiter::hit($key, 60);
+            RateLimiter::hit($ipKey, 60);
+            RateLimiter::hit($accountKey, 300);
             $this->recordLoginAttempt($request, LoginLog::EVENT_LOGIN_FAILED, 'invalid_credentials', $user, $rawAttemptedEmail);
 
             throw ValidationException::withMessages(['email' => 'Email atau password salah.']);
@@ -138,7 +155,8 @@ class AuthController extends Controller
             throw ValidationException::withMessages(['email' => 'Akun admin — silakan masuk via /admin/login.']);
         }
 
-        RateLimiter::clear($key);
+        RateLimiter::clear($ipKey);
+        RateLimiter::clear($accountKey);
         Auth::login($user, (bool) ($data['remember'] ?? false));
         $user->forceFill(['last_activity_at' => now()])->save();
         $request->session()->regenerate();
@@ -209,12 +227,11 @@ class AuthController extends Controller
 
     public function sendReset(Request $request)
     {
-        $request->validate(['email' => ['required', 'email']]);
-        $status = Password::sendResetLink($request->only('email'));
+        $request->validate(['email' => ['required', 'email', 'max:150']]);
+        Password::sendResetLink($request->only('email'));
 
-        return $status === Password::RESET_LINK_SENT
-            ? back()->with('success', 'Link reset password dikirim ke email jika terdaftar.')
-            : back()->with('error', 'Gagal mengirim link reset. Coba lagi.');
+        // Respons selalu sama agar keberadaan akun tidak dapat ditebak.
+        return back()->with('success', 'Jika email terdaftar, link reset password akan dikirim.');
     }
 
     public function showReset(string $token)
@@ -229,7 +246,10 @@ class AuthController extends Controller
             'password' => ['required', 'confirmed', PasswordRule::min(8)->letters()->numbers()],
         ]);
         $status = Password::reset($request->only('email', 'password', 'password_confirmation', 'token'), function ($user, $password) {
-            $user->forceFill(['password' => Hash::make($password)])->save();
+            $user->forceFill(['password' => Hash::make($password)])
+                ->setRememberToken(Str::random(60));
+            $user->save();
+            event(new PasswordReset($user));
         });
 
         return $status === Password::PASSWORD_RESET
@@ -240,6 +260,7 @@ class AuthController extends Controller
     private function recordLoginAttempt(Request $request, string $event, ?string $reason = null, ?User $user = null, ?string $attemptedEmail = null): void
     {
         $attemptedEmail ??= trim((string) $request->input('email'));
+        $attemptedEmail = preg_replace('/[\x00-\x1F\x7F]/u', '', $attemptedEmail) ?? '';
         $normalizedEmail = strtolower($attemptedEmail);
         $user ??= filter_var($normalizedEmail, FILTER_VALIDATE_EMAIL)
             ? User::where('email', $normalizedEmail)->first()

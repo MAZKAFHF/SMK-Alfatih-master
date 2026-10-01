@@ -14,16 +14,16 @@ class TrustedProxyTest extends TestCase
         $response = $this
             ->withServerVariables(['REMOTE_ADDR' => '172.16.5.1'])
             ->withHeaders([
-                'Host' => 'otaniverse.org',
+                'Host' => 'smktahfizhalfatih.otaniverse.org',
                 'X-Forwarded-For' => '203.0.113.10',
-                'X-Forwarded-Host' => 'otaniverse.org',
+                'X-Forwarded-Host' => 'smktahfizhalfatih.otaniverse.org',
                 'X-Forwarded-Port' => '443',
                 'X-Forwarded-Proto' => 'https',
             ])
             ->get('/admin/login');
 
         $response->assertOk();
-        $response->assertSee('https://otaniverse.org/build/assets/', false);
-        $response->assertDontSee('http://otaniverse.org/build/assets/', false);
+        $response->assertSee('https://smktahfizhalfatih.otaniverse.org/build/assets/', false);
+        $response->assertDontSee('http://smktahfizhalfatih.otaniverse.org/build/assets/', false);
     }
 }

@@ -9,6 +9,7 @@ use App\Models\PPDBRegistration;
 use App\Services\DocumentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DocumentController extends Controller
@@ -52,12 +53,22 @@ class DocumentController extends Controller
 
         $mime = $document->mime ?: 'application/octet-stream';
 
-        return new StreamedResponse(function () use ($document) {
+        $response = new StreamedResponse(function () use ($document) {
             echo Storage::disk($document->disk ?: 'ppdb_private')->get($document->path);
         }, 200, [
             'Content-Type' => $mime,
-            'Content-Disposition' => 'inline; filename="'.basename($document->original_name ?: $document->path).'"',
             'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, no-store, max-age=0',
+            'Content-Security-Policy' => "sandbox; default-src 'none'",
+            'Cross-Origin-Resource-Policy' => 'same-origin',
         ]);
+
+        $filename = basename($document->original_name ?: $document->path);
+        $response->headers->set(
+            'Content-Disposition',
+            $response->headers->makeDisposition(ResponseHeaderBag::DISPOSITION_INLINE, $filename, 'document')
+        );
+
+        return $response;
     }
 }
