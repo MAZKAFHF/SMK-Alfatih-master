@@ -16,12 +16,12 @@
 
 @php
     $siteName = \App\Models\SiteSetting::get('school_name', config('app.name', 'SMK Tahfizh Al-Fatih'));
-    $defaultTitle = \App\Models\SiteSetting::get('seo_title') ?: $siteName.' Pekanbaru | SMK Islam & PPDB';
+    $defaultTitle = \App\Models\SiteSetting::get('seo_title') ?: 'SMK Tahfizh Al-Fatih Pekanbaru | SMK Islam PKU';
     $pageTitle = $title ? "{$title} — {$siteName}" : $defaultTitle;
     $metaDescription = \Illuminate\Support\Str::limit(
         trim(preg_replace('/\s+/', ' ', strip_tags((string) ($description
             ?: \App\Models\SiteSetting::get('seo_description')
-            ?: 'Website resmi SMK Tahfizh Al-Fatih Pekanbaru, SMK Islam berbasis tahfizh dengan program PPLG, Multimedia, DKV, dan TJKT serta informasi PPDB.'
+            ?: 'Website resmi SMK Tahfizh Al-Fatih Pekanbaru (PKU), SMK Islam berbasis Al-Qur\'an. Informasi jurusan PPLG dan TJKT, tahfizh, fasilitas, serta PPDB online.'
         )))),
         165,
         ''
@@ -61,6 +61,7 @@
         '@id' => $websiteId,
         'url' => route('home'),
         'name' => $siteName,
+        'alternateName' => ['SMK Al Fatih Pekanbaru', 'SMK Islam Al Fatih PKU'],
         'inLanguage' => 'id-ID',
         'publisher' => ['@id' => $schoolId],
     ], [
@@ -95,16 +96,43 @@
             '@type' => 'HighSchool',
             '@id' => $schoolId,
             'name' => $siteName,
+            'alternateName' => [
+                'SMK Tahfizh Al Fatih Pekanbaru',
+                'SMK Islam Al Fatih Pekanbaru',
+                'SMK Al Fatih PKU',
+            ],
             'url' => route('home'),
             'logo' => ['@type' => 'ImageObject', 'url' => $logoImage],
+            'image' => $socialImage,
             'description' => $metaDescription,
+            'slogan' => \App\Models\SiteSetting::get('school_tagline') ?: 'Membangun Generasi Berilmu, Berkarakter, dan Terampil',
             'email' => \App\Models\SiteSetting::get('school_email'),
             'telephone' => \App\Models\SiteSetting::get('school_phone'),
             'address' => \App\Models\SiteSetting::get('school_address') ? [
                 '@type' => 'PostalAddress',
                 'streetAddress' => \App\Models\SiteSetting::get('school_address'),
+                'addressLocality' => 'Pekanbaru',
+                'addressRegion' => 'Riau',
                 'addressCountry' => 'ID',
             ] : null,
+            'areaServed' => [
+                '@type' => 'City',
+                'name' => 'Pekanbaru',
+            ],
+            'educationalLevel' => 'Sekolah Menengah Kejuruan',
+            'knowsAbout' => [
+                'Tahfizh Al-Qur\'an',
+                'Pengembangan Perangkat Lunak dan Gim (PPLG)',
+                'Teknik Jaringan Komputer dan Telekomunikasi (TJKT)',
+                'Pendidikan kejuruan Islam',
+            ],
+            'contactPoint' => array_filter([
+                '@type' => 'ContactPoint',
+                'contactType' => 'admissions',
+                'telephone' => \App\Models\SiteSetting::get('school_phone'),
+                'email' => \App\Models\SiteSetting::get('school_email'),
+                'availableLanguage' => ['Indonesian'],
+            ]),
             'sameAs' => $sameAs ?: null,
         ]);
     }

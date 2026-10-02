@@ -27,12 +27,12 @@
                     PPDB {{ $ppdbState->period?->academic_year ?? '' }} {{ $ppdbState->publicLabel() }}
                 </div>
 
-                <p class="mt-6 text-xs font-bold uppercase tracking-[0.25em] text-gold-400" data-hero-item style="--hero-delay: 90ms">SMK Tahfizh Al-Fatih</p>
-                <h1 class="mt-3 font-display text-[2rem] font-extrabold leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-[2.65rem] xl:text-5xl">
+                <h1 class="mt-6 text-xs font-bold uppercase tracking-[0.25em] text-gold-400" data-hero-item style="--hero-delay: 90ms">SMK Islam Tahfizh Al-Fatih Pekanbaru</h1>
+                <div class="mt-3 font-display text-[2rem] font-extrabold leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-[2.65rem] xl:text-5xl">
                     <span data-mask-line style="--reveal-delay: 140ms"><span>Membangun Generasi</span></span>
                     <span data-mask-line style="--reveal-delay: 230ms"><span class="text-tech-300">Berilmu.</span></span>
                     <span data-mask-line style="--reveal-delay: 320ms"><span><span class="word-swap text-gold-400" data-word-swap data-words='["Berkarakter.", "Terampil.", "Siap Berkarya."]'><span>Berkarakter.</span></span></span></span>
-                </h1>
+                </div>
 
                 <p class="mt-5 max-w-xl text-base leading-relaxed text-slate-200 lg:text-lg" data-hero-item style="--hero-delay: 320ms">
                     {{ $schoolTagline ?: 'Sekolah menengah kejuruan berbasis tahfizh Al-Qur’an untuk belajar, berkarya, dan bertumbuh.' }}
@@ -80,15 +80,15 @@
     <section id="tentang" class="scroll-mt-20 bg-white py-16 dark:bg-slate-950 lg:py-20">
         <div class="mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">
             <div class="reveal">
-                <x-section-heading align="left" subtitle="Tentang Kami" title="Sekolah Vokasi Berbasis Tahfizh Al-Qur'an">
-                    SMK Tahfizh Al-Fatih memadukan pendidikan kejuruan modern dengan pembinaan hafalan Al-Qur'an. Kami percaya lulusan terbaik adalah mereka yang tidak hanya unggul dalam kompetensi, tetapi juga kokoh dalam iman dan akhlak.
+                <x-section-heading align="left" subtitle="Tentang Kami" title="SMK Islam Tahfizh Al-Fatih di Pekanbaru">
+                    SMK Tahfizh Al-Fatih Pekanbaru (PKU) adalah sekolah menengah kejuruan Islam yang memadukan pendidikan vokasi modern dengan pembinaan hafalan Al-Qur'an. Siswa belajar melalui praktik, proyek, dan pembentukan karakter agar berilmu, terampil, siap berkarya, serta kokoh dalam iman dan akhlak.
                 </x-section-heading>
 
                 <ul class="mt-8 space-y-4" data-stagger>
                     @foreach ([
-                        ['title' => 'Pendidikan Kejuruan', 'desc' => 'Program keahlian menjadi ruang siswa mengembangkan kompetensi dan karya.'],
-                        ['title' => 'Tahfizh Al-Qur’an', 'desc' => 'Pembinaan Al-Qur’an hadir sebagai bagian dari identitas pendidikan sekolah.'],
-                        ['title' => 'Karakter dan Kebersamaan', 'desc' => 'Lingkungan belajar diarahkan untuk menumbuhkan disiplin dan tanggung jawab.'],
+                        ['title' => 'Jurusan PPLG dan TJKT', 'desc' => 'Program keahlian menjadi ruang siswa mengembangkan kompetensi teknologi, jaringan, dan karya.'],
+                        ['title' => 'Program Tahfizh Al-Qur’an', 'desc' => 'Pembinaan hafalan Al-Qur’an hadir sebagai bagian dari identitas pendidikan sekolah Islam.'],
+                        ['title' => 'PPDB SMK Pekanbaru', 'desc' => 'Informasi dan pendaftaran peserta didik baru tersedia secara online melalui portal resmi sekolah.'],
                     ] as $feature)
                         <li data-stagger-item class="flex items-start gap-3.5">
                             <span class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-600 dark:bg-primary-950 dark:text-primary-400" aria-hidden="true">

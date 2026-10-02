@@ -15,13 +15,16 @@ class SeoTest extends TestCase
         $response = $this->get('/?utm_source=test');
 
         $response->assertOk()
-            ->assertSee('<title>SMK Tahfizh Al-Fatih Pekanbaru | SMK Islam &amp; PPDB</title>', false)
+            ->assertSee('<title>SMK Tahfizh Al-Fatih Pekanbaru | SMK Islam PKU</title>', false)
             ->assertSee('<link rel="canonical" href="http://127.0.0.1:8000">', false)
             ->assertSee('name="robots" content="index, follow, max-image-preview:large', false)
             ->assertSee('property="og:locale" content="id_ID"', false)
             ->assertSee('name="twitter:card" content="summary_large_image"', false)
             ->assertSee('"@type":"HighSchool"', false)
-            ->assertSee('"@type":"WebSite"', false);
+            ->assertSee('"@type":"WebSite"', false)
+            ->assertSee('"alternateName":["SMK Tahfizh Al Fatih Pekanbaru","SMK Islam Al Fatih Pekanbaru","SMK Al Fatih PKU"]', false)
+            ->assertSee('SMK Islam Tahfizh Al-Fatih Pekanbaru', false)
+            ->assertSee('SMK Islam Tahfizh Al-Fatih di Pekanbaru', false);
     }
 
     public function test_paginated_public_page_keeps_page_in_canonical_but_drops_tracking(): void
