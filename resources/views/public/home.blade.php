@@ -5,7 +5,7 @@
             <video
                 data-ambient-video
                 class="hero-flag-video absolute inset-0 size-full object-cover"
-                src="{{ asset('video/smk-motion.mp4') }}"
+                src="{{ asset('video/smk-motion-v2.mp4') }}"
                 poster="{{ asset('video/smk-motion-poster.webp') }}"
                 muted
                 loop

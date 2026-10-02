@@ -26,7 +26,7 @@ class PublicMotionTest extends TestCase
         $page = $this->get(route('home'))->assertOk();
         $page->assertSee('data-hero', false);
         $page->assertSee('data-ambient-video', false);
-        $page->assertSee('/video/smk-motion.mp4', false);
+        $page->assertSee('/video/smk-motion-v2.mp4', false);
         $page->assertSee('/video/smk-motion-poster.webp', false);
         $page->assertSee('hero-flag-video', false);
         $page->assertSee('autoplay', false);
