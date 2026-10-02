@@ -15,7 +15,7 @@ class SeoTest extends TestCase
         $response = $this->get('/?utm_source=test');
 
         $response->assertOk()
-            ->assertSee('<title>SMK Tahfizh Al-Fatih | Sekolah Kejuruan Berbasis Tahfizh</title>', false)
+            ->assertSee('<title>SMK Tahfizh Al-Fatih Pekanbaru | SMK Islam &amp; PPDB</title>', false)
             ->assertSee('<link rel="canonical" href="http://127.0.0.1:8000">', false)
             ->assertSee('name="robots" content="index, follow, max-image-preview:large', false)
             ->assertSee('property="og:locale" content="id_ID"', false)
@@ -28,6 +28,8 @@ class SeoTest extends TestCase
     {
         $this->get('/berita?page=2&utm_campaign=test')
             ->assertOk()
+            ->assertHeader('X-Robots-Tag', 'noindex, follow, noarchive')
+            ->assertSee('name="robots" content="noindex, follow, noarchive"', false)
             ->assertSee('<link rel="canonical" href="http://127.0.0.1:8000/berita?page=2">', false);
     }
 
@@ -40,10 +42,10 @@ class SeoTest extends TestCase
 
         $this->get(route('news.show', $news))
             ->assertOk()
+            ->assertHeader('X-Robots-Tag', 'noindex, follow, noarchive')
             ->assertSee('property="og:type" content="article"', false)
             ->assertSee('property="article:published_time"', false)
-            ->assertSee('"@type":"NewsArticle"', false)
-            ->assertSee('"@type":"BreadcrumbList"', false);
+            ->assertDontSee('application/ld+json', false);
     }
 
     public function test_private_and_error_pages_are_not_indexable(): void
@@ -72,7 +74,11 @@ class SeoTest extends TestCase
         $sitemap->assertOk()->assertHeader('Content-Type', 'application/xml; charset=UTF-8');
         $sitemap->assertHeaderMissing('Set-Cookie');
         $this->assertNotFalse(simplexml_load_string($sitemap->getContent()));
-        $this->assertStringContainsString('xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"', $sitemap->getContent());
+        $xml = simplexml_load_string($sitemap->getContent());
+        $this->assertCount(1, $xml->url);
+        $this->assertSame('http://127.0.0.1:8000', (string) $xml->url[0]->loc);
+        $this->assertStringNotContainsString('/berita', $sitemap->getContent());
+        $this->assertStringNotContainsString('/profil', $sitemap->getContent());
         $this->assertStringNotContainsString('/admin', $sitemap->getContent());
         $this->assertStringNotContainsString('/portal', $sitemap->getContent());
     }

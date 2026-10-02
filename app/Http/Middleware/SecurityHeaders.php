@@ -18,6 +18,13 @@ class SecurityHeaders
         );
         if ($isPrivateOrUtility || $response->getStatusCode() >= 400) {
             $response->headers->set('X-Robots-Tag', 'noindex, nofollow, noarchive, nosnippet');
+        } elseif (
+            ! $request->routeIs('home', 'sitemap', 'robots')
+            && str_contains((string) $response->headers->get('Content-Type'), 'text/html')
+        ) {
+            // SEO owner rule: hanya homepage yang masuk indeks. Halaman publik
+            // tetap dapat dirayapi agar seluruh internal link menguatkan beranda.
+            $response->headers->set('X-Robots-Tag', 'noindex, follow, noarchive');
         }
 
         // Basic hardening headers — safe for Laravel Blade + Vite + Bunny Fonts

@@ -27,11 +27,13 @@ class PublicMotionTest extends TestCase
         $page->assertSee('data-hero', false);
         $page->assertSee('data-ambient-video', false);
         $page->assertSee('/video/smk-motion.mp4', false);
+        $page->assertSee('/video/smk-motion-poster.webp', false);
         $page->assertSee('hero-flag-video', false);
         $page->assertSee('autoplay', false);
         $page->assertSee('loop', false);
-        $page->assertSee('preload="auto"', false);
+        $page->assertSee('preload="metadata"', false);
         $page->assertSee('playsinline', false);
+        $this->assertFileExists(public_path('video/smk-motion-poster.webp'));
         $page->assertSee('data-navbar-logo', false);
         $page->assertSee('rounded-xl p-1.5', false);
         $page->assertSee('data-footer-logo', false);

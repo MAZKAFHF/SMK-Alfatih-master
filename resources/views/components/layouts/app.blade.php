@@ -16,21 +16,24 @@
 
 @php
     $siteName = \App\Models\SiteSetting::get('school_name', config('app.name', 'SMK Tahfizh Al-Fatih'));
-    $defaultTitle = \App\Models\SiteSetting::get('seo_title') ?: $siteName.' | Sekolah Kejuruan Berbasis Tahfizh';
+    $defaultTitle = \App\Models\SiteSetting::get('seo_title') ?: $siteName.' Pekanbaru | SMK Islam & PPDB';
     $pageTitle = $title ? "{$title} — {$siteName}" : $defaultTitle;
     $metaDescription = \Illuminate\Support\Str::limit(
         trim(preg_replace('/\s+/', ' ', strip_tags((string) ($description
             ?: \App\Models\SiteSetting::get('seo_description')
-            ?: 'Website resmi SMK Tahfizh Al-Fatih Pekanbaru. Temukan profil sekolah, program keahlian, berita, kegiatan, dan informasi PPDB.'
+            ?: 'Website resmi SMK Tahfizh Al-Fatih Pekanbaru, SMK Islam berbasis tahfizh dengan program PPLG, Multimedia, DKV, dan TJKT serta informasi PPDB.'
         )))),
         165,
         ''
     );
     $isPrivatePage = request()->is('admin', 'admin/*', 'portal', 'portal/*', 'health', 'up', 'webhooks/*')
         || (is_numeric((string) $title) && (int) $title >= 400);
-    $robotsContent = $robots ?: ($isPrivatePage
+    $isIndexableHomepage = ! $isPrivatePage && request()->routeIs('home');
+    $robotsContent = $isPrivatePage
         ? 'noindex, nofollow, noarchive, nosnippet'
-        : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1');
+        : ($isIndexableHomepage
+            ? ($robots ?: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1')
+            : 'noindex, follow, noarchive');
 
     $query = request()->query();
     foreach (array_keys($query) as $key) {
@@ -164,9 +167,11 @@
             <meta name="twitter:title" content="{{ $pageTitle }}">
             <meta name="twitter:description" content="{{ $metaDescription }}">
             <meta name="twitter:image" content="{{ $socialImage }}">
-            <link rel="alternate" hreflang="id-ID" href="{{ $currentUrl }}">
-            <link rel="alternate" hreflang="x-default" href="{{ $currentUrl }}">
-            <script type="application/ld+json">{!! json_encode($schemaPayload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
+            @if($isIndexableHomepage)
+                <link rel="alternate" hreflang="id-ID" href="{{ $currentUrl }}">
+                <link rel="alternate" hreflang="x-default" href="{{ $currentUrl }}">
+                <script type="application/ld+json">{!! json_encode($schemaPayload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
+            @endif
         @endunless
 
         <meta name="theme-color" content="#047857">

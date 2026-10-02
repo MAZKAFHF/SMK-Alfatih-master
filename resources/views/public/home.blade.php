@@ -6,11 +6,12 @@
                 data-ambient-video
                 class="hero-flag-video absolute inset-0 size-full object-cover"
                 src="{{ asset('video/smk-motion.mp4') }}"
+                poster="{{ asset('video/smk-motion-poster.webp') }}"
                 muted
                 loop
                 autoplay
                 playsinline
-                preload="auto"
+                preload="metadata"
             ></video>
             <div class="pointer-events-none absolute inset-0 bg-navy-950/35"></div>
             <div class="pointer-events-none absolute inset-0 bg-gradient-to-r from-navy-950/95 via-navy-950/65 to-navy-950/10"></div>
