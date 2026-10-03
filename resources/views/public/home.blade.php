@@ -81,7 +81,7 @@
         <div class="mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">
             <div class="reveal">
                 <x-section-heading align="left" subtitle="Tentang Kami" title="SMK Islam Tahfizh Al-Fatih di Pekanbaru">
-                    SMK Tahfizh Al-Fatih Pekanbaru (PKU) adalah sekolah menengah kejuruan Islam yang memadukan pendidikan vokasi modern dengan pembinaan hafalan Al-Qur'an. Siswa belajar melalui praktik, proyek, dan pembentukan karakter agar berilmu, terampil, siap berkarya, serta kokoh dalam iman dan akhlak.
+                    SMK Tahfizh Al-Fatih Pekanbaru adalah sekolah menengah kejuruan Islam yang memadukan pendidikan vokasi modern dengan pembinaan hafalan Al-Qur'an. Siswa belajar melalui praktik, proyek, dan pembentukan karakter agar berilmu, terampil, siap berkarya, serta kokoh dalam iman dan akhlak.
                 </x-section-heading>
 
                 <ul class="mt-8 space-y-4" data-stagger>

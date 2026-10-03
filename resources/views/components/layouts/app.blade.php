@@ -16,12 +16,12 @@
 
 @php
     $siteName = \App\Models\SiteSetting::get('school_name', config('app.name', 'SMK Tahfizh Al-Fatih'));
-    $defaultTitle = \App\Models\SiteSetting::get('seo_title') ?: 'SMK Tahfizh Al-Fatih Pekanbaru | SMK Islam PKU';
+    $defaultTitle = \App\Models\SiteSetting::get('seo_title') ?: 'SMK Tahfizh Al-Fatih Pekanbaru';
     $pageTitle = $title ? "{$title} — {$siteName}" : $defaultTitle;
     $metaDescription = \Illuminate\Support\Str::limit(
         trim(preg_replace('/\s+/', ' ', strip_tags((string) ($description
             ?: \App\Models\SiteSetting::get('seo_description')
-            ?: 'Website resmi SMK Tahfizh Al-Fatih Pekanbaru (PKU), SMK Islam berbasis Al-Qur\'an. Informasi jurusan PPLG dan TJKT, tahfizh, fasilitas, serta PPDB online.'
+            ?: 'Website resmi SMK Tahfizh Al-Fatih Pekanbaru, sekolah menengah kejuruan berbasis tahfizh Al-Qur\'an. Informasi jurusan PPLG dan TJKT, fasilitas, serta PPDB online.'
         )))),
         165,
         ''
@@ -61,7 +61,7 @@
         '@id' => $websiteId,
         'url' => route('home'),
         'name' => $siteName,
-        'alternateName' => ['SMK Al Fatih Pekanbaru', 'SMK Islam Al Fatih PKU'],
+        'alternateName' => ['SMK Al Fatih Pekanbaru', 'SMK Islam Al Fatih Pekanbaru'],
         'inLanguage' => 'id-ID',
         'publisher' => ['@id' => $schoolId],
     ], [
@@ -99,7 +99,7 @@
             'alternateName' => [
                 'SMK Tahfizh Al Fatih Pekanbaru',
                 'SMK Islam Al Fatih Pekanbaru',
-                'SMK Al Fatih PKU',
+                'SMK Al Fatih Pekanbaru',
             ],
             'url' => route('home'),
             'logo' => ['@type' => 'ImageObject', 'url' => $logoImage],
