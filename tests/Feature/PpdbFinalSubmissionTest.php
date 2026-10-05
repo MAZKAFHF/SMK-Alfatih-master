@@ -195,6 +195,26 @@ class PpdbFinalSubmissionTest extends TestCase
         $follow->assertSee('Dokumen', false);
     }
 
+    public function test_review_names_every_missing_field_and_links_to_its_fix_location(): void
+    {
+        $user = $this->applicant();
+        $program = Program::factory()->create(['status' => 'active']);
+        $app = $this->completeApp($user, $program->id);
+        $app->update(['postal_code' => '', 'mother_name' => '']);
+        $app->documents()->whereIn('type', ['kk', 'foto'])->update(['path' => null]);
+
+        $response = $this->actingAs($user)->get(route('portal.applications.review', $app));
+
+        $response->assertOk()
+            ->assertSee('Masih ada 4 data wajib yang perlu dilengkapi')
+            ->assertSee('Kode pos: Kode pos wajib diisi.')
+            ->assertSee('Nama ibu: Nama ibu wajib diisi.')
+            ->assertSee('Kartu Keluarga (KK): Unggah Kartu Keluarga (KK).')
+            ->assertSee('Foto siswa: Unggah Foto siswa.')
+            ->assertSee(route('portal.applications.edit', $app).'#postal_code', false)
+            ->assertSee('tahap=dokumen#document-kk', false);
+    }
+
     public function test_one_program_only_enforced(): void
     {
         $user = $this->applicant();

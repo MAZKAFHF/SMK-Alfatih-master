@@ -57,6 +57,39 @@ class FinalSubmissionCheck
         ];
     }
 
+    /** Nama manusiawi yang ditampilkan di checklist kelengkapan pemohon. */
+    public static function labels(): array
+    {
+        return [
+            'name' => 'Nama lengkap',
+            'nik' => 'NIK (16 digit)',
+            'nisn' => 'NISN (10 digit)',
+            'birth_place' => 'Tempat lahir',
+            'birth_date' => 'Tanggal lahir',
+            'gender' => 'Jenis kelamin',
+            'address' => 'Alamat lengkap',
+            'province' => 'Provinsi',
+            'city' => 'Kabupaten/Kota',
+            'district' => 'Kecamatan',
+            'village' => 'Kelurahan/Desa',
+            'postal_code' => 'Kode pos',
+            'school_origin' => 'Asal sekolah',
+            'father_name' => 'Nama ayah',
+            'father_phone' => 'Nomor kontak orang tua/wali',
+            'mother_name' => 'Nama ibu',
+            'mother_phone' => 'Nomor HP ibu',
+            'guardian_name' => 'Nama wali',
+            'guardian_phone' => 'Nomor HP wali',
+            'guardian_relation' => 'Hubungan wali',
+            'program_id' => 'Program keahlian',
+            'dokumen_kk' => 'Kartu Keluarga (KK)',
+            'dokumen_ktp_ortu' => 'KTP orang tua/wali',
+            'dokumen_akta' => 'Akta kelahiran',
+            'dokumen_rapor' => 'Rapor',
+            'dokumen_foto' => 'Foto siswa',
+        ];
+    }
+
     /**
      * @return array{valid: bool, errors: \Illuminate\Support\MessageBag, missing_sections: array<string, string[]>}
      */

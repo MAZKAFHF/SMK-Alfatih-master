@@ -101,6 +101,23 @@ class UiPrimitiveGuardTest extends TestCase
         }
     }
 
+    public function test_date_picker_uses_the_global_dd_mm_yyyy_input_mask(): void
+    {
+        $this->app['view']->share('errors', new ViewErrorBag);
+        $html = Blade::render('<x-ui.date-picker label="Tanggal Lahir" name="birth_date" />');
+
+        $this->assertStringContainsString('placeholder="DD-MM-YYYY"', $html);
+        $this->assertStringContainsString('inputmode="numeric"', $html);
+        $this->assertStringContainsString('maxlength="10"', $html);
+
+        $js = file_get_contents(base_path('resources/js/ui-primitives.js'));
+        $this->assertStringContainsString('maskDateInput', $js);
+        $this->assertStringContainsString("display.addEventListener('input'", $js);
+        $this->assertStringContainsString('digits.slice(0, 2)', $js);
+        $this->assertStringContainsString('digits.slice(2, 4)', $js);
+        $this->assertStringContainsString('digits.slice(4)', $js);
+    }
+
     public function test_escape_coordination_between_popover_and_modal(): void
     {
         // Regresi: Escape dengan kalender terbuka di dalam modal TIDAK

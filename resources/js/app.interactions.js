@@ -747,6 +747,15 @@
                 }
             });
         });
+        // Saat server mengembalikan formulir yang belum lengkap, tampilkan
+        // ringkasannya tanpa memaksa pengguna mencari pesan di halaman panjang.
+        const summary = document.querySelector('[data-validation-summary]');
+        if (summary) {
+            requestAnimationFrame(() => {
+                summary.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                summary.focus({ preventScroll: true });
+            });
+        }
     }
 
     /* ---------------- ALFATIH//FUTURE: scroll reveal ---------------- */

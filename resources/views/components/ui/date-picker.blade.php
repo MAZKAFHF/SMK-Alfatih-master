@@ -51,6 +51,7 @@
                 placeholder="DD-MM-YYYY"
                 autocomplete="off"
                 inputmode="numeric"
+                maxlength="10"
                 aria-label="{{ $label ?? 'Tanggal' }} (format: DD-MM-YYYY)"
                 @if ($error) aria-invalid="true" @endif
                 @if ($name) aria-describedby="{{ $error ? $id.'-error' : ($help ? $id.'-help' : null) }}" @endif

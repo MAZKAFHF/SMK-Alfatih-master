@@ -36,7 +36,7 @@ test.describe('ALFATIH DatePicker month navigation stays open', () => {
     await expect(page.locator('#opens_at-time-display')).toHaveValue('14:50');
   });
 
-  test('birth year selector reaches 2000 directly', async ({ page }) => {
+  test('birth date auto-formats digits and year selector reaches 2000 directly', async ({ page }) => {
     const email = `birth-year+${Date.now()}@example.id`;
     await page.goto('/portal/daftar');
     await page.locator('input[name="name"]').fill('Ortu Tahun');
@@ -45,6 +45,11 @@ test.describe('ALFATIH DatePicker month navigation stays open', () => {
     await page.locator('input[name="password_confirmation"]').fill('Pass12345');
     await page.getByRole('button', { name: 'Buat Akun' }).click();
     await page.goto('/portal/aplikasi/baru');
+    const birthDate = page.locator('#birth_date-display');
+    await birthDate.pressSequentially('22012011');
+    await expect(birthDate).toHaveValue('22-01-2011');
+    await expect(page.locator('input[name="birth_date"]')).toHaveValue('2011-01-22');
+    await birthDate.fill('');
     await page.getByRole('button', { name: /Buka kalender Tanggal Lahir/ }).click();
     await page.locator('[data-cal-year]').click();
     await expect(page.locator('[data-cal-pickyear="2000"]')).toBeVisible();

@@ -9,6 +9,29 @@
     const isoDate = (y, m, d) => `${y}-${pad(m)}-${pad(d)}`;
     const fmtID = (y, m, d) => `${pad(d)}-${pad(m)}-${y}`;
 
+    // Mask tanggal untuk seluruh DatePicker. Pengguna cukup mengetik delapan
+    // angka (DDMMYYYY); pemisah ditambahkan otomatis menjadi DD-MM-YYYY.
+    const maskDateInput = (value) => {
+        const digits = String(value || '').replace(/\D/g, '').slice(0, 8);
+        if (digits.length <= 2) return digits;
+        if (digits.length <= 4) return `${digits.slice(0, 2)}-${digits.slice(2)}`;
+        return `${digits.slice(0, 2)}-${digits.slice(2, 4)}-${digits.slice(4)}`;
+    };
+
+    const caretAfterDateDigits = (value, digitCount) => {
+        if (digitCount <= 0) return 0;
+        let seen = 0;
+        for (let i = 0; i < value.length; i++) {
+            if (/\d/.test(value[i])) seen++;
+            if (seen === digitCount) {
+                // Setelah hari/bulan lengkap, lompat melewati '-' yang baru
+                // dibuat agar angka berikutnya masuk ke bagian selanjutnya.
+                return i + 1 + ([2, 4].includes(digitCount) && value[i + 1] === '-' ? 1 : 0);
+            }
+        }
+        return value.length;
+    };
+
     function parseDateInput(str) {
         if (!str) return null;
         let m = str.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -266,6 +289,32 @@
                 display.focus();
             };
             sync();
+
+            display.addEventListener('input', () => {
+                const caret = display.selectionStart ?? display.value.length;
+                const digitsBeforeCaret = display.value.slice(0, caret).replace(/\D/g, '').length;
+                const masked = maskDateInput(display.value);
+                if (display.value !== masked) display.value = masked;
+                const nextCaret = caretAfterDateDigits(masked, digitsBeforeCaret);
+                display.setSelectionRange(nextCaret, nextCaret);
+
+                // Jangan pertahankan error atau nilai mesin lama saat pengguna
+                // sedang memperbaiki tanggal. Nilai ISO baru disinkronkan segera
+                // setelah delapan angka membentuk tanggal yang valid.
+                display.removeAttribute('aria-invalid');
+                display.setCustomValidity('');
+                const previous = hidden.value;
+                const p = parseDateInput(masked);
+                const iso = p ? isoDate(p.y, p.m, p.d) : '';
+                const inRange = iso && (!state.min || iso >= state.min) && (!state.max || iso <= state.max);
+                hidden.value = inRange ? iso : '';
+                if (inRange) {
+                    state.value = iso;
+                    state.y = p.y;
+                    state.m = p.m;
+                }
+                if (hidden.value !== previous) hidden.dispatchEvent(new Event('change', { bubbles: true }));
+            });
             trigger.addEventListener('click', () => {
                 togglePopover(trigger, pop);
                 if (!pop.classList.contains('hidden')) {
