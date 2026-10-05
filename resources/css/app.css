@@ -1008,6 +1008,26 @@
     .ctl-check:disabled, .ctl-radio:disabled { opacity: 0.5; cursor: not-allowed; }
     .ctl-check[aria-invalid="true"] { border-color: var(--ctl-danger); }
 
+    /* Portal PPDB — pilihan slot harus terbaca jelas tanpa bergantung warna saja. */
+    .portal-slot-option {
+        position: relative; display: flex; min-height: 112px; align-items: flex-start; gap: 12px;
+        border: 1.5px solid var(--portal-line, #dce8e2); border-radius: 14px;
+        background: rgb(255 255 255 / 0.72); padding: 16px; cursor: pointer;
+        transition: border-color 180ms ease, background-color 180ms ease, box-shadow 200ms ease, transform 180ms ease;
+    }
+    .portal-slot-option:not(.is-disabled):hover { border-color: #34a985; transform: translateY(-1px); box-shadow: 0 10px 28px rgb(8 112 82 / 0.10); }
+    .portal-slot-option:has(input:focus-visible) { outline: 3px solid rgb(45 212 138 / 0.35); outline-offset: 3px; }
+    .portal-slot-option[data-selected="true"] { border-color: #087052; background: #ecfdf5; box-shadow: 0 0 0 2px rgb(8 112 82 / 0.16), 0 14px 32px rgb(8 112 82 / 0.13); }
+    .portal-slot-option.is-disabled { cursor: not-allowed; opacity: 0.55; background: rgb(241 245 249 / 0.72); }
+    .portal-slot-check { display: inline-flex; width: 23px; height: 23px; flex: 0 0 23px; align-items: center; justify-content: center; border: 2px solid #9caea7; border-radius: 999px; color: transparent; transition: all 180ms ease; }
+    .portal-slot-check svg { width: 14px; height: 14px; }
+    .portal-slot-option[data-selected="true"] .portal-slot-check { border-color: #087052; background: #087052; color: #fff; transform: scale(1.05); }
+    .portal-slot-selected-label { display: none; border-radius: 999px; background: #087052; padding: 3px 8px; color: #fff; font-size: 10px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+    .portal-slot-option[data-selected="true"] .portal-slot-selected-label { display: inline-flex; }
+    .dark .portal-slot-option { background: rgb(15 30 24 / 0.78); }
+    .dark .portal-slot-option[data-selected="true"] { border-color: #34d399; background: rgb(6 78 59 / 0.42); box-shadow: 0 0 0 2px rgb(52 211 153 / 0.14), 0 16px 34px rgb(0 0 0 / 0.22); }
+    .dark .portal-slot-option.is-disabled { background: rgb(15 23 42 / 0.6); }
+
     .ctl-switch { appearance: none; -webkit-appearance: none; width: 40px; height: 22px; border-radius: 999px; background: var(--ctl-border-strong); cursor: pointer; position: relative; transition: background 150ms ease; flex-shrink: 0; margin: 0; }
     .ctl-switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 999px; background: #fff; transition: left 150ms ease; box-shadow: 0 1px 2px rgb(0 0 0 / 0.3); }
     .ctl-switch:checked { background: var(--ctl-primary); }

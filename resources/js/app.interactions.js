@@ -24,6 +24,7 @@
         initPeriodOpenForms();
         initDoubleSubmitGuard();
         initFormValidationFeedback();
+        initSlotSelection();
         initReveal();
         initCounters();
         initWordSwap();
@@ -756,6 +757,34 @@
                 summary.focus({ preventScroll: true });
             });
         }
+    }
+
+    /* ---------------- Portal interview slot selection ---------------- */
+    function initSlotSelection() {
+        document.querySelectorAll('[data-slot-form]').forEach((form) => {
+            const options = [...form.querySelectorAll('[data-slot-option]')];
+            const inputs = [...form.querySelectorAll('[data-slot-input]')];
+            const panel = form.querySelector('[data-slot-summary-panel]');
+            const summary = form.querySelector('[data-slot-summary-text]');
+            const submit = form.querySelector('[data-slot-submit]');
+            const help = form.querySelector('[data-slot-help]');
+
+            const sync = () => {
+                const selected = inputs.find((input) => input.checked && !input.disabled);
+                options.forEach((option) => {
+                    const active = option.querySelector('[data-slot-input]') === selected;
+                    option.dataset.selected = String(active);
+                    option.setAttribute('aria-checked', String(active));
+                });
+                if (submit) submit.disabled = !selected;
+                panel?.classList.toggle('hidden', !selected);
+                if (summary) summary.textContent = selected?.closest('[data-slot-option]')?.dataset.slotSummary || '';
+                if (help) help.textContent = selected ? 'Pastikan jadwal sudah sesuai sebelum dikonfirmasi.' : 'Pilih salah satu kartu jadwal untuk melanjutkan.';
+            };
+
+            inputs.forEach((input) => input.addEventListener('change', sync));
+            sync();
+        });
     }
 
     /* ---------------- ALFATIH//FUTURE: scroll reveal ---------------- */

@@ -147,6 +147,30 @@ class PpdbPortalTest extends TestCase
         $this->assertEquals(1, InterviewSlot::find($slot->id)->booked_count);
     }
 
+    public function test_slot_picker_has_clear_selected_state_and_confirmation_summary(): void
+    {
+        $period = $this->period();
+        $user = $this->applicant();
+        $app = PPDBRegistration::create([
+            'name' => 'Pemilih Jadwal', 'gender' => 'laki-laki', 'program_id' => $this->program()->id,
+            'applicant_account_id' => $user->id, 'period_id' => $period->id,
+            'application_status' => ApplicationStatus::Verified, 'status' => 'pending', 'source' => 'applicant',
+        ]);
+        InterviewSlot::create([
+            'period_id' => $period->id, 'date' => now('Asia/Jakarta')->addDay()->toDateString(),
+            'start_time' => '08:00', 'location' => 'Ruang Podcast', 'capacity' => 10, 'status' => 'active',
+        ]);
+
+        $this->actingAs($user)->get(route('portal.slots.index', $app))
+            ->assertOk()
+            ->assertSee('data-slot-form', false)
+            ->assertSee('data-slot-option', false)
+            ->assertSee('data-slot-summary-panel', false)
+            ->assertSee('data-slot-submit', false)
+            ->assertSee('Konfirmasi Jadwal Pilihan')
+            ->assertSee('Pilih satu jadwal.');
+    }
+
     public function test_scheduled_interview_stage_renders_status_badge_without_error(): void
     {
         $period = $this->period();
