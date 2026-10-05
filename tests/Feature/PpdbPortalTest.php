@@ -182,6 +182,44 @@ class PpdbPortalTest extends TestCase
         $this->post(route('portal.documents.upload', [$app, 'kk']), ['file' => UploadedFile::fake()->create('kk.pdf', 100, 'application/pdf')])->assertForbidden();
     }
 
+    public function test_only_document_requested_for_revision_is_unlocked_after_submission(): void
+    {
+        Storage::fake('ppdb_private');
+        $user = $this->applicant();
+        $app = PPDBRegistration::create([
+            'name' => 'Koreksi Dokumen',
+            'gender' => 'laki-laki',
+            'program_id' => $this->program()->id,
+            'applicant_account_id' => $user->id,
+            'period_id' => $this->period()->id,
+            'application_status' => ApplicationStatus::Submitted,
+            'status' => 'pending',
+            'source' => 'applicant',
+        ]);
+        \App\Services\DocumentService::ensurePlaceholders($app);
+        $kk = $app->documents()->where('type', 'kk')->first();
+        $akta = $app->documents()->where('type', 'akta')->first();
+        $kk->update(['status' => 'needs_revision', 'path' => 'old/kk.pdf', 'admin_note' => 'Foto kurang jelas.']);
+        $akta->update(['status' => 'valid', 'path' => 'old/akta.pdf']);
+
+        $page = $this->actingAs($user)->get(route('portal.applications.show', [$app, 'tahap' => 'dokumen']));
+        $page->assertOk()
+            ->assertSee('Ganti Kartu Keluarga (KK)', false)
+            ->assertDontSee('Ganti Akta Kelahiran', false);
+
+        $this->actingAs($user)->post(
+            route('portal.documents.upload', [$app, 'kk']),
+            ['file' => UploadedFile::fake()->create('kk-baru.pdf', 200, 'application/pdf')]
+        )->assertRedirect();
+        $this->assertSame('replaced', $kk->fresh()->status->value);
+
+        $this->actingAs($user)->post(
+            route('portal.documents.upload', [$app, 'akta']),
+            ['file' => UploadedFile::fake()->create('akta-baru.pdf', 200, 'application/pdf')]
+        )->assertForbidden();
+        $this->assertSame('valid', $akta->fresh()->status->value);
+    }
+
     public function test_portal_uses_stage_specific_next_action_and_has_no_locked_change_request(): void
     {
         $user = $this->applicant();

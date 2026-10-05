@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Portal;
 
+use App\Enums\ApplicationStatus;
+use App\Enums\DocumentStatus;
 use App\Enums\DocumentType;
 use App\Http\Controllers\Controller;
 use App\Models\ApplicationDocument;
@@ -21,7 +23,11 @@ class DocumentController extends Controller
         abort_unless($docType, 404);
 
         $existing = $application->documents()->where('type', $docType->value)->first();
-        if ($application->application_status->value === 'needs_revision' && $existing?->status?->value !== 'needs_revision') {
+        // Setelah pendaftaran dikirim, izin dibuka secara granular: hanya file
+        // yang secara eksplisit diminta perbaikan oleh admin yang boleh diganti.
+        // Dokumen valid/yang masih diperiksa tetap terkunci.
+        if ($application->application_status !== ApplicationStatus::Draft
+            && $existing?->status !== DocumentStatus::NeedsRevision) {
             abort(403, 'Hanya dokumen yang diminta perbaikan yang dapat diganti.');
         }
 
