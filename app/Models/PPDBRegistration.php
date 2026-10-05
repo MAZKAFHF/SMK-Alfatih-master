@@ -106,16 +106,26 @@ class PPDBRegistration extends Model
     }
 
     /**
-     * Concurrency-safe generation using transaction + table lock / max+1 with unique retry.
-     * Retries up to 5 times if duplicate due to race.
+     * Concurrency-safe generation using a transaction-scoped PostgreSQL
+     * advisory lock (production) plus a locked latest row on other drivers.
+     * PostgreSQL does not allow FOR UPDATE directly on aggregate queries.
      */
     public static function generateRegistrationNumberAtomic(?int $periodId = null): string
     {
         return DB::transaction(function () use ($periodId) {
             $year = now()->year;
-            $max = static::where('registration_number', 'like', "PPDB-{$year}-%")
+
+            if (DB::connection()->getDriverName() === 'pgsql') {
+                // One lock namespace per registration year. It is released
+                // automatically when the surrounding transaction completes.
+                DB::select('SELECT pg_advisory_xact_lock(70821, ?)', [$year]);
+            }
+
+            $max = static::withTrashed()
+                ->where('registration_number', 'like', "PPDB-{$year}-%")
+                ->orderByDesc('registration_number')
                 ->lockForUpdate()
-                ->max('registration_number');
+                ->value('registration_number');
 
             $next = 1;
             if ($max) {

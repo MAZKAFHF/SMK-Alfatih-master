@@ -32,7 +32,9 @@ class SlotBookingService
 
             /** @var InterviewSlot $slot */
             $slot = InterviewSlot::whereKey($slotId)->lockForUpdate()->firstOrFail();
-            $booked = InterviewAppointment::where('slot_id', $slot->id)->lockForUpdate()->count();
+            // The slot row serializes bookings. PostgreSQL rejects FOR UPDATE
+            // on aggregate COUNT queries, so the count itself stays unlocked.
+            $booked = InterviewAppointment::where('slot_id', $slot->id)->count();
 
             if ($slot->status !== 'active' || $booked >= $slot->capacity) {
                 throw ValidationException::withMessages(['slot' => 'Slot sudah penuh. Silakan pilih jadwal lain.']);

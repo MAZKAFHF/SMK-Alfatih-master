@@ -122,7 +122,9 @@ class InterviewSlotController extends Controller
             try {
                 \Illuminate\Support\Facades\DB::transaction(function () use ($reschedule, $appt) {
                     $new = \App\Models\InterviewSlot::whereKey($reschedule->new_slot_id)->lockForUpdate()->firstOrFail();
-                    $booked = \App\Models\InterviewAppointment::where('slot_id', $new->id)->lockForUpdate()->count();
+                    // Locking the slot row serializes capacity changes. Keep
+                    // COUNT free of FOR UPDATE for PostgreSQL compatibility.
+                    $booked = \App\Models\InterviewAppointment::where('slot_id', $new->id)->count();
                     if ($new->status !== 'active' || $booked >= $new->capacity) {
                         throw \Illuminate\Validation\ValidationException::withMessages(['slot' => 'Slot pengganti sudah penuh. Minta pendaftar mengusulkan slot lain.']);
                     }
