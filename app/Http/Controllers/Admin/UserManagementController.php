@@ -12,14 +12,19 @@ use Illuminate\Http\Request;
 
 class UserManagementController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $activeTab = $request->query('tab') === 'portal' ? 'portal' : 'admins';
+        $adminsCount = User::where('is_admin', true)->count();
+        $portalUsersCount = User::where('is_admin', false)->count();
+
         $users = User::query()
-            ->orderBy('created_at')
+            ->where('is_admin', $activeTab === 'admins')
+            ->orderByDesc('created_at')
             ->paginate(20)
             ->withQueryString();
 
-        return view('admin.users.index', compact('users'));
+        return view('admin.users.index', compact('users', 'activeTab', 'adminsCount', 'portalUsersCount'));
     }
 
     public function store(StoreUserRequest $request)
@@ -53,8 +58,12 @@ class UserManagementController extends Controller
 
             $role = $request->input('role');
 
-            if ($role !== null && ! $user->is(auth()->user())) {
+            if ($role !== null && $user->is_admin && ! $user->is(auth()->user())) {
                 $data['is_superadmin'] = $role === 'superadmin';
+            }
+
+            if (! $user->is_admin) {
+                $data['is_superadmin'] = false;
             }
 
             $old = $user->toArray();

@@ -272,10 +272,13 @@
             const email = document.getElementById('edit-user-email');
             const password = document.getElementById('edit-user-password');
             const role = document.getElementById('edit-user-role');
+            const roleField = document.getElementById('edit-user-role-field');
+            const typeNote = document.getElementById('edit-user-type-note');
             const selfNote = document.getElementById('edit-user-self-note');
-            if (!name || !email || !password || !role || !selfNote) return;
+            if (!name || !email || !password || !role || !roleField || !typeNote || !selfNote) return;
 
             const isSelf = button.dataset.self === '1';
+            const isPortal = button.dataset.accountType === 'portal';
             form.action = button.dataset.url || '';
             if (deleteForm) {
                 deleteForm.action = button.dataset.deleteUrl || '';
@@ -288,7 +291,9 @@
             password.value = '';
             const roleValue = button.dataset.role || 'admin';
             role.value = roleValue;
-            role.disabled = isSelf;
+            role.disabled = isSelf || isPortal;
+            roleField.classList.toggle('hidden', isPortal);
+            typeNote.classList.toggle('hidden', !isPortal);
             const roleRoot = role.closest('[data-ctl-select]');
             const roleTrigger = roleRoot?.querySelector('[data-ctl-trigger]');
             const roleLabel = roleRoot?.querySelector('[data-ctl-select-label]');
@@ -299,8 +304,8 @@
                 if (check) check.style.display = selected ? '' : 'none';
                 if (selected && roleLabel) roleLabel.textContent = option.dataset.label;
             });
-            if (roleTrigger) roleTrigger.disabled = isSelf;
-            selfNote.classList.toggle('hidden', !isSelf);
+            if (roleTrigger) roleTrigger.disabled = isSelf || isPortal;
+            selfNote.classList.toggle('hidden', !isSelf || isPortal);
             window.openModal('edit-user-modal');
         });
     }

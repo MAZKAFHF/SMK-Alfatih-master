@@ -1,20 +1,56 @@
-<x-admin.layouts.app :title="'Kelola User'">
+<x-admin.layouts.app :title="'Kelola Akun'">
     <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <h1 class="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">Kelola User</h1>
-            <p class="mt-0.5 text-sm text-slate-500 dark:text-slate-400">Tambahkan akun admin baru atau perbarui data &amp; password akun yang ada.</p>
+            <h1 class="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">Kelola Akun</h1>
+            <p class="mt-0.5 text-sm text-slate-500 dark:text-slate-400">Akun pengelola dan pengguna Portal PPDB dipisahkan agar peran selalu jelas.</p>
         </div>
 
-        <x-ui.button variant="primary" size="md" onclick="openModal('create-user-modal')">
-            <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            Tambah Admin
-        </x-ui.button>
+        @if ($activeTab === 'admins')
+            <x-ui.button variant="primary" size="md" onclick="openModal('create-user-modal')">
+                <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Tambah Admin
+            </x-ui.button>
+        @endif
     </div>
 
-    <x-ui.table :head="['Nama', 'Email', 'Role', 'Terdaftar', 'Aksi']">
-        @foreach ($users as $user)
+    <nav class="mb-5 grid gap-2 rounded-2xl border p-1.5 sm:inline-grid sm:grid-cols-2" style="border-color: var(--ctl-border); background: var(--ctl-surface);" aria-label="Jenis akun">
+        <a
+            href="{{ route('admin.users.index', ['tab' => 'admins']) }}"
+            @class([
+                'flex items-center justify-between gap-4 rounded-xl px-4 py-2.5 text-sm font-bold transition sm:min-w-52',
+                'bg-primary-600 text-white shadow-sm' => $activeTab === 'admins',
+                'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800' => $activeTab !== 'admins',
+            ])
+            @if($activeTab === 'admins') aria-current="page" @endif
+        >
+            <span>Admin</span>
+            <span @class(['rounded-full px-2 py-0.5 text-xs', 'bg-white/20 text-white' => $activeTab === 'admins', 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-200' => $activeTab !== 'admins'])>{{ $adminsCount }}</span>
+        </a>
+        <a
+            href="{{ route('admin.users.index', ['tab' => 'portal']) }}"
+            @class([
+                'flex items-center justify-between gap-4 rounded-xl px-4 py-2.5 text-sm font-bold transition sm:min-w-52',
+                'bg-primary-600 text-white shadow-sm' => $activeTab === 'portal',
+                'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800' => $activeTab !== 'portal',
+            ])
+            @if($activeTab === 'portal') aria-current="page" @endif
+        >
+            <span>Pengguna Portal PPDB</span>
+            <span @class(['rounded-full px-2 py-0.5 text-xs', 'bg-white/20 text-white' => $activeTab === 'portal', 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-200' => $activeTab !== 'portal'])>{{ $portalUsersCount }}</span>
+        </a>
+    </nav>
+
+    <div class="mb-3">
+        <h2 class="font-bold text-slate-900 dark:text-white">{{ $activeTab === 'admins' ? 'Akun Admin' : 'Pengguna Portal PPDB' }}</h2>
+        <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+            {{ $activeTab === 'admins' ? 'Akun yang memiliki akses ke panel administrasi.' : 'Akun pemohon yang digunakan untuk pendaftaran dan pemantauan PPDB.' }}
+        </p>
+    </div>
+
+    <x-ui.table :head="['Nama', 'Email', $activeTab === 'admins' ? 'Role' : 'Jenis Akun', 'Status', 'Terdaftar', 'Aksi']">
+        @forelse ($users as $user)
             <tr>
                 <td class="px-4 py-3">
                     <div class="flex items-center gap-3">
@@ -26,8 +62,17 @@
                 </td>
                 <td class="px-4 py-3 text-slate-600 dark:text-slate-400">{{ $user->email }}</td>
                 <td class="px-4 py-3">
-                    <x-ui.badge :color="$user->is_superadmin ? 'purple' : 'blue'" size="sm" dot>
-                        {{ $user->is_superadmin ? 'Super Admin' : 'Admin' }}
+                    @if ($activeTab === 'admins')
+                        <x-ui.badge :color="$user->is_superadmin ? 'purple' : 'blue'" size="sm" dot>
+                            {{ $user->is_superadmin ? 'Super Admin' : 'Admin' }}
+                        </x-ui.badge>
+                    @else
+                        <x-ui.badge color="green" size="sm" dot>Pengguna Portal PPDB</x-ui.badge>
+                    @endif
+                </td>
+                <td class="px-4 py-3">
+                    <x-ui.badge :color="$user->is_active ? 'green' : 'red'" size="sm">
+                        {{ $user->is_active ? 'Aktif' : 'Nonaktif' }}
                     </x-ui.badge>
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap text-slate-600 dark:text-slate-400">{{ $user->created_at->translatedFormat('d M Y') }}</td>
@@ -41,11 +86,18 @@
                         data-name="{{ $user->name }}"
                         data-email="{{ $user->email }}"
                         data-role="{{ $user->is_superadmin ? 'superadmin' : 'admin' }}"
+                        data-account-type="{{ $user->is_admin ? 'admin' : 'portal' }}"
                         data-self="{{ $user->is(auth()->user()) ? '1' : '0' }}"
                     >Edit</x-ui.button>
                 </td>
             </tr>
-        @endforeach
+        @empty
+            <tr>
+                <td colspan="6" class="px-4 py-10 text-center text-sm text-slate-500 dark:text-slate-400">
+                    {{ $activeTab === 'admins' ? 'Belum ada akun admin.' : 'Belum ada pengguna Portal PPDB.' }}
+                </td>
+            </tr>
+        @endforelse
     </x-ui.table>
 
     @if ($users->hasPages())
@@ -105,15 +157,18 @@
                 autocomplete="new-password"
             />
 
-            <x-ui.select
-                label="Role"
-                name="role"
-                id="edit-user-role"
-                value="admin"
-                :options="['admin' => 'Admin', 'superadmin' => 'Super Admin']"
-                :placeholder-option="false"
-                required
-            />
+            <div id="edit-user-role-field">
+                <x-ui.select
+                    label="Role"
+                    name="role"
+                    id="edit-user-role"
+                    value="admin"
+                    :options="['admin' => 'Admin', 'superadmin' => 'Super Admin']"
+                    :placeholder-option="false"
+                    required
+                />
+            </div>
+            <p id="edit-user-type-note" class="-mt-3 hidden text-xs font-semibold text-primary-700 dark:text-primary-400">Jenis akun: Pengguna Portal PPDB. Akun ini tidak memiliki akses ke panel admin.</p>
             <p id="edit-user-self-note" class="-mt-3 hidden text-xs text-slate-400 dark:text-slate-500">Role akun Anda sendiri tidak dapat diubah.</p>
 
             <div class="flex justify-end gap-3 pt-2">

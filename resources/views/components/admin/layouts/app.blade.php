@@ -52,7 +52,7 @@
         $navGroups[] = [
             'label' => 'Superadmin',
             'items' => [
-                ['label' => 'Kelola User', 'icon' => 'users', 'route' => route('admin.users.index'), 'active' => request()->routeIs('admin.users.*')],
+                ['label' => 'Kelola Akun', 'icon' => 'users', 'route' => route('admin.users.index'), 'active' => request()->routeIs('admin.users.*')],
                 ['label' => 'Audit Log', 'icon' => 'audit', 'route' => route('admin.audit-logs.index'), 'active' => request()->routeIs('admin.audit-logs.*')],
                 ['label' => 'Log Login', 'icon' => 'login-log', 'route' => route('admin.login-logs.index'), 'active' => request()->routeIs('admin.login-logs.*')],
             ],

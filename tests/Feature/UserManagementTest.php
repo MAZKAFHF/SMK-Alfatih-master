@@ -44,6 +44,56 @@ class UserManagementTest extends TestCase
             ->assertSee($superadmin->name);
     }
 
+    public function test_admin_and_portal_accounts_are_separated_into_correct_tabs(): void
+    {
+        $superadmin = $this->superadmin();
+        $admin = $this->admin();
+        $applicant = User::factory()->create([
+            'name' => 'Pemohon Portal',
+            'is_admin' => false,
+            'is_superadmin' => false,
+            'is_applicant' => true,
+        ]);
+
+        $this->actingAs($superadmin)
+            ->get(route('admin.users.index', ['tab' => 'admins']))
+            ->assertOk()
+            ->assertSee($admin->name)
+            ->assertDontSee($applicant->name)
+            ->assertSee('Akun Admin')
+            ->assertSee('Pengguna Portal PPDB');
+
+        $this->actingAs($superadmin)
+            ->get(route('admin.users.index', ['tab' => 'portal']))
+            ->assertOk()
+            ->assertSee($applicant->name)
+            ->assertDontSee($admin->email)
+            ->assertSee('Pengguna Portal PPDB')
+            ->assertSee('data-account-type="portal"', false)
+            ->assertDontSee('data-account-type="admin"', false);
+    }
+
+    public function test_portal_account_cannot_be_promoted_by_tampering_with_update_request(): void
+    {
+        $superadmin = $this->superadmin();
+        $applicant = User::factory()->create([
+            'is_admin' => false,
+            'is_superadmin' => false,
+            'is_applicant' => true,
+        ]);
+
+        $this->actingAs($superadmin)
+            ->put(route('admin.users.update', $applicant), [
+                'name' => $applicant->name,
+                'email' => $applicant->email,
+                'role' => 'superadmin',
+            ])->assertRedirect();
+
+        $fresh = $applicant->fresh();
+        $this->assertFalse($fresh->is_admin);
+        $this->assertFalse($fresh->is_superadmin);
+    }
+
     public function test_user_edit_controls_are_wired_to_the_application_script(): void
     {
         $superadmin = $this->superadmin();
@@ -58,6 +108,7 @@ class UserManagementTest extends TestCase
         $script = file_get_contents(resource_path('js/app.interactions.js'));
         $this->assertStringContainsString('function initUserEditor()', $script);
         $this->assertStringContainsString("closest('[data-edit-user]')", $script);
+        $this->assertStringContainsString("button.dataset.accountType === 'portal'", $script);
     }
 
     public function test_superadmin_can_create_new_admin(): void
