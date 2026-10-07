@@ -23,10 +23,8 @@ return [
         'verified_unused_enabled' => (bool) env('APPLICANT_VERIFIED_UNUSED_CLEANUP_ENABLED', true),
         'verified_unused_days' => max(30, (int) env('APPLICANT_VERIFIED_UNUSED_RETENTION_DAYS', 180)),
         'real_applicant_enabled' => (bool) env('APPLICANT_LIFECYCLE_CLEANUP_ENABLED', true),
-        // Fallback grace after operational completion when a period has no
-        // explicit account_retention_until. Proposal needing school approval;
-        // per-period account_retention_until always overrides this.
-        'real_retention_days' => max(1, (int) env('APPLICANT_REAL_RETENTION_DAYS', 90)),
+        // Real applicant: akun login dipensiunkan saat seluruh periode selesai;
+        // riwayat PPDB dan dokumen sekolah tetap mengikuti kebijakan arsip.
         'batch_size' => max(10, (int) env('APPLICANT_RETIREMENT_BATCH_SIZE', 100)),
         'daily_at' => env('APPLICANT_RETIREMENT_DAILY_AT', '03:30'),
     ],

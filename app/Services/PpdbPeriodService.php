@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\PpdbPeriod;
+use App\Models\PPDBRegistration;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -15,6 +16,7 @@ class PpdbPeriodService
     public static function create(array $data, ?int $actorId = null): PpdbPeriod
     {
         return DB::transaction(function () use ($data, $actorId) {
+            static::lockLifecycleNamespace();
             $status = $data['status'] ?? PpdbPeriod::STATUS_DRAFT;
             // Draf dateless boleh disiapkan kapan pun. Status berjalan /
             // window bertanggal dicek terhadap periode berjalan lain.
@@ -41,7 +43,14 @@ class PpdbPeriodService
      */
     public static function open(PpdbPeriod $period, ?int $actorId = null): PpdbPeriod
     {
-        return DB::transaction(function () use ($period, $actorId) {
+        return DB::transaction(function () use ($period) {
+            static::lockLifecycleNamespace();
+            $period = PpdbPeriod::whereKey($period->id)->lockForUpdate()->firstOrFail();
+            if (! in_array($period->status, [PpdbPeriod::STATUS_DRAFT, PpdbPeriod::STATUS_UPCOMING], true)) {
+                throw ValidationException::withMessages([
+                    'status' => 'Periode ini tidak dapat dibuka melalui aksi biasa. Gunakan Buka Kembali hanya untuk periode yang masih berstatus Ditutup.',
+                ]);
+            }
             $conflict = PpdbPeriod::whereIn('status', PpdbPeriod::CURRENT_STATUSES)
                 ->where('id', '!=', $period->id)
                 ->lockForUpdate()
@@ -61,20 +70,39 @@ class PpdbPeriodService
 
     public static function close(PpdbPeriod $period, ?int $actorId = null, ?string $note = null): PpdbPeriod
     {
-        $period->update([
-            'status' => PpdbPeriod::STATUS_CLOSED,
-            'closed_at' => now(),
-            'is_active' => false,
-        ]);
-        PpdbContext::flush();
-        AuditService::log('period_closed', $period, null, ['note' => $note]);
+        return DB::transaction(function () use ($period, $note) {
+            static::lockLifecycleNamespace();
+            $period = PpdbPeriod::whereKey($period->id)->lockForUpdate()->firstOrFail();
+            if ($period->status === PpdbPeriod::STATUS_CLOSED) {
+                return $period;
+            }
+            if (! in_array($period->status, PpdbPeriod::CURRENT_STATUSES, true)) {
+                throw ValidationException::withMessages([
+                    'status' => 'Hanya periode Akan Datang/Aktif yang dapat ditutup.',
+                ]);
+            }
+            $period->update([
+                'status' => PpdbPeriod::STATUS_CLOSED,
+                'closed_at' => now(),
+                'is_active' => false,
+            ]);
+            PpdbContext::flush();
+            AuditService::log('period_closed', $period, null, ['note' => $note]);
 
-        return $period->fresh();
+            return $period->fresh();
+        });
     }
 
     public static function reopen(PpdbPeriod $period, ?int $actorId = null): PpdbPeriod
     {
-        return DB::transaction(function () use ($period, $actorId) {
+        return DB::transaction(function () use ($period) {
+            static::lockLifecycleNamespace();
+            $period = PpdbPeriod::whereKey($period->id)->lockForUpdate()->firstOrFail();
+            if ($period->status !== PpdbPeriod::STATUS_CLOSED) {
+                throw ValidationException::withMessages([
+                    'status' => 'Hanya periode berstatus Ditutup yang dapat dibuka kembali. Periode Selesai/Arsip bersifat final karena akun pemohon mungkin sudah dihapus permanen.',
+                ]);
+            }
             $conflict = PpdbPeriod::whereIn('status', PpdbPeriod::CURRENT_STATUSES)
                 ->where('id', '!=', $period->id)
                 ->lockForUpdate()
@@ -137,7 +165,7 @@ class PpdbPeriodService
      */
     public static function complete(PpdbPeriod $period, ?int $actorId = null): PpdbPeriod
     {
-        return DB::transaction(function () use ($period, $actorId) {
+        return DB::transaction(function () use ($period) {
             $period = PpdbPeriod::whereKey($period->id)->lockForUpdate()->firstOrFail();
 
             if ($period->status === PpdbPeriod::STATUS_COMPLETED) {
@@ -149,9 +177,9 @@ class PpdbPeriodService
                 ]);
             }
 
-            $appIds = \App\Models\PPDBRegistration::where('period_id', $period->id)->pluck('id');
+            $appIds = PPDBRegistration::where('period_id', $period->id)->pluck('id');
 
-            $pendingVerification = \App\Models\PPDBRegistration::where('period_id', $period->id)
+            $pendingVerification = PPDBRegistration::where('period_id', $period->id)
                 ->whereIn('application_status', ['submitted', 'resubmitted', 'needs_revision'])->count();
             if ($pendingVerification > 0) {
                 throw ValidationException::withMessages([
@@ -159,7 +187,7 @@ class PpdbPeriodService
                 ]);
             }
 
-            $pendingWorkflow = \App\Models\PPDBRegistration::where('period_id', $period->id)
+            $pendingWorkflow = PPDBRegistration::where('period_id', $period->id)
                 ->whereIn('application_status', ['verified', 'waiting_slot', 'scheduled', 'interviewed', 'waiting_decision'])->count();
             if ($pendingWorkflow > 0) {
                 throw ValidationException::withMessages([
@@ -168,14 +196,14 @@ class PpdbPeriodService
             }
 
             if ($appIds->isNotEmpty()) {
-                $pendingCorrection = \Illuminate\Support\Facades\DB::table('change_requests')
+                $pendingCorrection = DB::table('change_requests')
                     ->whereIn('application_id', $appIds)->where('status', 'pending')->count();
                 if ($pendingCorrection > 0) {
                     throw ValidationException::withMessages([
                         'status' => "Masih ada {$pendingCorrection} permohonan koreksi menunggu keputusan.",
                     ]);
                 }
-                $pendingReschedule = \Illuminate\Support\Facades\DB::table('reschedule_requests')
+                $pendingReschedule = DB::table('reschedule_requests')
                     ->join('interview_appointments', 'interview_appointments.id', '=', 'reschedule_requests.appointment_id')
                     ->whereIn('interview_appointments.application_id', $appIds)
                     ->where('reschedule_requests.status', 'pending')->count();
@@ -184,7 +212,7 @@ class PpdbPeriodService
                         'status' => "Masih ada {$pendingReschedule} permohonan ubah jadwal menunggu keputusan.",
                     ]);
                 }
-                $unreleased = \Illuminate\Support\Facades\DB::table('application_decisions')
+                $unreleased = DB::table('application_decisions')
                     ->join('ppdb_registrations', 'ppdb_registrations.id', '=', 'application_decisions.application_id')
                     ->where('ppdb_registrations.period_id', $period->id)
                     ->whereIn('ppdb_registrations.application_status', ['passed', 'not_passed'])
@@ -200,8 +228,10 @@ class PpdbPeriodService
             // SYSTEM-DRIVEN: batas retensi dihitung sistem (bukan diketik admin).
             // Nilai eksplisit lama dipertahankan; jika kosong, turunkan dari
             // konfigurasi retensi terpusat agar panel read-only selalu tepat.
-            $retentionUntil = $period->account_retention_until
-                ?? $operationalAt->copy()->addDays((int) config('retention.applicants.real_retention_days', 90));
+            // Kebijakan aktif: akun login real applicant dipensiunkan segera
+            // setelah seluruh workflow periode selesai. Riwayat pendaftaran
+            // tetap disimpan; tanggal ini merekam kapan akun menjadi eligible.
+            $retentionUntil = $period->account_retention_until ?? $operationalAt;
             $period->update([
                 'status' => PpdbPeriod::STATUS_COMPLETED,
                 'is_active' => false,
@@ -242,6 +272,14 @@ class PpdbPeriodService
             throw ValidationException::withMessages([
                 'opens_at' => 'Rentang tanggal tumpang-tindih dengan periode berjalan lain.',
             ]);
+        }
+    }
+
+    /** Serialisasi perubahan lifecycle lintas baris pada PostgreSQL. */
+    private static function lockLifecycleNamespace(): void
+    {
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            DB::select('SELECT pg_advisory_xact_lock(70822, 1)');
         }
     }
 }

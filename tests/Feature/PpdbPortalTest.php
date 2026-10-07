@@ -3,15 +3,18 @@
 namespace Tests\Feature;
 
 use App\Enums\ApplicationStatus;
+use App\Models\InterviewAppointment;
 use App\Models\InterviewSlot;
-use App\Models\PPDBRegistration;
 use App\Models\PpdbPeriod;
+use App\Models\PPDBRegistration;
 use App\Models\Program;
 use App\Models\User;
+use App\Services\DocumentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
@@ -185,7 +188,7 @@ class PpdbPortalTest extends TestCase
             'period_id' => $period->id, 'date' => now('Asia/Jakarta')->addDay()->toDateString(),
             'start_time' => '08:00', 'location' => 'Ruang Wawancara', 'capacity' => 5, 'booked_count' => 1, 'status' => 'active',
         ]);
-        \App\Models\InterviewAppointment::create([
+        InterviewAppointment::create([
             'application_id' => $application->id, 'slot_id' => $slot->id, 'status' => 'scheduled',
         ]);
 
@@ -220,7 +223,7 @@ class PpdbPortalTest extends TestCase
             'status' => 'pending',
             'source' => 'applicant',
         ]);
-        \App\Services\DocumentService::ensurePlaceholders($app);
+        DocumentService::ensurePlaceholders($app);
         $kk = $app->documents()->where('type', 'kk')->first();
         $akta = $app->documents()->where('type', 'akta')->first();
         $kk->update(['status' => 'needs_revision', 'path' => 'old/kk.pdf', 'admin_note' => 'Foto kurang jelas.']);
@@ -248,22 +251,26 @@ class PpdbPortalTest extends TestCase
     {
         $user = $this->applicant();
         $app = PPDBRegistration::create(['name' => 'Tahap Jelas', 'gender' => 'laki-laki', 'program_id' => $this->program()->id, 'applicant_account_id' => $user->id, 'period_id' => $this->period()->id, 'source' => 'applicant']);
-        \App\Services\DocumentService::ensurePlaceholders($app);
+        DocumentService::ensurePlaceholders($app);
 
         $page = $this->actingAs($user)->get(route('portal.applications.show', $app))->assertOk();
         $page->assertSee('Lanjutkan Data Pendaftaran', false);
         $page = $this->actingAs($user)->get(route('portal.applications.show', [$app, 'tahap' => 'dokumen']))->assertOk();
         $page->assertSee('Pilih file untuk langsung mengunggah', false);
         $page->assertDontSee('Minta Perubahan Data Terkunci', false)->assertDontSee('Simpan Pengganti', false)->assertDontSee('Unggah Dokumen</button>', false);
-        $this->assertFalse(\Illuminate\Support\Facades\Route::has('portal.applications.change'));
+        $this->assertFalse(Route::has('portal.applications.change'));
     }
 
     public function test_admin_document_review_json_autosave_is_authoritative(): void
     {
+        Storage::fake('ppdb_private');
         $user = $this->applicant();
         $app = PPDBRegistration::create(['name' => 'Review Dok', 'gender' => 'laki-laki', 'program_id' => $this->program()->id, 'applicant_account_id' => $user->id, 'period_id' => $this->period()->id, 'source' => 'applicant']);
-        \App\Services\DocumentService::ensurePlaceholders($app);
+        DocumentService::ensurePlaceholders($app);
         $doc = $app->documents()->where('type', 'kk')->first();
+        Storage::disk('ppdb_private')->put('review/kk.pdf', 'pdf');
+        $doc->update(['path' => 'review/kk.pdf', 'status' => 'uploaded']);
+        $app->update(['application_status' => ApplicationStatus::Submitted, 'status' => 'pending']);
         $admin = $this->admin();
 
         $this->actingAs($admin)->postJson(route('admin.documents.review', $doc), ['status' => 'needs_revision', 'admin_note' => 'Foto KK terpotong.'])->assertOk()->assertJson(['status' => 'needs_revision']);

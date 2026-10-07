@@ -16,6 +16,7 @@ use App\Services\DocumentService;
 use App\Services\PpdbAvailability;
 use App\Services\PpdbContext;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class RegistrationController extends Controller
@@ -158,10 +159,14 @@ class RegistrationController extends Controller
         $overrideReason = $data['override_reason'] ?? null;
         unset($data['override_reason']);
 
-        $app = PPDBRegistration::create($data);
-        DocumentService::ensurePlaceholders($app);
-        StatusHistory::create(['application_id' => $app->id, 'from_status' => null, 'to_status' => 'submitted', 'actor_id' => auth()->id(), 'note' => 'Entri manual admin'.($overrideReason ? ' (override: '.$overrideReason.')' : '')]);
-        AuditService::log('ppdb_manual_create', $app, null, ['override_reason' => $overrideReason, 'period_state' => $state->status]);
+        $app = DB::transaction(function () use ($data, $overrideReason, $state) {
+            $app = PPDBRegistration::create($data);
+            DocumentService::ensurePlaceholders($app);
+            StatusHistory::create(['application_id' => $app->id, 'from_status' => null, 'to_status' => 'submitted', 'actor_id' => auth()->id(), 'note' => 'Entri manual admin'.($overrideReason ? ' (override: '.$overrideReason.')' : '')]);
+            AuditService::log('ppdb_manual_create', $app, null, ['override_reason' => $overrideReason, 'period_state' => $state->status]);
+
+            return $app;
+        });
 
         return redirect()->route('admin.registrations.show', $app)->with('success', 'Pendaftaran manual dibuat: '.$app->registration_number);
     }
@@ -212,13 +217,19 @@ class RegistrationController extends Controller
         }
         AdminCodeService::verify($request);
         $registration = PPDBRegistration::onlyTrashed()->findOrFail($id);
-        DocumentService::deleteAllFor($registration);
-        if ($registration->photo_path) {
-            Storage::disk('public')->delete($registration->photo_path);
-        }
+        $privateFiles = DocumentService::ownedFiles($registration);
+        $photoPath = $registration->photo_path;
         $label = $registration->registration_number;
-        $registration->forceDelete();
-        AuditService::log('ppdb_force_delete', null, null, ['registration_number' => $label]);
+        DB::transaction(function () use ($registration, $label) {
+            $registration->forceDelete();
+            AuditService::log('ppdb_force_delete', null, null, ['registration_number' => $label]);
+        });
+        foreach ($privateFiles as $file) {
+            Storage::disk($file['disk'])->delete($file['path']);
+        }
+        if ($photoPath) {
+            Storage::disk('public')->delete($photoPath);
+        }
 
         return back()->with('success', "Pendaftaran {$label} dihapus permanen.");
     }

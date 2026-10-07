@@ -4,7 +4,7 @@
     <form method="GET" action="{{ route('admin.slots.index') }}" class="w-full sm:w-56" id="slot-period-filter">
         <x-ui.select name="period_id" :value="$activePeriodId" :options="$periods->mapWithKeys(fn($p) => [$p->id => $p->academic_year.' — '.\App\Models\PpdbPeriod::statusLabelFor($p->status)])->all()" placeholder="Periode" :placeholder-option="false" />
     </form>
-    <x-ui.button size="sm" onclick="openModal('slot-create-modal')">
+    <x-ui.button size="sm" onclick="openModal('slot-create-modal')" :disabled="!$slotPeriod || $slotPeriod->isLockedForOperations()">
         <x-admin.icon name="plus" class="size-4" /> Buat Slot
     </x-ui.button>
 </x-admin.page-head>
@@ -92,6 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
 <x-ui.modal id="slot-create-modal" title="Buat Slot Wawancara" size="md">
     <x-slot:subtitle>Slot langsung terlihat oleh calon siswa terverifikasi.</x-slot:subtitle>
     <form method="POST" action="{{ route('admin.slots.store') }}" class="space-y-4">@csrf
+        <input type="hidden" name="period_id" value="{{ old('period_id', $activePeriodId) }}">
         <x-ui.date-picker label="Tanggal *" name="date" :value="old('date', now('Asia/Jakarta')->toDateString())" :min="now('Asia/Jakarta')->toDateString()" required />
         <div class="grid grid-cols-2 gap-3">
             <x-ui.time-picker label="Waktu Mulai *" name="start_time" value="{{ old('start_time', '08:00') }}" required />

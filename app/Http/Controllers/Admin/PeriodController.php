@@ -111,8 +111,11 @@ class PeriodController extends Controller
 
     public function close(Request $request, PpdbPeriod $period)
     {
-        PpdbPeriodService::close($period, auth()->id(), $request->input('note'));
-        AuditService::log('period_closed', $period);
+        try {
+            PpdbPeriodService::close($period, auth()->id(), $request->input('note'));
+        } catch (ValidationException $e) {
+            return back()->withErrors($e->errors());
+        }
 
         return back()->with('success', 'Periode '.$period->academic_year.' ditutup. Data tersimpan sebagai riwayat.');
     }

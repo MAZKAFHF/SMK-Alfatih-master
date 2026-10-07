@@ -3,16 +3,19 @@
 namespace Tests\Feature;
 
 use App\Enums\ApplicationStatus;
-use App\Enums\DocumentType;
+use App\Models\ApplicationDecision;
+use App\Models\EmailLog;
 use App\Models\InterviewSlot;
-use App\Models\PPDBRegistration;
 use App\Models\PpdbPeriod;
+use App\Models\PPDBRegistration;
 use App\Models\Program;
+use App\Models\RescheduleRequest;
 use App\Models\User;
 use App\Services\MailService;
+use App\Services\PpdbContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
@@ -168,7 +171,7 @@ class PpdbLifecycleTest extends TestCase
         $admin = $this->admin();
         $user = $this->applicant();
         $app = $this->submitReadyApp($user, $this->program());
-        $this->assertFalse(\Illuminate\Support\Facades\Route::has('portal.applications.change'));
+        $this->assertFalse(Route::has('portal.applications.change'));
         $this->actingAs($user)->get(route('portal.applications.show', $app))->assertDontSee('Minta Perubahan Data Terkunci', false);
 
         $this->actingAs($admin)->post(route('admin.registrations.revise', $app), [
@@ -212,12 +215,13 @@ class PpdbLifecycleTest extends TestCase
         $this->actingAs($user)->post(route('portal.reschedule.store', $app), [
             'reason' => 'Ada acara keluarga mendadak pagi itu.', 'new_slot_id' => $s2->id,
         ])->assertRedirect();
-        $rr = \App\Models\RescheduleRequest::first();
+        $rr = RescheduleRequest::first();
         $this->actingAs($admin)->post(route('admin.reschedules.decide', $rr), ['decision' => 'approved'])->assertRedirect();
         $this->assertEquals($s2->id, $app->fresh()->appointment->slot_id);
         $this->assertEquals(0, $s1->fresh()->booked_count);
 
         // Tandai hadir + asesmen (tanpa skor hardcode).
+        $s2->update(['date' => now('Asia/Jakarta')->subDay()->toDateString()]);
         $appt = $app->fresh()->appointment;
         $this->actingAs($admin)->post(route('admin.appointments.complete', $appt), [
             'attendance' => 'attended', 'interview_notes' => 'Komunikatif.',
@@ -236,6 +240,7 @@ class PpdbLifecycleTest extends TestCase
         $app->update(['application_status' => ApplicationStatus::Verified, 'status' => 'pending']);
         $this->actingAs($user)->post(route('portal.slots.book', $app), ['slot_id' => $slot->id])->assertRedirect();
 
+        $slot->update(['date' => now('Asia/Jakarta')->subDay()->toDateString()]);
         $appt = $app->fresh()->appointment;
         $this->actingAs($admin)->post(route('admin.appointments.complete', $appt), ['attendance' => 'no_show'])->assertRedirect();
         // Tetap scheduled (tidak otomatis ditolak) — sekolah yang menentukan tindak lanjut.
@@ -263,7 +268,7 @@ class PpdbLifecycleTest extends TestCase
         $page->assertSee('Lulus', false);
         $page->assertDontSee('RAHASIA INTERNAL', false);
         $page->assertDontSee('not_passed', false);
-        $this->assertNotNull(\App\Models\EmailLog::where('application_id', $app->id)->first());
+        $this->assertNotNull(EmailLog::where('application_id', $app->id)->first());
         $this->assertTrue($user->notifications()->where('title', 'like', '%Hasil%')->exists());
 
         // NOT PASS di aplikasi lain.
@@ -297,7 +302,7 @@ class PpdbLifecycleTest extends TestCase
         $this->assertEquals('failed', $log->status);
         $this->assertNotEmpty($log->error, 'Ringkasan kegagalan wajib tercatat di log.');
         $this->assertEquals('passed', $app->fresh()->decision->result->value);
-        $this->assertEquals(1, \App\Models\EmailLog::where('application_id', $app->id)->where('status', 'failed')->count());
+        $this->assertEquals(1, EmailLog::where('application_id', $app->id)->where('status', 'failed')->count());
     }
 
     public function test_admin_can_resend_email_and_log_updates(): void
@@ -310,15 +315,15 @@ class PpdbLifecycleTest extends TestCase
         $this->actingAs($admin)->post(route('admin.registrations.decide', $app), ['result' => 'passed', 'confirm' => 1])->assertRedirect();
         $this->actingAs($admin)->post(route('admin.registrations.release', $app))->assertRedirect();
 
-        $before = \App\Models\EmailLog::where('application_id', $app->id)->count();
+        $before = EmailLog::where('application_id', $app->id)->count();
         $this->assertGreaterThanOrEqual(1, $before);
         $this->actingAs($admin)->post(route('admin.registrations.resend', $app))->assertRedirect();
-        $latest = \App\Models\EmailLog::where('application_id', $app->id)->latest('id')->first();
+        $latest = EmailLog::where('application_id', $app->id)->latest('id')->first();
         $this->assertEquals('sent', $latest->status);
         $this->assertGreaterThanOrEqual(1, $latest->retries);
         $this->assertNotEmpty($latest->payload);
         // Tidak ada aksi bisnis ganda: tetap satu keputusan.
-        $this->assertEquals(1, \App\Models\ApplicationDecision::where('application_id', $app->id)->count());
+        $this->assertEquals(1, ApplicationDecision::where('application_id', $app->id)->count());
     }
 
     public function test_period_closed_blocks_public_but_allows_manual(): void
@@ -327,7 +332,7 @@ class PpdbLifecycleTest extends TestCase
         $admin = $this->admin();
         $period = $this->period();
         $period->update(['closes_at' => now('Asia/Jakarta')->subDay(), 'status_override' => null, 'is_open' => true]);
-        \App\Models\PpdbPeriod::flushCache();
+        PpdbPeriod::flushCache();
 
         // Portal: buat draf diblokir.
         $user = $this->applicant();
@@ -397,8 +402,8 @@ class PpdbLifecycleTest extends TestCase
         $period = $this->period();
         $this->assertTrue($period->isOpen());
         $this->actingAs($admin)->post(route('admin.periods.close', $period))->assertRedirect();
-        $this->assertNull(\App\Services\PpdbContext::current());
-        $latest = \App\Services\PpdbContext::latestClosed();
+        $this->assertNull(PpdbContext::current());
+        $latest = PpdbContext::latestClosed();
         $this->assertNotNull($latest);
         $this->assertEquals('2026/2027', $latest->academic_year);
     }

@@ -7,18 +7,49 @@ use App\Enums\DecisionResult;
 use App\Enums\DocumentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\ApplicationDocument;
+use App\Models\EmailLog;
 use App\Models\InternalNote;
 use App\Models\PPDBRegistration;
 use App\Services\AuditService;
 use App\Services\DecisionService;
 use App\Services\MailService;
+use App\Services\NotificationService;
 use App\Services\VerificationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class PpdbWorkflowController extends Controller
 {
     public function reviewDocument(Request $request, ApplicationDocument $document)
     {
+        $document->loadMissing('application.period');
+        $application = $document->application;
+        if ($application->period?->isLockedForOperations()) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Periode PPDB sudah selesai. Review dokumen dikunci sebagai riwayat.'], 422);
+            }
+
+            return back()->with('error', 'Periode PPDB sudah selesai. Review dokumen dikunci sebagai riwayat.');
+        }
+        if (! in_array($application->application_status, [
+            ApplicationStatus::Submitted,
+            ApplicationStatus::Resubmitted,
+            ApplicationStatus::NeedsRevision,
+        ], true)) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Dokumen hanya dapat direview pada tahap verifikasi/perbaikan.'], 422);
+            }
+
+            return back()->with('error', 'Dokumen hanya dapat direview pada tahap verifikasi/perbaikan.');
+        }
+        if (! $document->path || ! Storage::disk($document->disk ?: 'ppdb_private')->exists($document->path)) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Dokumen belum memiliki file yang dapat direview.'], 422);
+            }
+
+            return back()->with('error', 'Dokumen belum memiliki file yang dapat direview.');
+        }
         $data = $request->validate([
             'status' => ['required', 'in:valid,needs_revision'],
             'admin_note' => ['nullable', 'string', 'max:2000'],
@@ -27,6 +58,7 @@ class PpdbWorkflowController extends Controller
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Catatan untuk pendaftar wajib diisi saat meminta perbaikan.', 'errors' => ['admin_note' => ['Catatan untuk pendaftar wajib diisi saat meminta perbaikan.']]], 422);
             }
+
             return back()->with('error', 'Catatan untuk pendaftar wajib diisi saat meminta perbaikan.');
         }
         $document->update([
@@ -38,7 +70,7 @@ class PpdbWorkflowController extends Controller
         AuditService::log('ppdb_doc_review', $document->application, null, ['type' => $document->type->value, 'status' => $data['status']]);
 
         if ($data['status'] === 'needs_revision' && $document->application->applicant_account_id) {
-            \App\Services\NotificationService::notify($document->application->applicant_account_id, $document->application, 'Dokumen perlu diperbaiki: '.$document->type->label(), (string) $data['admin_note']);
+            NotificationService::notify($document->application->applicant_account_id, $document->application, 'Dokumen perlu diperbaiki: '.$document->type->label(), (string) $data['admin_note']);
         }
 
         $message = 'Dokumen '.$document->type->label().' ditandai: '.DocumentStatus::from($data['status'])->label().'.';
@@ -54,7 +86,7 @@ class PpdbWorkflowController extends Controller
         $data = $request->validate(['override_reason' => ['nullable', 'string', 'max:1000']]);
         try {
             VerificationService::verify($registration, auth()->id(), filled($data['override_reason'] ?? null), $data['override_reason'] ?? null);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return back()->with('error', $e->getMessage());
         }
         AuditService::log('ppdb_verify', $registration);
@@ -68,7 +100,7 @@ class PpdbWorkflowController extends Controller
         $data = $request->validate(['note' => ['required', 'string', 'max:2000']]);
         try {
             VerificationService::requestRevision($registration, auth()->id(), $data['note']);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return back()->with('error', $e->getMessage());
         }
         AuditService::log('ppdb_request_revision', $registration, null, ['note' => $data['note']]);
@@ -87,7 +119,7 @@ class PpdbWorkflowController extends Controller
         ], [], ['confirm' => 'Konfirmasi keputusan']);
         try {
             $decision = DecisionService::decide($registration, DecisionResult::from($data['result']), auth()->id(), $data['internal_note'] ?? null, $data['applicant_message'] ?? null);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return back()->with('error', $e->getMessage());
         }
         AuditService::log('ppdb_decide', $registration, null, ['result' => $data['result']]);
@@ -99,7 +131,14 @@ class PpdbWorkflowController extends Controller
     {
         $decision = $registration->decision;
         abort_unless($decision, 404);
-        DecisionService::release($decision, auth()->id());
+        try {
+            $releasedNow = DecisionService::release($decision, auth()->id());
+        } catch (ValidationException $e) {
+            return back()->withErrors($e->errors());
+        }
+        if (! $releasedNow) {
+            return back()->with('success', 'Hasil ini sudah pernah dirilis. Tidak ada notifikasi atau email duplikat yang dikirim.');
+        }
         AuditService::log('ppdb_release', $registration);
         $isPass = $decision->result === DecisionResult::Passed;
         $this->mailSafe($registration, $isPass ? 'result_pass' : 'result_not_pass', ($isPass ? 'Selamat — Hasil PPDB ' : 'Hasil PPDB ').$registration->registration_number, $isPass ? 'Anda Dinyatakan Lulus' : 'Hasil Seleksi PPDB', $isPass
@@ -119,9 +158,9 @@ class PpdbWorkflowController extends Controller
 
     public function resendEmail(Request $request, PPDBRegistration $registration)
     {
-        $log = \App\Models\EmailLog::where('application_id', $registration->id)->latest('id')->first();
+        $log = EmailLog::where('application_id', $registration->id)->latest('id')->first();
         abort_unless($log, 404, 'Belum ada email untuk aplikasi ini.');
-        \App\Services\MailService::resend($log);
+        MailService::resend($log);
 
         return back()->with('success', 'Percobaan kirim ulang dicatat ('.$log->fresh()->status.').');
     }

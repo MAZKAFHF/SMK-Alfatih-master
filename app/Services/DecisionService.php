@@ -7,6 +7,7 @@ use App\Enums\DecisionResult;
 use App\Models\ApplicationDecision;
 use App\Models\PPDBRegistration;
 use App\Models\StatusHistory;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class DecisionService
@@ -66,20 +67,33 @@ class DecisionService
         return $decision->fresh();
     }
 
-    public static function release(ApplicationDecision $decision, int $actorId): void
+    public static function release(ApplicationDecision $decision, int $actorId): bool
     {
-        $decision->update(['released_at' => $decision->released_at ?? now()]);
-        $app = $decision->application;
-        // SYSTEM-DRIVEN lifecycle: pengumuman hasil pertama kali dicatat di
-        // level periode. Admin tidak pernah mengisi tanggal ini manual.
-        $period = $app->period;
-        if ($period && ! $period->results_released_at) {
-            $period->update(['results_released_at' => now()]);
-        }
-        NotificationService::notify($app->applicant_account_id, $app, 'Hasil PPDB telah tersedia', 'Silakan lihat hasil seleksi Anda.', $app->applicant_account_id ? route('portal.applications.show', $app) : null);
-        StatusHistory::create([
-            'application_id' => $app->id, 'from_status' => $app->application_status->value,
-            'to_status' => $app->application_status->value, 'actor_id' => $actorId, 'note' => 'Hasil dirilis ke pendaftar',
-        ]);
+        return DB::transaction(function () use ($decision, $actorId): bool {
+            $decision = ApplicationDecision::whereKey($decision->id)->lockForUpdate()->firstOrFail();
+            if ($decision->released_at) {
+                return false;
+            }
+            $app = PPDBRegistration::whereKey($decision->application_id)->lockForUpdate()->firstOrFail();
+            if ($app->period?->isLockedForOperations()) {
+                throw ValidationException::withMessages(['status' => 'Periode PPDB sudah selesai. Rilis hasil dikunci.']);
+            }
+            if (! in_array($app->application_status, [ApplicationStatus::Passed, ApplicationStatus::NotPassed], true)) {
+                throw ValidationException::withMessages(['status' => 'Hasil hanya dapat dirilis setelah keputusan final disimpan.']);
+            }
+
+            $decision->update(['released_at' => now()]);
+            $period = $app->period;
+            if ($period && ! $period->results_released_at) {
+                $period->update(['results_released_at' => now()]);
+            }
+            NotificationService::notify($app->applicant_account_id, $app, 'Hasil PPDB telah tersedia', 'Silakan lihat hasil seleksi Anda.', $app->applicant_account_id ? route('portal.applications.show', $app) : null);
+            StatusHistory::create([
+                'application_id' => $app->id, 'from_status' => $app->application_status->value,
+                'to_status' => $app->application_status->value, 'actor_id' => $actorId, 'note' => 'Hasil dirilis ke pendaftar',
+            ]);
+
+            return true;
+        });
     }
 }

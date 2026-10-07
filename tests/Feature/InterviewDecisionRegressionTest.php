@@ -4,11 +4,12 @@ namespace Tests\Feature;
 
 use App\Enums\ApplicationStatus;
 use App\Models\InterviewSlot;
-use App\Models\PPDBRegistration;
 use App\Models\PpdbPeriod;
+use App\Models\PPDBRegistration;
 use App\Models\Program;
 use App\Models\User;
 use App\Services\DecisionService;
+use App\Services\DocumentService;
 use App\Services\InterviewCompletion;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -48,7 +49,7 @@ class InterviewDecisionRegressionTest extends TestCase
             'applicant_account_id' => $user->id, 'period_id' => $period->id, 'source' => 'applicant',
             'application_status' => ApplicationStatus::Verified, 'status' => 'pending',
         ]));
-        \App\Services\DocumentService::ensurePlaceholders($app);
+        DocumentService::ensurePlaceholders($app);
 
         return $app->fresh();
     }
@@ -60,6 +61,7 @@ class InterviewDecisionRegressionTest extends TestCase
             'start_time' => '08:00', 'capacity' => 5, 'status' => 'active',
         ]);
         $this->actingAs($app->account ?? $this->applicant())->post(route('portal.slots.book', $app), ['slot_id' => $slot->id]);
+        $slot->update(['date' => now('Asia/Jakarta')->subDay()->toDateString()]);
         $appt = $app->fresh()->appointment;
         $this->actingAs($admin)->post(route('admin.appointments.complete', $appt), [
             'attendance' => 'attended',

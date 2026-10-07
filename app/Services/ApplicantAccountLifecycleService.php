@@ -3,8 +3,8 @@
 namespace App\Services;
 
 use App\Enums\ApplicationStatus;
-use App\Models\PPDBRegistration;
 use App\Models\PpdbPeriod;
+use App\Models\PPDBRegistration;
 use App\Models\User;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
@@ -53,7 +53,7 @@ class ApplicantAccountLifecycleService
             // berikutnya (aksi Selesaikan + scheduler harian).
             // account_retention_until tetap dicatat sebagai info audit.
             $retentionUntil = $period->account_retention_until
-                ?? $period->operational_completed_at?->copy()->addDays((int) config('retention.applicants.real_retention_days', 90));
+                ?? $period->operational_completed_at;
             $dueAt = $retentionUntil && (! $dueAt || $retentionUntil->gt($dueAt))
                 ? $retentionUntil
                 : $dueAt;

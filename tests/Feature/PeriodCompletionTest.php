@@ -278,7 +278,7 @@ class PeriodCompletionTest extends TestCase
 
         $period = $period->fresh();
         $this->assertNotNull($period->account_retention_until);
-        $expected = $period->operational_completed_at->copy()->addDays((int) config('retention.applicants.real_retention_days', 90));
+        $expected = $period->operational_completed_at;
         $this->assertEquals($expected->timestamp, $period->account_retention_until->timestamp);
     }
 
@@ -288,12 +288,11 @@ class PeriodCompletionTest extends TestCase
         $admin = $this->superadmin();
         PpdbPeriod::where('academic_year', '2026/2027')->update(['status' => 'closed', 'is_active' => false, 'is_open' => false]);
         $period = $this->closedPeriod('2104/2105');
-        $this->finishApp($this->applicant(), $period, 'passed');
-
-        $this->actingAs($admin)->post(route('admin.periods.complete', $period), ['confirm' => 1])
-            ->assertSessionHasNoErrors();
-        $this->assertNotNull($period->fresh()->operational_completed_at);
-        $this->assertNotNull($period->fresh()->account_retention_until);
+        $period->update([
+            'results_released_at' => now()->subDays(2),
+            'operational_completed_at' => now()->subDay(),
+            'account_retention_until' => now()->subDay(),
+        ]);
 
         $this->actingAs($admin)->post(route('admin.periods.reopen', $period))->assertRedirect();
         $period = $period->fresh();
@@ -304,30 +303,25 @@ class PeriodCompletionTest extends TestCase
         $this->assertNotNull($period->results_released_at);
         $this->assertFalse($period->isLockedForOperations());
 
-        // Tutup lagi lalu selesaikan: lifecycle dihitung ulang dari awal.
-        $this->actingAs($admin)->post(route('admin.periods.close', $period))->assertRedirect();
-        $this->actingAs($admin)->post(route('admin.periods.complete', $period->fresh()), ['confirm' => 1])
-            ->assertSessionHasNoErrors();
-        $period = $period->fresh();
-        $this->assertEquals('completed', $period->status);
-        $this->assertNotNull($period->operational_completed_at);
-        $this->assertNotNull($period->account_retention_until);
     }
 
-    public function test_reopen_completed_is_possible_escape_hatch(): void
+    public function test_completed_period_is_terminal_and_cannot_be_reopened(): void
     {
         $admin = $this->superadmin();
         // Periode seed bawaan migrasi (2026/2027, open) harus dinetralkan
         // agar tidak konflik dengan aturan satu-periode-berjalan.
         PpdbPeriod::where('academic_year', '2026/2027')->update(['status' => 'closed', 'is_active' => false, 'is_open' => false]);
         $period = $this->closedPeriod('2099/2100');
-        $this->finishApp($this->applicant(), $period, 'passed');
+        $applicant = $this->applicant();
+        $this->finishApp($applicant, $period, 'passed');
         // Rilis otomatis? Tidak — keputusan fixture sudah released via finishApp.
         $this->actingAs($admin)->post(route('admin.periods.complete', $period), ['confirm' => 1])
             ->assertSessionHasNoErrors();
         $this->assertEquals('completed', $period->fresh()->status);
+        $this->assertDatabaseMissing('users', ['id' => $applicant->id]);
 
-        $this->actingAs($admin)->post(route('admin.periods.reopen', $period))->assertRedirect();
-        $this->assertEquals('open', $period->fresh()->status);
+        $this->actingAs($admin)->post(route('admin.periods.reopen', $period))
+            ->assertSessionHasErrors(['status']);
+        $this->assertEquals('completed', $period->fresh()->status);
     }
 }
