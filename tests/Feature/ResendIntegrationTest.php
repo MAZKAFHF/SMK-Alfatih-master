@@ -13,6 +13,14 @@ class ResendIntegrationTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_production_worker_consumes_the_dedicated_email_queue(): void
+    {
+        $compose = file_get_contents(base_path('docker-compose.production.yml'));
+
+        $this->assertIsString($compose);
+        $this->assertStringContainsString('--queue=emails,default', $compose);
+    }
+
     public function test_local_mail_delivery_is_logged_without_real_network_request(): void
     {
         Mail::fake();

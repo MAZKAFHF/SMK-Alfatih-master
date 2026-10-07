@@ -78,7 +78,7 @@ services:
         condition: service_healthy
       app:
         condition: service_healthy
-    command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--timeout=120", "--max-time=3600"]
+    command: ["php", "artisan", "queue:work", "--queue=emails,default", "--sleep=3", "--tries=3", "--timeout=120", "--max-time=3600"]
     healthcheck:
       disable: true
     volumes:
