@@ -9,11 +9,13 @@
     $preheader = $payload['preheader'] ?? $headline.' — '.$schoolName;
     $templateMeta = match ($template ?? '') {
         'verify_email' => ['label' => 'VERIFIKASI AKUN', 'accent' => '#0f8a63'],
+        'reset_password' => ['label' => 'KEAMANAN AKUN', 'accent' => '#c2413b'],
         'application_submitted' => ['label' => 'PENDAFTARAN', 'accent' => '#0f8a63'],
         'interview_confirmed' => ['label' => 'JADWAL WAWANCARA', 'accent' => '#db7c16'],
-        'document_revision' => ['label' => 'PERBAIKAN DOKUMEN', 'accent' => '#c2413b'],
-        'decision_passed' => ['label' => 'HASIL SELEKSI', 'accent' => '#0f8a63'],
-        'decision_not_passed' => ['label' => 'HASIL SELEKSI', 'accent' => '#64748b'],
+        'application_verified' => ['label' => 'VERIFIKASI PENDAFTARAN', 'accent' => '#0f8a63'],
+        'correction_requested' => ['label' => 'PERBAIKAN DOKUMEN', 'accent' => '#c2413b'],
+        'result_pass' => ['label' => 'HASIL SELEKSI', 'accent' => '#0f8a63'],
+        'result_not_pass' => ['label' => 'HASIL SELEKSI', 'accent' => '#64748b'],
         default => ['label' => 'INFORMASI RESMI PPDB', 'accent' => '#0f8a63'],
     };
 @endphp

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Services\MailService;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -101,5 +102,26 @@ class User extends Authenticatable
     public function isActive(): bool
     {
         return (bool) $this->is_active;
+    }
+
+    /**
+     * Send a branded, auditable password-reset email through the same
+     * resilient delivery pipeline as every other PPDB transactional email.
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $route = $this->is_admin ? 'admin.password.reset' : 'portal.password.reset';
+        $resetUrl = route($route, [
+            'token' => $token,
+            'email' => $this->email,
+        ]);
+
+        MailService::send('reset_password', $this->email, 'Reset Password Akun SMK Tahfizh Al-Fatih', [
+            'headline' => 'Reset Password Akun Anda',
+            'preheader' => 'Gunakan tautan aman ini untuk membuat password baru.',
+            'body' => '<p>Halo <strong>'.e($this->name).'</strong>,</p><p>Kami menerima permintaan reset password untuk akun Anda. Gunakan tombol berikut untuk membuat password baru. Tautan akan kedaluwarsa sesuai batas keamanan sistem.</p><p>Jika Anda tidak meminta reset password, abaikan email ini dan jangan bagikan tautannya kepada siapa pun.</p>',
+            'cta' => 'Buat Password Baru',
+            'cta_url' => $resetUrl,
+        ]);
     }
 }

@@ -3,8 +3,11 @@
 namespace Tests\Feature;
 
 use App\Mail\PpdbMail;
+use App\Models\EmailLog;
 use App\Models\PPDBRegistration;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class EmailTemplateTest extends TestCase
@@ -37,5 +40,36 @@ class EmailTemplateTest extends TestCase
         $this->assertStringContainsString('Panitia tidak pernah meminta password', $html);
         $this->assertStringContainsString('@media only screen and (max-width: 640px)', $html);
         $this->assertStringNotContainsString('ALFATIH//FUTURE', $html);
+    }
+
+    public function test_applicant_password_reset_uses_branded_auditable_email(): void
+    {
+        Mail::fake();
+        $user = User::factory()->create([
+            'is_admin' => false,
+            'is_applicant' => true,
+        ]);
+
+        $user->sendPasswordResetNotification('secure-test-token');
+
+        $log = EmailLog::latest('id')->firstOrFail();
+        $this->assertSame('reset_password', $log->template);
+        $this->assertSame($user->email, $log->recipient);
+        $this->assertStringContainsString('/portal/reset-password/secure-test-token', $log->payload['cta_url']);
+        $this->assertStringContainsString('email='.urlencode($user->email), $log->payload['cta_url']);
+    }
+
+    public function test_admin_password_reset_targets_admin_reset_screen(): void
+    {
+        Mail::fake();
+        $user = User::factory()->create([
+            'is_admin' => true,
+            'is_applicant' => false,
+        ]);
+
+        $user->sendPasswordResetNotification('admin-test-token');
+
+        $log = EmailLog::latest('id')->firstOrFail();
+        $this->assertStringContainsString('/admin/reset-password/admin-test-token', $log->payload['cta_url']);
     }
 }
