@@ -119,7 +119,9 @@ class ResendWebhookController extends Controller
     private function parseOccurredAt(mixed $value): CarbonImmutable
     {
         try {
-            return filled($value) ? CarbonImmutable::parse((string) $value) : now()->toImmutable();
+            return filled($value)
+                ? CarbonImmutable::parse((string) $value)->setTimezone((string) config('app.timezone'))
+                : now()->toImmutable();
         } catch (Throwable) {
             return now()->toImmutable();
         }

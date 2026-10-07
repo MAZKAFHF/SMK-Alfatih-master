@@ -78,6 +78,30 @@ class ResendIntegrationTest extends TestCase
         $this->assertDatabaseCount('email_webhook_events', 1);
     }
 
+    public function test_utc_webhook_time_is_stored_without_timezone_drift(): void
+    {
+        $secretBytes = 'resend-webhook-test-secret';
+        config(['services.resend.webhook_secret' => 'whsec_'.base64_encode($secretBytes)]);
+
+        $log = EmailLog::create([
+            'template' => 'verify_email',
+            'recipient' => 'pendaftar@example.test',
+            'provider' => 'resend',
+            'provider_message_id' => 'email_timezone_test',
+            'status' => 'sent',
+        ]);
+        $payload = json_encode([
+            'type' => 'email.delivered',
+            'created_at' => '2026-10-07T04:10:18.000Z',
+            'data' => ['email_id' => 'email_timezone_test'],
+        ], JSON_THROW_ON_ERROR);
+        $headers = $this->signedHeaders('msg_timezone_test', $payload, $secretBytes);
+
+        $this->call('POST', route('webhooks.resend'), [], [], [], $headers, $payload)->assertOk();
+
+        $this->assertSame('2026-10-07T04:10:18+00:00', $log->fresh()->delivered_at->utc()->toIso8601String());
+    }
+
     public function test_resend_webhook_rejects_invalid_signature(): void
     {
         config(['services.resend.webhook_secret' => 'whsec_'.base64_encode('secret')]);
