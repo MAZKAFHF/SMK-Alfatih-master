@@ -48,3 +48,32 @@ Backup belum dianggap sehat sebelum `app:backup-verify` berhasil dan uji pemulih
 8. Jalankan smoke test, lalu `php artisan up`.
 
 Jangan menguji restore langsung pada database produksi. Catat operator, waktu, manifest, dan hasil uji restore dalam log operasional sekolah.
+
+## Sinkronisasi production ke localhost
+
+Kode, data runtime, dan media memiliki jalur sinkronisasi berbeda:
+
+- kode aplikasi selalu di-commit dan di-push ke GitHub, lalu server production menarik commit yang sama;
+- data production dipindahkan ke localhost memakai snapshot portabel terkompresi;
+- media publik dan dokumen PPDB privat dipindahkan memakai arsip backup terverifikasi;
+- database, dokumen siswa, `.env`, API key, dan snapshot **tidak boleh** dimasukkan ke GitHub.
+
+Ekspor data persisten di production:
+
+```bash
+php artisan app:data-export /backups/data-sync.json.gz
+```
+
+Setelah file dipindahkan melalui kanal terenkripsi (SSH/SCP), buat backup lokal dan impor:
+
+```bash
+php artisan app:backup
+php artisan app:backup-verify
+php artisan app:data-import storage/app/backups/data-sync.json.gz --force
+php artisan optimize:clear
+php artisan app:media-audit
+```
+
+Snapshot sengaja tidak membawa cache, sesi login, antrean, failed jobs, token reset password, dan tabel migrasi. Impor otomatis ditolak pada environment `production` agar perintah ini tidak dapat menimpa database publik.
+
+Sesudah sinkronisasi, bandingkan jumlah record per tabel dari output ekspor/import, jalankan cleanup akun dalam mode `--dry-run`, lalu smoke-test beranda, portal, admin, media publik, dan dokumen privat. Jangan pernah menggunakan database production langsung dari localhost.
