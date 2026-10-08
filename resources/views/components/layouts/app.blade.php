@@ -61,7 +61,7 @@
         '@id' => $websiteId,
         'url' => route('home'),
         'name' => $siteName,
-        'alternateName' => ['SMK Al Fatih Pekanbaru', 'SMK Islam Al Fatih Pekanbaru'],
+        'alternateName' => ['SMK Al Fatih Pekanbaru'],
         'inLanguage' => 'id-ID',
         'publisher' => ['@id' => $schoolId],
     ], [
@@ -98,7 +98,6 @@
             'name' => $siteName,
             'alternateName' => [
                 'SMK Tahfizh Al Fatih Pekanbaru',
-                'SMK Islam Al Fatih Pekanbaru',
                 'SMK Al Fatih Pekanbaru',
             ],
             'url' => route('home'),

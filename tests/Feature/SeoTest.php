@@ -22,9 +22,11 @@ class SeoTest extends TestCase
             ->assertSee('name="twitter:card" content="summary_large_image"', false)
             ->assertSee('"@type":"HighSchool"', false)
             ->assertSee('"@type":"WebSite"', false)
-            ->assertSee('"alternateName":["SMK Tahfizh Al Fatih Pekanbaru","SMK Islam Al Fatih Pekanbaru","SMK Al Fatih Pekanbaru"]', false)
-            ->assertSee('SMK Islam Tahfizh Al-Fatih Pekanbaru', false)
-            ->assertSee('SMK Islam Tahfizh Al-Fatih di Pekanbaru', false);
+            ->assertSee('"alternateName":["SMK Tahfizh Al Fatih Pekanbaru","SMK Al Fatih Pekanbaru"]', false)
+            ->assertSee('SMK Tahfizh Al-Fatih Pekanbaru', false)
+            ->assertSee('SMK Tahfizh Al-Fatih di Pekanbaru', false)
+            ->assertDontSee('SMK Islam Tahfizh Al-Fatih', false)
+            ->assertDontSee('SMK Islam Al Fatih Pekanbaru', false);
     }
 
     public function test_paginated_public_page_keeps_page_in_canonical_but_drops_tracking(): void

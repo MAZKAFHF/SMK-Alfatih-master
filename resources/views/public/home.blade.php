@@ -27,7 +27,7 @@
                     PPDB {{ $ppdbState->period?->academic_year ?? '' }} {{ $ppdbState->publicLabel() }}
                 </div>
 
-                <h1 class="mt-6 text-xs font-bold uppercase tracking-[0.25em] text-gold-400" data-hero-item style="--hero-delay: 90ms">SMK Islam Tahfizh Al-Fatih Pekanbaru</h1>
+                <h1 class="mt-6 text-xs font-bold uppercase tracking-[0.25em] text-gold-400" data-hero-item style="--hero-delay: 90ms">SMK Tahfizh Al-Fatih Pekanbaru</h1>
                 <div class="mt-3 font-display text-[2rem] font-extrabold leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-[2.65rem] xl:text-5xl">
                     <span data-mask-line style="--reveal-delay: 140ms"><span>Membangun Generasi</span></span>
                     <span data-mask-line style="--reveal-delay: 230ms"><span class="text-tech-300">Berilmu.</span></span>
@@ -80,7 +80,7 @@
     <section id="tentang" class="scroll-mt-20 bg-white py-16 dark:bg-slate-950 lg:py-20">
         <div class="mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">
             <div class="reveal">
-                <x-section-heading align="left" subtitle="Tentang Kami" title="SMK Islam Tahfizh Al-Fatih di Pekanbaru">
+                <x-section-heading align="left" subtitle="Tentang Kami" title="SMK Tahfizh Al-Fatih di Pekanbaru">
                     SMK Tahfizh Al-Fatih Pekanbaru adalah sekolah menengah kejuruan Islam yang memadukan pendidikan vokasi modern dengan pembinaan hafalan Al-Qur'an. Siswa belajar melalui praktik, proyek, dan pembentukan karakter agar berilmu, terampil, siap berkarya, serta kokoh dalam iman dan akhlak.
                 </x-section-heading>
 
